@@ -1,0 +1,36 @@
+{
+  "authLayout": {
+    "logoAlt": "opo-planner"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "error": "Usuario o contraseña incorrectos",
+    "noAccount": "¿No tienes cuenta?",
+    "goToRegister": "Regístrate"
+  },
+  "register": {
+    "title": "Crear cuenta",
+    "name": "Nombre",
+    "surname": "Apellidos",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "password": "Contraseña",
+    "submit": "Registrarse",
+    "error": "No se ha podido completar el registro",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "goToLogin": "Inicia sesión"
+  },
+  "passwordInput": {
+    "show": "Mostrar contraseña",
+    "hide": "Ocultar contraseña"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Introduce un email válido",
+    "password": "Mínimo 8 caracteres, con una mayúscula, una minúscula y un número"
+  }
+}

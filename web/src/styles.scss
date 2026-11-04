@@ -1,1 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'sass:meta';
+
+@import 'styles/variables';
+@import 'bootstrap/scss/bootstrap';
+
+@import 'styles/cards';
+@import 'styles/button';
+@include meta.load-css('styles/input');
+@import 'styles/auth-page';

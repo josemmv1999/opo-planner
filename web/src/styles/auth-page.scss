@@ -1,0 +1,19 @@
+.auth-page {
+  display: block;
+  background: url('/images/background.webp') center / cover no-repeat var(--bs-primary);
+
+  &__logo {
+    height: 3rem;
+
+    @include media-breakpoint-down(sm) {
+      box-sizing: content-box;
+      padding: 0.5rem 0.75rem;
+      background-color: var(--bs-light);
+      border-radius: var(--bs-border-radius);
+    }
+  }
+
+  &__card {
+    max-width: 28rem;
+  }
+}

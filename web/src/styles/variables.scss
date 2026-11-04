@@ -1,0 +1,70 @@
+// Marca de opo-planner: overrides de Bootstrap.
+// Se importa ANTES de 'bootstrap/scss/bootstrap'.
+
+// Paleta (sacada de las ilustraciones del fondo)
+$op-ink: #2d3142;
+$op-cream: #fdf6e7;
+$op-teal: #0b7489;
+$op-cyan: #1bc3d2;
+$op-orange: #f39a33;
+$op-yellow: #ffc93c;
+$op-red: #c0392b;
+$op-green: #13824a;
+$op-mint: #b5f0e0;
+
+// Colores de tema
+$primary: $op-teal;
+$secondary: $op-orange;
+$success: $op-green;
+$info: $op-cyan;
+$warning: $op-yellow;
+$danger: $op-red;
+$light: $op-cream;
+$dark: $op-ink;
+
+// Texto oscuro de la marca en los botones claros (naranja, amarillo, cian)
+$color-contrast-dark: $op-ink;
+
+// Base
+$body-bg: $op-cream;
+$body-color: $op-ink;
+$headings-color: $op-ink;
+$link-color: $op-teal;
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+// Tipografía
+$font-family-sans-serif: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$headings-font-weight: 800;
+$font-weight-semibold: 700;
+
+// Bordes y radios
+$border-color: rgba($op-ink, 0.2);
+$border-radius: 0.75rem;
+$border-radius-sm: 0.5rem;
+$border-radius-lg: 1.25rem;
+
+// Botones
+$btn-font-weight: 700;
+$btn-padding-y: 0.625rem;
+$btn-padding-x: 1.25rem;
+$btn-border-width: 2px;
+
+// Inputs
+$input-bg: #fff;
+$input-border-color: rgba($op-ink, 0.25);
+$input-border-width: 2px;
+$input-padding-y: 0.625rem;
+$input-focus-border-color: $op-teal;
+$input-focus-box-shadow: 0 0 0 0.25rem rgba($op-teal, 0.2);
+$form-label-font-weight: 700;
+
+// Cards
+$card-bg: #fff;
+$card-border-width: 2px;
+$card-border-color: $op-ink;
+$card-border-radius: $border-radius-lg;
+$card-spacer-y: 1.5rem;
+$card-spacer-x: 1.5rem;
+$card-cap-bg: transparent;
+$card-title-spacer-y: 1rem;
