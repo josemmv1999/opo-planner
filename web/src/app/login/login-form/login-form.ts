@@ -6,7 +6,7 @@ import { Credentials } from '../../../common/models/credentials.model';
 import { InputField } from '../../../common/components/input/input';
 import { Button } from '../../../common/components/button/button';
 import { validationErrorKey } from '../../../common/utils/validation-error-key';
-import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { PasswordInput } from '../../../common/components/password-input/password-input';
 
 @Component({
   selector: 'app-login-form',
@@ -24,18 +24,22 @@ import { PasswordInput } from '../../shared/components/password-input/password-i
         [control]="form.controls.password"
         [label]="'login.password' | translate"
         [error]="errorKey(form.controls.password) | translate" />
-
-      @if (hasError()) {
-        <div class="alert alert-danger mb-0" role="alert">{{ 'login.error' | translate }}</div>
+      @if (error() === 'login') {
+        <span class="mb-0 text-danger fs-7">
+          {{ 'login.error' | translate }}
+        </span>
       }
-
-      <app-button type="submit" [isFullWidth]="true" [isDisabled]="form.invalid" [isLoading]="isLoggingIn()">
+      <app-button
+        type="submit"
+        [isFullWidth]="true"
+        [isDisabled]="form.invalid"
+        [isLoading]="isLoggingIn()">
         {{ 'login.submit' | translate }}
       </app-button>
-      <p class="text-center mb-0">
+      <span class="text-center mb-0">
         {{ 'login.noAccount' | translate }}
         <a routerLink="/register">{{ 'login.goToRegister' | translate }}</a>
-      </p>
+      </span>
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,7 +48,7 @@ export class LoginForm {
   readonly #fb = inject(NonNullableFormBuilder);
 
   readonly isLoggingIn = input(false);
-  readonly hasError = input(false);
+  readonly error = input<'login' | null>(null);
   readonly submitted = output<Credentials>();
 
   protected readonly errorKey = validationErrorKey;

@@ -9,8 +9,8 @@ import { LoginStore } from './login.store';
   template: `
     <app-login-form
       [isLoggingIn]="store.isLoggingIn()"
-      [hasError]="store.error() === 'login'"
-      (submitted)="store.login($event)" />
+      (submitted)="store.login($event)"
+      [error]="store.error()" />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

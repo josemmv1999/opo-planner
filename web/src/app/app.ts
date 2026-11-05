@@ -1,8 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ToastContainer } from '../common/components/toast-container/toast-container';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ToastContainer],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
