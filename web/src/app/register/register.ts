@@ -10,8 +10,8 @@ import { RegisterStore } from './register.store';
   template: `
     <app-register-form
       [isRegistering]="store.isRegistering()"
-      [hasError]="store.error() === 'register'"
-      (submitted)="store.register($event)" />
+      (submitted)="store.register($event)"
+      [error]="store.error()" />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

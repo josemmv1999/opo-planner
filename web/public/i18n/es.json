@@ -20,13 +20,17 @@
     "emailPlaceholder": "tu@email.com",
     "password": "Contraseña",
     "submit": "Registrarse",
-    "error": "No se ha podido completar el registro",
+    "error": "Algo no ha salido bien, inténtalo de nuevo en unos minutos",
+    "success": "Cuenta creada",
     "hasAccount": "¿Ya tienes cuenta?",
     "goToLogin": "Inicia sesión"
   },
   "passwordInput": {
     "show": "Mostrar contraseña",
     "hide": "Ocultar contraseña"
+  },
+  "notifications": {
+    "close": "Cerrar"
   },
   "validation": {
     "required": "Este campo es obligatorio",

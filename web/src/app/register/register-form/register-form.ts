@@ -37,18 +37,23 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
         [control]="form.controls.password"
         [label]="'register.password' | translate"
         [error]="errorKey(form.controls.password) | translate" />
-
-      @if (hasError()) {
-        <div class="alert alert-danger mb-0" role="alert">{{ 'register.error' | translate }}</div>
+      <!-- TODO: Modularize this part of the code, this can be an standalone component too -->
+      @if (error() === 'register') {
+        <span class="mb-0 text-danger fs-7">
+          {{ 'register.error' | translate }}
+        </span>
       }
-
-      <app-button type="submit" [isFullWidth]="true" [isDisabled]="form.invalid" [isLoading]="isRegistering()">
+      <app-button
+        type="submit"
+        [isFullWidth]="true"
+        [isDisabled]="form.invalid"
+        [isLoading]="isRegistering()">
         {{ 'register.submit' | translate }}
       </app-button>
-      <p class="text-center mb-0">
+      <span class="text-center mb-0">
         {{ 'register.hasAccount' | translate }}
         <a routerLink="/login">{{ 'register.goToLogin' | translate }}</a>
-      </p>
+      </span>
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,8 +62,8 @@ export class RegisterForm {
   readonly #fb = inject(NonNullableFormBuilder);
 
   readonly isRegistering = input(false);
-  readonly hasError = input(false);
   readonly submitted = output<RegisterData>();
+  readonly error = input<'register' | null>(null);
 
   protected readonly errorKey = validationErrorKey;
   protected readonly form = this.#fb.group({
