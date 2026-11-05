@@ -6,7 +6,7 @@ import { Credentials } from '../../../common/models/credentials.model';
 import { InputField } from '../../../common/components/input/input';
 import { Button } from '../../../common/components/button/button';
 import { validationErrorKey } from '../../../common/utils/validation-error-key';
-import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { PasswordInput } from '../../../common/components/password-input/password-input';
 
 @Component({
   selector: 'app-login-form',

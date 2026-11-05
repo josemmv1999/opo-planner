@@ -7,7 +7,7 @@ import { InputField } from '../../../common/components/input/input';
 import { RegisterData } from '../../../common/models/register-data.model';
 import { passwordValidator } from '../../../common/utils/password.validator';
 import { validationErrorKey } from '../../../common/utils/validation-error-key';
-import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { PasswordInput } from '../../../common/components/password-input/password-input';
 
 @Component({
   selector: 'app-register-form',
