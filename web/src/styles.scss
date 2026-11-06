@@ -7,3 +7,7 @@
 @import 'styles/button';
 @include meta.load-css('styles/input');
 @import 'styles/auth-page';
+
+html:has(dialog:modal) {
+  overflow: hidden;
+}

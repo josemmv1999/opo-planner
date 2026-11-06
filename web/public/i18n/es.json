@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
+  },
   "authLayout": {
     "logoAlt": "opo-planner"
   },
