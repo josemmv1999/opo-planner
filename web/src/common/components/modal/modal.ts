@@ -67,12 +67,12 @@ export class Modal {
     });
   }
 
-  protected onMouseDown({ target }: MouseEvent): void {
-    this.isPressedOnBackdrop = target === this.dialog().nativeElement;
+  protected onMouseDown(event: MouseEvent): void {
+    this.isPressedOnBackdrop = event.target === this.dialog().nativeElement;
   }
 
-  protected onMouseUp({ target }: MouseEvent): void {
+  protected onMouseUp(event: MouseEvent): void {
     const dialog = this.dialog().nativeElement;
-    if (this.isPressedOnBackdrop && target === dialog) dialog.close();
+    if (this.isPressedOnBackdrop && event.target === dialog) dialog.close();
   }
 }
