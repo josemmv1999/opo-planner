@@ -46,12 +46,12 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
           <p class="visually-hidden">
             {{ 'trueFalseGame.progress' | translate: { current: currentIndex() + 1, total: roundStatements().length } }}
           </p>
-          <p class="fs-4 fw-bold">{{ statement.text }}</p>
-          <div class="d-flex gap-2">
+          <p class="true-false-game__statement fw-bold">{{ statement.text }}</p>
+          <div class="true-false-game__answers">
             <button
               #trueButton
               type="button"
-              class="true-false-game__answer btn flex-fill d-flex align-items-center justify-content-center"
+              class="true-false-game__answer btn d-flex align-items-center justify-content-center"
               [class.btn-success]="selectedAnswer() === true"
               [class.btn-outline-success]="selectedAnswer() !== true"
               [disabled]="hasAnswered()"
@@ -61,7 +61,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
             </button>
             <button
               type="button"
-              class="true-false-game__answer btn flex-fill d-flex align-items-center justify-content-center"
+              class="true-false-game__answer btn d-flex align-items-center justify-content-center"
               [class.btn-danger]="selectedAnswer() === false"
               [class.btn-outline-danger]="selectedAnswer() !== false"
               [disabled]="hasAnswered()"
@@ -103,8 +103,27 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
     </section>
   `,
   styles: `
+    :host {
+      display: block;
+      container-type: inline-size;
+    }
+
     .true-false-game__segment {
       height: 0.375rem;
+    }
+
+    .true-false-game__statement {
+      font-size: clamp(1.125rem, 0.875rem + 2cqi, 1.5rem);
+    }
+
+    .true-false-game__answers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+      gap: 0.5rem;
+    }
+
+    .true-false-game__answer {
+      min-width: 0;
     }
 
     .true-false-game__answer.btn-success:disabled,

@@ -36,7 +36,8 @@
       "days": "días seguidos",
       "studied": "estudiado",
       "notStudied": "sin estudiar",
-      "pending": "hoy, todavía sin estudiar"
+      "pending": "hoy, todavía sin estudiar",
+      "weekdayInitials": ["D", "L", "M", "X", "J", "V", "S"]
     },
     "today": {
       "title": "Hoy",
