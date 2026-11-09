@@ -10,5 +10,4 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/notes', icon: 'notes', labelKey: 'nav.notes' },
   { path: '/exams', icon: 'timer', labelKey: 'nav.exams' },
   { path: '/mock-exams', icon: 'tests', labelKey: 'nav.mockExams' },
-  { path: '/planner', icon: 'planner', labelKey: 'nav.planner' },
 ];

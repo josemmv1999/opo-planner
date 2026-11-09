@@ -20,7 +20,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
     TrueFalseGame,
   ],
   providers: [HomeStore],
-  host: { class: 'd-block' },
+  host: { class: 'd-flex flex-column flex-grow-1' },
   template: `
     @if (store.isLoading()) {
       <div class="d-flex justify-content-center py-5">
@@ -60,6 +60,12 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
     .home__grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        'countdown streak'
+        'calendar calendar'
+        'game game'
+        'weak weak'
+        'studied studied';
       gap: 0.875rem;
 
       > * {
@@ -67,52 +73,75 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
       }
     }
 
-    .home__calendar,
-    .home__game,
-    .home__weak,
+    .home__countdown {
+      grid-area: countdown;
+    }
+
+    .home__streak {
+      grid-area: streak;
+    }
+
+    .home__calendar {
+      grid-area: calendar;
+    }
+
+    .home__game {
+      grid-area: game;
+    }
+
+    .home__weak {
+      grid-area: weak;
+    }
+
     .home__studied {
-      grid-column: 1 / -1;
+      grid-area: studied;
     }
 
     @container (max-width: 20rem) {
       .home__grid {
         grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: 'countdown' 'streak' 'calendar' 'game' 'weak' 'studied';
       }
     }
 
-    @container (min-width: 40rem) {
+    @container (min-width: 44rem) {
       .home__grid {
-        gap: 1.75rem;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        grid-template-areas:
+          'countdown streak'
+          'calendar calendar'
+          'game game'
+          'weak studied';
+        gap: 1.25rem;
       }
     }
 
-    @container (min-width: 64rem) {
+    @container (min-width: 56rem) {
       .home__grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .home__countdown {
-        grid-area: 1 / 1;
-      }
-
-      .home__streak {
-        grid-area: 1 / 2;
+        flex: 1;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.25fr) minmax(0, 1fr);
+        grid-template-rows: auto minmax(12rem, 1fr) auto;
+        grid-template-areas:
+          'countdown streak calendar'
+          'game game calendar'
+          'weak weak studied';
+        gap: 1rem 1.25rem;
       }
 
       .home__game {
-        grid-area: 1 / 3 / span 2;
+        min-height: 0;
+        contain: size;
+      }
+
+      @media (min-width: 992px) and (max-height: 56rem) {
+        .home__grid {
+          row-gap: 0.75rem;
+        }
       }
 
       .home__calendar {
-        grid-area: 2 / 1 / auto / span 2;
-      }
-
-      .home__weak {
-        grid-area: 3 / 1 / auto / span 2;
-      }
-
-      .home__studied {
-        grid-area: 3 / 3;
+        --calendar-card-agenda-height: 0;
+        --calendar-card-agenda-min-height: 5.5rem;
       }
     }
   `,
