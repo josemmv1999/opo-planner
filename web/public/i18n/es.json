@@ -9,7 +9,9 @@
     "logout": "Cerrar sesión",
     "account": "Tu cuenta",
     "collapse": "Plegar menú",
-    "expand": "Desplegar menú"
+    "expand": "Desplegar menú",
+    "changeOpposition": "Cambiar de oposición",
+    "profile": "Perfil y cerrar sesión"
   },
   "authLayout": {
     "logoAlt": "opo-planner"
@@ -27,8 +29,9 @@
     },
     "countdown": {
       "title": "Cuenta atrás",
-      "day": "día para el examen",
-      "days": "días para el examen"
+      "day": "día",
+      "days": "días",
+      "examDate": "Examen previsto: {{date}}"
     },
     "streak": {
       "title": "Racha",
@@ -37,7 +40,8 @@
       "studied": "estudiado",
       "notStudied": "sin estudiar",
       "pending": "hoy, todavía sin estudiar",
-      "weekdayInitials": ["D", "L", "M", "X", "J", "V", "S"]
+      "weekdayInitials": ["D", "L", "M", "X", "J", "V", "S"],
+      "studyToday": "Estudia hoy para llegar a {{days}}."
     },
     "today": {
       "title": "Hoy",
@@ -52,7 +56,8 @@
       "percentage": "{{percentage}} %",
       "practice": "Practicar",
       "studied": "Estudiados",
-      "noStudied": "Aún no has marcado ningún bloque"
+      "noStudied": "Aún no has marcado ningún bloque",
+      "practiceBlock": "Practicar {{name}}"
     }
   },
   "login": {
@@ -104,7 +109,8 @@
     "next": "Siguiente",
     "roundOver": "aciertos en esta ronda",
     "playAgain": "Otra ronda",
-    "disclaimer": "No cuenta para la racha ni para las estadísticas"
+    "disclaimer": "No cuenta para la racha ni para las estadísticas.",
+    "scoreOne": "{{correct}} acierto"
   },
   "validation": {
     "required": "Este campo es obligatorio",

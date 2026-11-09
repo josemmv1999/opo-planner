@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TrueFalseGame } from '../../common/components/true-false-game/true-false-game';
-import { greetingKeyFor } from '../../common/utils/greeting-key';
 import { BlocksCard } from './blocks-card/blocks-card';
 import { CountdownCard } from './countdown-card/countdown-card';
 import { HomeStore } from './home.store';
@@ -12,7 +11,7 @@ import { TodayCard } from './today-card/today-card';
   selector: 'app-home',
   imports: [TranslatePipe, CountdownCard, StreakCard, TodayCard, BlocksCard, TrueFalseGame],
   providers: [HomeStore],
-  host: { class: 'd-block mx-auto' },
+  host: { class: 'd-block' },
   template: `
     @if (store.isLoading()) {
       <div class="d-flex justify-content-center py-5">
@@ -23,10 +22,6 @@ import { TodayCard } from './today-card/today-card';
     } @else if (store.error()) {
       <div class="alert alert-danger" role="alert">{{ 'home.error' | translate }}</div>
     } @else {
-      <header class="mb-4">
-        <p class="text-body-secondary mb-1">{{ greetingKey | translate: { name: store.userName() } }}</p>
-        <h1 class="fs-2 mb-0">{{ store.oppositionName() }}</h1>
-      </header>
       <div class="home__grid">
         @if (store.examDate(); as examDate) {
           <app-countdown-card class="home__countdown" [examDate]="examDate" />
@@ -44,29 +39,31 @@ import { TodayCard } from './today-card/today-card';
     }
   `,
   styles: `
-    :host {
-      max-width: 75rem;
-    }
-
     .home__grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 1.5rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.875rem;
 
       > * {
         min-width: 0;
       }
     }
 
+    .home__today,
+    .home__game,
+    .home__blocks {
+      grid-column: 1 / -1;
+    }
+
+    @container (max-width: 20rem) {
+      .home__grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     @container (min-width: 40rem) {
       .home__grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .home__today,
-      .home__game,
-      .home__blocks {
-        grid-column: 1 / -1;
+        gap: 1.75rem;
       }
     }
 
@@ -100,7 +97,6 @@ import { TodayCard } from './today-card/today-card';
 })
 export class Home {
   protected readonly store = inject(HomeStore);
-  protected readonly greetingKey = greetingKeyFor(new Date());
 
   constructor() {
     this.store.load();

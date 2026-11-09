@@ -11,13 +11,13 @@ import { Icon } from '../icon/icon';
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, TranslatePipe, InitialsPipe, Icon],
   host: {
-    class: 'flex-column gap-4 sticky-lg-top vh-100 bg-white border-end p-3',
+    class: 'flex-column sticky-lg-top vh-100 bg-white border-end border-2 border-dark',
     '[class.sidebar--collapsed]': 'isCollapsed()',
     '(transitionend)': 'showFullContentAfterExpanding($event)',
   },
   template: `
     <div
-      class="d-flex align-items-center gap-2"
+      class="d-flex align-items-center gap-3"
       [class.flex-column]="!isShowingFullContent()"
       [class.justify-content-between]="isShowingFullContent()">
       <img
@@ -26,57 +26,70 @@ import { Icon } from '../icon/icon';
         [alt]="'appLayout.logoAlt' | translate" />
       <button
         type="button"
-        class="btn btn-link text-body d-flex align-items-center p-1"
+        class="sidebar__toggle btn btn-light bg-white d-flex align-items-center justify-content-center p-0"
         [title]="(isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate"
+        [attr.aria-label]="(isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate"
         [attr.aria-expanded]="!isCollapsed()"
         (click)="toggleCollapse.emit()">
-        <app-icon [name]="isCollapsed() ? 'chevron-right' : 'chevron-left'" />
+        <app-icon name="sidebar" />
       </button>
     </div>
 
-    @if (isShowingFullContent() && opposition(); as opposition) {
-      <button type="button" class="btn btn-light d-flex align-items-center gap-2 text-start p-2">
+    @if (opposition(); as opposition) {
+      <button
+        type="button"
+        class="sidebar__selector btn btn-light d-flex align-items-center gap-2 text-start p-2"
+        [class.justify-content-center]="!isShowingFullContent()"
+        [title]="'appLayout.changeOpposition' | translate">
         <span class="app-opposition-badge">{{ opposition.abbreviation }}</span>
-        <span class="sidebar__opposition-name">{{ opposition.name }}</span>
+        @if (isShowingFullContent()) {
+          <span class="sidebar__opposition-name flex-grow-1">{{ opposition.name }}</span>
+          <app-icon name="chevron-down" />
+        } @else {
+          <span class="visually-hidden">{{ opposition.name }}</span>
+        }
       </button>
     }
 
-    <nav class="d-flex flex-column gap-1 flex-grow-1" [attr.aria-label]="'appLayout.navLabel' | translate">
+    <nav class="d-flex flex-column gap-1" [attr.aria-label]="'appLayout.navLabel' | translate">
       @for (item of navItems; track item.path) {
         <a
-          class="app-nav-link d-flex align-items-center text-nowrap overflow-hidden px-3 py-2"
+          class="sidebar__link app-nav-link d-flex align-items-center gap-3 text-nowrap overflow-hidden"
           [class.justify-content-center]="!isShowingFullContent()"
+          [class.px-3]="isShowingFullContent()"
           [routerLink]="item.path"
           routerLinkActive="app-nav-link--active"
           ariaCurrentWhenActive="page"
-          [attr.title]="isShowingFullContent() ? null : (item.labelKey | translate)">
-          <app-icon [class.me-2]="isShowingFullContent()" [name]="item.icon" />
+          [title]="item.labelKey | translate">
+          <app-icon [name]="item.icon" />
           @if (isShowingFullContent()) {
             {{ item.labelKey | translate }}
+          } @else {
+            <span class="visually-hidden">{{ item.labelKey | translate }}</span>
           }
         </a>
       }
     </nav>
 
-    <div class="d-flex flex-column gap-2" [class.align-items-center]="!isShowingFullContent()">
+    <div class="d-flex flex-column gap-2 mt-auto">
       @if (user(); as user) {
-        <div class="d-flex align-items-center gap-2 overflow-hidden">
-          <span
-            class="app-avatar"
-            [attr.title]="isShowingFullContent() ? null : user.name + ' ' + user.surname">
-            {{ user | initials }}
-          </span>
+        <div
+          class="d-flex align-items-center gap-2 overflow-hidden p-1"
+          [class.justify-content-center]="!isShowingFullContent()"
+          [title]="user.name + ' ' + user.surname">
+          <span class="app-avatar">{{ user | initials }}</span>
           @if (isShowingFullContent()) {
-            <span class="text-truncate">{{ user.name }} {{ user.surname }}</span>
+            <span class="sidebar__user-name text-truncate">{{ user.name }} {{ user.surname }}</span>
           }
         </div>
       }
       <button
         type="button"
-        class="btn btn-outline-primary d-flex align-items-center justify-content-center text-nowrap"
-        [attr.title]="isShowingFullContent() ? null : ('appLayout.logout' | translate)"
+        class="sidebar__logout btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 text-nowrap"
+        [title]="'appLayout.logout' | translate"
+        [attr.aria-label]="'appLayout.logout' | translate"
         (click)="logout.emit()">
-        <app-icon [class.me-2]="isShowingFullContent()" name="logout" />
+        <app-icon name="logout" />
         @if (isShowingFullContent()) {
           {{ 'appLayout.logout' | translate }}
         }
@@ -86,7 +99,9 @@ import { Icon } from '../icon/icon';
   styles: `
     :host {
       flex: 0 0 auto;
+      gap: 1.25rem;
       width: 16.5rem;
+      padding: 1.25rem 0.875rem;
       overflow-x: hidden;
       transition: width 0.35s ease-in-out;
     }
@@ -102,13 +117,45 @@ import { Icon } from '../icon/icon';
     }
 
     .sidebar__logo {
+      height: 2.25rem;
+    }
+
+    .sidebar__toggle {
+      flex-shrink: 0;
+      width: 2.5rem;
       height: 2.5rem;
+      border: 2px solid var(--bs-border-color);
+    }
+
+    .sidebar__selector {
+      border: 2px solid var(--bs-dark);
+      border-radius: 0.875rem;
     }
 
     .sidebar__opposition-name {
       min-width: 0;
+      font-size: 0.8125rem;
       font-weight: 700;
-      line-height: 1.2;
+      line-height: 1.25;
+    }
+
+    .sidebar__link {
+      height: 2.75rem;
+
+      app-icon {
+        width: 1.375rem;
+        height: 1.375rem;
+      }
+    }
+
+    .sidebar__user-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
+    .sidebar__logout {
+      height: 2.75rem;
+      font-weight: 800;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

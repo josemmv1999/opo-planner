@@ -25,7 +25,6 @@ export interface StudyDay {
 }
 
 export interface HomeData {
-  oppositionName: string;
   examDate: string;
   tasks: PlannerTask[];
   streakDays: number;

@@ -8,8 +8,23 @@
   box-shadow: var(--op-card-shadow-offset) var(--op-card-shadow-offset) 0 var(--op-card-shadow-color);
 }
 
+@include media-breakpoint-down(lg) {
+  .card {
+    --op-card-shadow-offset: 0.25rem;
+  }
+}
+
 .card-title {
   font-weight: $headings-font-weight;
+}
+
+// Etiqueta pequeña en mayúsculas en lugar de título
+.card-label {
+  margin-bottom: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.0625rem;
 }
 
 // Color de la sombra
@@ -23,6 +38,10 @@
 
 .card--yellow {
   --op-card-shadow-color: #{$op-yellow};
+}
+
+.card--ink {
+  --op-card-shadow-color: #{$op-ink};
 }
 
 .card--flat {
