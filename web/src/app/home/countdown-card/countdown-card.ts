@@ -11,7 +11,7 @@ import { journeyPercentage } from '../../../common/utils/journey-percentage';
   imports: [TranslatePipe, FormatDatePipe, Icon],
   template: `
     <section class="card card--ink bg-primary text-white h-100">
-      <div class="card-body d-flex flex-column gap-2 p-3 p-lg-4">
+      <div class="card-body card-body--home d-flex flex-column gap-2">
         <h2 class="countdown-card__label card-label text-white">{{ 'home.countdown.title' | translate }}</h2>
         <p class="countdown-card__days mb-0">
           <span class="countdown-card__number">{{ daysLeft() }}</span>

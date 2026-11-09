@@ -17,9 +17,9 @@ export class AccountService {
 
   getCurrentUser(): Observable<User> {
     return of({
-      name: 'Ana',
-      surname: 'García López',
-      email: 'ana@example.com',
+      name: 'Alba',
+      surname: 'Ruiz Ocaña',
+      email: 'alba@example.com',
       hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
     }).pipe(delay(800));
   }
