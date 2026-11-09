@@ -14,7 +14,7 @@ import { buildAgenda } from './build-agenda';
   imports: [RouterLink, TranslatePipe, FormatDatePipe, Icon],
   template: `
     <section class="card card--cyan h-100">
-      <div class="calendar-card__body card-body d-flex flex-column gap-3 p-3 p-lg-4">
+      <div class="calendar-card__body card-body card-body--home d-flex flex-column gap-3">
         <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
           <h2 class="card-title calendar-card__title mb-0">{{ 'home.calendar.title' | translate }}</h2>
           <span class="calendar-card__meta text-body-secondary">{{ month() }}</span>

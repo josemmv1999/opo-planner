@@ -15,7 +15,7 @@ const barColor = (percentage: number): string => {
   imports: [RouterLink, TranslatePipe, Icon],
   template: `
     <section class="card h-100">
-      <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+      <div class="card-body card-body--home d-flex flex-column gap-3">
         <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
           <h2 class="card-title weak-blocks-card__title mb-0">
             {{ 'home.blocks.weakTitle' | translate }}

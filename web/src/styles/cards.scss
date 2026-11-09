@@ -76,9 +76,19 @@
   }
 }
 
-// Pantallas de ordenador bajas: menos aire para que el inicio quepa sin scroll
+// Padding de las tarjetas del inicio: más ajustado que el de Bootstrap para que quepan sin scroll
+.card-body--home {
+  padding: 1rem;
+}
+
+@include media-breakpoint-up(lg) {
+  .card-body--home {
+    padding: 1.25rem;
+  }
+}
+
 @media (min-width: 992px) and (max-height: 56rem) {
-  .card-body.p-lg-4 {
-    padding: 1rem 1.25rem !important;
+  .card-body--home {
+    padding: 1rem 1.25rem;
   }
 }

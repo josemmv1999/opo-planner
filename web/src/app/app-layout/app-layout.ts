@@ -45,7 +45,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
       [opposition]="store.activeOpposition()"
       (toggleCollapse)="toggleSidebar()"
       (logout)="logout()" />
-    <main class="app-layout__main flex-grow-1 px-3 pt-4 px-lg-5">
+    <main class="app-layout__main flex-grow-1">
       <div class="app-layout__content d-flex flex-column mx-auto">
         @let greeting = greetingParams();
         <app-page-header
@@ -89,10 +89,11 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
   styles: `
     .app-layout__main {
       min-width: 0;
+      padding: 1.5rem 1rem 0;
     }
 
     :host {
-      --app-layout-padding-y: 1.5rem;
+      --app-layout-padding-y: 1.25rem;
     }
 
     .app-layout__content {
@@ -103,7 +104,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
 
     @media (min-width: 992px) {
       .app-layout__main {
-        padding-block: var(--app-layout-padding-y);
+        padding: var(--app-layout-padding-y) 2rem;
       }
 
       .app-layout__content {

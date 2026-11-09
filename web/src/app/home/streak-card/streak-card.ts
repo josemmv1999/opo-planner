@@ -12,7 +12,7 @@ type DayState = 'studied' | 'notStudied' | 'pending';
   imports: [TranslatePipe, FormatDatePipe, Icon],
   template: `
     <section class="card card--yellow h-100">
-      <div class="card-body d-flex flex-column gap-2 p-3 p-lg-4">
+      <div class="card-body card-body--home d-flex flex-column gap-2">
         <h2 class="streak-card__label card-label text-body-secondary">{{ 'home.streak.title' | translate }}</h2>
         <p class="streak-card__count d-flex flex-wrap align-items-center mb-0">
           <app-icon class="streak-card__flame text-secondary" name="flame" />

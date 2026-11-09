@@ -24,7 +24,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
   imports: [TranslatePipe, Icon],
   template: `
     <section class="card card--cyan h-100">
-      <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4 overflow-y-auto">
+      <div class="card-body card-body--home d-flex flex-column gap-3 overflow-y-auto">
         <div class="d-flex align-items-center justify-content-between gap-2">
           <h2 class="card-title true-false-game__title mb-0">{{ 'trueFalseGame.title' | translate }}</h2>
           <span class="true-false-game__score badge rounded-pill bg-warning text-dark border border-2 border-dark">
