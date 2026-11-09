@@ -44,6 +44,10 @@
   --op-card-shadow-color: #{$op-ink};
 }
 
+.card--green {
+  --op-card-shadow-color: #{$op-green};
+}
+
 .card--flat {
   --op-card-shadow-offset: 0;
 }

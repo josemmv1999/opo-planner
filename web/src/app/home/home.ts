@@ -1,15 +1,24 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TrueFalseGame } from '../../common/components/true-false-game/true-false-game';
-import { BlocksCard } from './blocks-card/blocks-card';
 import { CountdownCard } from './countdown-card/countdown-card';
 import { HomeStore } from './home.store';
 import { StreakCard } from './streak-card/streak-card';
+import { StudiedBlocksCard } from './studied-blocks-card/studied-blocks-card';
 import { TodayCard } from './today-card/today-card';
+import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
 
 @Component({
   selector: 'app-home',
-  imports: [TranslatePipe, CountdownCard, StreakCard, TodayCard, BlocksCard, TrueFalseGame],
+  imports: [
+    TranslatePipe,
+    CountdownCard,
+    StreakCard,
+    TodayCard,
+    WeakBlocksCard,
+    StudiedBlocksCard,
+    TrueFalseGame,
+  ],
   providers: [HomeStore],
   host: { class: 'd-block' },
   template: `
@@ -24,17 +33,24 @@ import { TodayCard } from './today-card/today-card';
     } @else {
       <div class="home__grid">
         @if (store.examDate(); as examDate) {
-          <app-countdown-card class="home__countdown" [examDate]="examDate" [studyStartDate]="store.studyStartDate()" />
+          <app-countdown-card
+            class="home__countdown"
+            [examDate]="examDate"
+            [studyStartDate]="store.studyStartDate()" />
         }
-        <app-streak-card class="home__streak" [days]="store.streakDays()" [lastSevenDays]="store.lastSevenDays()" />
-        <app-today-card class="home__today" [tasks]="store.tasks()" (toggled)="store.toggleTask($event)" />
+        <app-streak-card
+          class="home__streak"
+          [days]="store.streakDays()"
+          [lastSevenDays]="store.lastSevenDays()" />
+        <app-today-card
+          class="home__today"
+          [tasks]="store.tasks()"
+          (toggled)="store.toggleTask($event)" />
         @if (store.statements().length) {
           <app-true-false-game class="home__game" [statements]="store.statements()" />
         }
-        <app-blocks-card
-          class="home__blocks"
-          [studiedBlocks]="store.studiedBlocks()"
-          [weakBlocks]="store.weakBlocks()" />
+        <app-weak-blocks-card class="home__weak" [weakBlocks]="store.weakBlocks()" />
+        <app-studied-blocks-card class="home__studied" [studiedBlocks]="store.studiedBlocks()" />
       </div>
     }
   `,
@@ -51,7 +67,8 @@ import { TodayCard } from './today-card/today-card';
 
     .home__today,
     .home__game,
-    .home__blocks {
+    .home__weak,
+    .home__studied {
       grid-column: 1 / -1;
     }
 
@@ -88,8 +105,12 @@ import { TodayCard } from './today-card/today-card';
         grid-area: 2 / 1 / auto / span 2;
       }
 
-      .home__blocks {
-        grid-area: 3 / 1 / auto / -1;
+      .home__weak {
+        grid-area: 3 / 1 / auto / span 2;
+      }
+
+      .home__studied {
+        grid-area: 3 / 3;
       }
     }
   `,
