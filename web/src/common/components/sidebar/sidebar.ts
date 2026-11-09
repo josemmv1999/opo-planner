@@ -15,18 +15,20 @@ import { Icon } from '../icon/icon';
     '[class.sidebar--collapsed]': 'isCollapsed()',
   },
   template: `
-    <div class="d-flex align-items-center gap-2">
+    <div class="sidebar__head">
+      <span class="sidebar__brand d-flex align-items-center">
+        <img class="sidebar__logo" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
+      </span>
       @let toggleLabel = (isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate;
       <button
         type="button"
-        class="sidebar__toggle btn btn-light bg-white d-flex align-items-center justify-content-center p-0"
+        class="sidebar__toggle btn d-flex align-items-center justify-content-center p-0"
         [title]="toggleLabel"
         [attr.aria-label]="toggleLabel"
         [attr.aria-expanded]="!isCollapsed()"
         (click)="toggleCollapse.emit()">
         <app-icon name="sidebar" />
       </button>
-      <img class="sidebar__logo sidebar__fade" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
     </div>
 
     @if (opposition(); as opposition) {
@@ -56,9 +58,13 @@ import { Icon } from '../icon/icon';
 
     <div class="d-flex flex-column gap-2 mt-auto">
       @if (user(); as user) {
-        <div class="sidebar__user d-flex align-items-center gap-2" [title]="user.name + ' ' + user.surname">
+        <div
+          class="sidebar__user d-flex align-items-center gap-2"
+          [title]="user.name + ' ' + user.surname">
           <span class="app-avatar">{{ user | initials }}</span>
-          <span class="sidebar__user-name sidebar__fade text-truncate">{{ user.name }} {{ user.surname }}</span>
+          <span class="sidebar__user-name sidebar__fade text-truncate"
+            >{{ user.name }} {{ user.surname }}</span
+          >
         </div>
       }
       <button
@@ -96,23 +102,69 @@ import { Icon } from '../icon/icon';
       transition-delay: 0s;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      :host,
-      .sidebar__fade {
-        transition: none;
-      }
+    .sidebar__head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
     }
 
-    .sidebar__toggle {
-      flex-shrink: 0;
-      width: 2.5rem;
-      height: 2.5rem;
-      margin-left: 0.5rem;
-      border: 2px solid var(--bs-border-color);
+    .sidebar__brand {
+      grid-area: 1 / 1;
+      height: 2.75rem;
+      overflow: hidden;
     }
 
     .sidebar__logo {
+      flex-shrink: 0;
       height: 2.25rem;
+      margin-left: 0.625rem;
+    }
+
+    .sidebar__toggle {
+      grid-area: 1 / 2;
+      width: 2.75rem;
+      height: 2.75rem;
+      color: var(--bs-body-color);
+      border: 0;
+      border-radius: var(--bs-border-radius);
+
+      &:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.08);
+      }
+
+      app-icon {
+        width: 1.375rem;
+        height: 1.375rem;
+      }
+    }
+
+    :host(.sidebar--collapsed) {
+      .sidebar__brand {
+        max-width: 2.875rem;
+      }
+
+      .sidebar__toggle {
+        grid-area: 1 / 1;
+        justify-self: start;
+        margin-left: 0.375rem;
+        opacity: 0;
+      }
+
+      .sidebar__brand,
+      .sidebar__toggle {
+        transition: opacity 0.15s ease;
+      }
+
+      .sidebar__head:hover,
+      .sidebar__head:has(.sidebar__toggle:focus-visible) {
+        .sidebar__brand {
+          opacity: 0;
+        }
+
+        .sidebar__toggle {
+          opacity: 1;
+        }
+      }
     }
 
     .sidebar__selector {
@@ -157,6 +209,15 @@ import { Icon } from '../icon/icon';
       padding-left: 1rem;
       overflow: hidden;
       font-weight: 800;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host,
+      .sidebar__fade,
+      :host(.sidebar--collapsed) .sidebar__brand,
+      :host(.sidebar--collapsed) .sidebar__toggle {
+        transition: none;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
