@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoginForm } from './login-form/login-form';
 import { LoginStore } from './login.store';
 
@@ -16,4 +17,11 @@ import { LoginStore } from './login.store';
 })
 export class Login {
   protected readonly store = inject(LoginStore);
+  readonly #router = inject(Router);
+
+  constructor() {
+    effect(() => {
+      if (this.store.hasLoggedIn()) this.#router.navigate(['/home']);
+    });
+  }
 }

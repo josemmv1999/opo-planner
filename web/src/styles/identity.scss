@@ -1,0 +1,38 @@
+.app-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-weight: $font-weight-semibold;
+  color: var(--bs-white);
+  background-color: var(--bs-primary);
+  border-radius: 50%;
+
+  &--sm {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.8125rem;
+  }
+}
+
+.app-opposition-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-weight: $font-weight-semibold;
+  color: var(--bs-dark);
+  background-color: var(--bs-secondary);
+  border: 2px solid var(--bs-dark);
+  border-radius: var(--bs-border-radius-sm);
+
+  &--sm {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+}
