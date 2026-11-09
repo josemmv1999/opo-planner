@@ -116,12 +116,19 @@
     "true": "Verdadero",
     "false": "Falso",
     "correct": "¡Correcto!",
-    "incorrect": "No es así",
+    "incorrect": "No es así.",
     "next": "Siguiente",
-    "roundOver": "aciertos en esta ronda",
     "playAgain": "Otra ronda",
     "disclaimer": "No cuenta para la racha ni para las estadísticas.",
-    "scoreOne": "{{correct}} acierto"
+    "scoreOne": "{{correct}} acierto",
+    "wasTrue": "Era verdadero.",
+    "wasFalse": "Era falso.",
+    "seeResult": "Ver resultado",
+    "verdict": {
+      "perfect": "¡Ronda perfecta!",
+      "good": "Buena ronda.",
+      "review": "Toca repasar."
+    }
   },
   "validation": {
     "required": "Este campo es obligatorio",

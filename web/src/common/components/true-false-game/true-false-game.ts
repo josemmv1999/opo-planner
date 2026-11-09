@@ -13,6 +13,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { TrueFalseStatement } from '../../models/true-false-statement.model';
 import { Icon } from '../icon/icon';
+import { roundVerdictKey } from './round-verdict-key';
 
 const ROUND_SIZE = 5;
 
@@ -43,58 +44,67 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
         </ol>
 
         @if (currentStatement(); as statement) {
-          <p class="true-false-game__progress text-body-secondary mb-0">
-            {{ 'trueFalseGame.progress' | translate: { current: currentIndex() + 1, total: roundStatements().length } }}
-          </p>
-          <p class="true-false-game__statement mb-0">{{ statement.text }}</p>
-          <div class="true-false-game__answers">
-            <button
-              #trueButton
-              type="button"
-              class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
-              [class.btn-success]="selectedAnswer() === true"
-              [class.btn-outline-success]="selectedAnswer() !== true"
-              [disabled]="hasAnswered()"
-              (click)="answer(true)">
-              <app-icon name="check" />
-              {{ 'trueFalseGame.true' | translate }}
-            </button>
-            <button
-              type="button"
-              class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
-              [class.btn-danger]="selectedAnswer() === false"
-              [class.btn-outline-danger]="selectedAnswer() !== false"
-              [disabled]="hasAnswered()"
-              (click)="answer(false)">
-              <app-icon name="close" />
-              {{ 'trueFalseGame.false' | translate }}
-            </button>
-          </div>
-          @if (hasAnswered()) {
-            <div
-              class="true-false-game__feedback alert mb-0"
-              [class.alert-success]="isCorrect()"
-              [class.alert-danger]="!isCorrect()"
-              role="status">
-              <p class="fw-bold mb-1">
-                {{ (isCorrect() ? 'trueFalseGame.correct' : 'trueFalseGame.incorrect') | translate }}
+          <div class="true-false-game__body">
+            <div class="d-flex flex-column gap-2">
+              <p
+                class="true-false-game__progress mb-0"
+                [class.text-body-secondary]="!hasAnswered()"
+                [class.text-success]="hasAnswered() && isCorrect()"
+                [class.text-danger]="hasAnswered() && !isCorrect()"
+                role="status">
+                @if (!hasAnswered()) {
+                  {{ 'trueFalseGame.progress' | translate: { current: currentIndex() + 1, total: roundStatements().length } }}
+                } @else if (isCorrect()) {
+                  {{ 'trueFalseGame.correct' | translate }}
+                } @else {
+                  {{ 'trueFalseGame.incorrect' | translate }}
+                  {{ (statement.isTrue ? 'trueFalseGame.wasTrue' : 'trueFalseGame.wasFalse') | translate }}
+                }
               </p>
-              <p class="mb-0">{{ statement.explanation }}</p>
+              <p class="true-false-game__statement mb-0">{{ statement.text }}</p>
+              @if (hasAnswered()) {
+                <p class="true-false-game__explanation mb-0">{{ statement.explanation }}</p>
+              }
             </div>
-            <button
-              #nextButton
-              type="button"
-              class="true-false-game__next btn btn-primary border-dark d-flex align-items-center justify-content-center gap-2"
-              (click)="next()">
-              {{ 'trueFalseGame.next' | translate }}
-              <app-icon name="arrow-right" />
-            </button>
-          }
+            <div class="true-false-game__answers">
+              <button
+                #trueButton
+                type="button"
+                class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
+                [class.btn-success]="selectedAnswer() === true"
+                [class.btn-outline-success]="selectedAnswer() !== true"
+                [disabled]="hasAnswered()"
+                (click)="answer(true)">
+                <app-icon name="check" />
+                {{ 'trueFalseGame.true' | translate }}
+              </button>
+              <button
+                type="button"
+                class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
+                [class.btn-danger]="selectedAnswer() === false"
+                [class.btn-outline-danger]="selectedAnswer() !== false"
+                [disabled]="hasAnswered()"
+                (click)="answer(false)">
+                <app-icon name="close" />
+                {{ 'trueFalseGame.false' | translate }}
+              </button>
+              @if (hasAnswered()) {
+                <button
+                  #nextButton
+                  type="button"
+                  class="true-false-game__next btn btn-primary border-dark d-flex align-items-center justify-content-center gap-2"
+                  (click)="next()">
+                  {{ (isLastStatement() ? 'trueFalseGame.seeResult' : 'trueFalseGame.next') | translate }}
+                  <app-icon name="arrow-right" />
+                </button>
+              }
+            </div>
+          </div>
         } @else {
           <div class="d-flex flex-column align-items-center text-center gap-3 my-auto">
             <p class="mb-0">
               <span class="d-block display-4 fw-bold">{{ correctCount() }}/{{ roundStatements().length }}</span>
-              {{ 'trueFalseGame.roundOver' | translate }}
+              {{ roundVerdictKey() | translate }}
             </p>
             <button #playAgainButton type="button" class="btn btn-primary d-flex align-items-center" (click)="playAgain()">
               <app-icon class="me-2" name="refresh" />
@@ -141,9 +151,21 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       line-height: 1.4;
     }
 
+    .true-false-game__body {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .true-false-game__explanation {
+      font-size: 0.9375rem;
+      line-height: 1.45;
+      color: var(--bs-secondary-color);
+    }
+
     .true-false-game__answers {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+      align-content: start;
       gap: 0.625rem;
     }
 
@@ -163,11 +185,8 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       opacity: 1;
     }
 
-    .true-false-game__feedback {
-      border-width: 2px;
-    }
-
     .true-false-game__next {
+      grid-column: 1 / -1;
       height: 3rem;
       font-weight: 800;
     }
@@ -197,7 +216,6 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
         font-size: 0.8125rem;
       }
 
-
       .true-false-game__answer {
         height: 3.25rem;
 
@@ -205,6 +223,17 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
           width: 1.375rem;
           height: 1.375rem;
         }
+      }
+    }
+
+    @container (min-width: 36rem) {
+      .true-false-game__body {
+        grid-template-columns: minmax(0, 1fr) 13rem;
+        align-items: start;
+      }
+
+      .true-false-game__answers {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
   `,
@@ -227,6 +256,10 @@ export class TrueFalseGame {
   protected readonly hasAnswered = computed(() => this.selectedAnswer() !== null);
   protected readonly isCorrect = computed(() => this.selectedAnswer() === this.currentStatement()?.isTrue);
   protected readonly correctCount = computed(() => this.results().filter(Boolean).length);
+  protected readonly isLastStatement = computed(() => this.currentIndex() === this.roundStatements().length - 1);
+  protected readonly roundVerdictKey = computed(() =>
+    roundVerdictKey(this.correctCount(), this.roundStatements().length),
+  );
   protected readonly segments = computed<SegmentState[]>(() =>
     this.roundStatements().map((_, i) => {
       const result = this.results()[i];
