@@ -1,0 +1,10 @@
+[build]
+  base    = "web"
+  command = "npm ci && npm run build"
+  publish = "dist/web/browser"
+
+# Angular routes (/login, /register...) must fall back to index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
