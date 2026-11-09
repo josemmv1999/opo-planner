@@ -15,8 +15,8 @@ import { Icon } from '../icon/icon';
     '[class.sidebar--collapsed]': 'isCollapsed()',
   },
   template: `
-    <div class="sidebar__head d-flex align-items-center">
-      <span class="sidebar__brand sidebar__fade d-flex">
+    <div class="sidebar__head">
+      <span class="sidebar__brand d-flex align-items-center">
         <img class="sidebar__logo" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
       </span>
       @let toggleLabel = (isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate;
@@ -102,33 +102,31 @@ import { Icon } from '../icon/icon';
       transition-delay: 0s;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      :host,
-      .sidebar__fade,
-      .sidebar__toggle {
-        transition: none;
-      }
+    .sidebar__head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
     }
 
     .sidebar__brand {
-      flex: 1 1 auto;
-      min-width: 0;
+      grid-area: 1 / 1;
+      height: 2.75rem;
       overflow: hidden;
     }
 
     .sidebar__logo {
       flex-shrink: 0;
       height: 2.25rem;
+      margin-left: 0.625rem;
     }
 
     .sidebar__toggle {
-      flex-shrink: 0;
+      grid-area: 1 / 2;
       width: 2.75rem;
       height: 2.75rem;
       color: var(--bs-body-color);
       border: 0;
       border-radius: var(--bs-border-radius);
-      transition: margin-right 0.25s cubic-bezier(0.2, 0, 0, 1);
 
       &:hover {
         background-color: rgba(var(--bs-primary-rgb), 0.08);
@@ -140,8 +138,29 @@ import { Icon } from '../icon/icon';
       }
     }
 
-    :host(.sidebar--collapsed) .sidebar__toggle {
-      margin-right: 0.25rem;
+    :host(.sidebar--collapsed) {
+      .sidebar__toggle {
+        grid-area: 1 / 1;
+        justify-self: start;
+        margin-left: 0.375rem;
+        opacity: 0;
+      }
+
+      .sidebar__brand,
+      .sidebar__toggle {
+        transition: opacity 0.15s ease;
+      }
+
+      .sidebar__head:hover,
+      .sidebar__head:focus-within {
+        .sidebar__brand {
+          opacity: 0;
+        }
+
+        .sidebar__toggle {
+          opacity: 1;
+        }
+      }
     }
 
     .sidebar__selector {
@@ -186,6 +205,15 @@ import { Icon } from '../icon/icon';
       padding-left: 1rem;
       overflow: hidden;
       font-weight: 800;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host,
+      .sidebar__fade,
+      :host(.sidebar--collapsed) .sidebar__brand,
+      :host(.sidebar--collapsed) .sidebar__toggle {
+        transition: none;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
