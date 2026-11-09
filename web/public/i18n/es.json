@@ -45,11 +45,17 @@
       "weekdayInitials": ["D", "L", "M", "X", "J", "V", "S"],
       "studyToday": "Estudia hoy para llegar a {{days}}."
     },
-    "today": {
-      "title": "Hoy",
+    "calendar": {
+      "title": "Calendario",
+      "thisWeek": "Esta semana",
+      "hasTasks": "con tareas",
+      "today": "Hoy",
       "progress": "{{done}} de {{total}} hechas",
-      "seePlanner": "Ver planner",
-      "empty": "No tienes tareas para hoy"
+      "now": "Ahora",
+      "autoLog": "registro automático",
+      "correctAnswers": "aciertos",
+      "empty": "No tienes nada planificado para hoy",
+      "openPlanner": "Abrir planner"
     },
     "blocks": {
       "weakTitle": "Bloques más flojos",

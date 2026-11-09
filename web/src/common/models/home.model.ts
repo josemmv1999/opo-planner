@@ -8,6 +8,15 @@ export interface PlannerTask {
   isDone: boolean;
 }
 
+export interface MockExamLog {
+  id: number;
+  text: string;
+  start: string;
+  end: string;
+  correctAnswers: number;
+  totalQuestions: number;
+}
+
 export interface StudiedBlock {
   id: number;
   name: string;
@@ -28,6 +37,8 @@ export interface HomeData {
   examDate: string;
   studyStartDate: string | null;
   tasks: PlannerTask[];
+  mockExamLogs: MockExamLog[];
+  weekDaysWithTasks: string[];
   streakDays: number;
   lastSevenDays: StudyDay[];
   studiedBlocks: StudiedBlock[];

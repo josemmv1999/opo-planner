@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TrueFalseGame } from '../../common/components/true-false-game/true-false-game';
+import { CalendarCard } from './calendar-card/calendar-card';
 import { CountdownCard } from './countdown-card/countdown-card';
 import { HomeStore } from './home.store';
 import { StreakCard } from './streak-card/streak-card';
 import { StudiedBlocksCard } from './studied-blocks-card/studied-blocks-card';
-import { TodayCard } from './today-card/today-card';
 import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
 
 @Component({
@@ -14,7 +14,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
     TranslatePipe,
     CountdownCard,
     StreakCard,
-    TodayCard,
+    CalendarCard,
     WeakBlocksCard,
     StudiedBlocksCard,
     TrueFalseGame,
@@ -42,9 +42,11 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
           class="home__streak"
           [days]="store.streakDays()"
           [lastSevenDays]="store.lastSevenDays()" />
-        <app-today-card
-          class="home__today"
+        <app-calendar-card
+          class="home__calendar"
           [tasks]="store.tasks()"
+          [mockExamLogs]="store.mockExamLogs()"
+          [weekDaysWithTasks]="store.weekDaysWithTasks()"
           (toggled)="store.toggleTask($event)" />
         @if (store.statements().length) {
           <app-true-false-game class="home__game" [statements]="store.statements()" />
@@ -65,7 +67,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
       }
     }
 
-    .home__today,
+    .home__calendar,
     .home__game,
     .home__weak,
     .home__studied {
@@ -101,7 +103,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
         grid-area: 1 / 3 / span 2;
       }
 
-      .home__today {
+      .home__calendar {
         grid-area: 2 / 1 / auto / span 2;
       }
 
