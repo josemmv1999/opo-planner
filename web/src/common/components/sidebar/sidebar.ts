@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input, linkedSignal, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NAV_ITEMS } from '../../constants/nav-items';
@@ -13,86 +13,61 @@ import { Icon } from '../icon/icon';
   host: {
     class: 'flex-column sticky-lg-top vh-100 bg-white border-end border-2 border-dark',
     '[class.sidebar--collapsed]': 'isCollapsed()',
-    '(transitionend)': 'showFullContentAfterExpanding($event)',
   },
   template: `
-    <div
-      class="d-flex align-items-center gap-3"
-      [class.flex-column]="!isShowingFullContent()"
-      [class.justify-content-between]="isShowingFullContent()">
-      <img
-        class="sidebar__logo"
-        [src]="isShowingFullContent() ? '/brand/logo.svg' : '/brand/logo-mark.svg'"
-        [alt]="'appLayout.logoAlt' | translate" />
+    <div class="d-flex align-items-center gap-2">
+      @let toggleLabel = (isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate;
       <button
         type="button"
         class="sidebar__toggle btn btn-light bg-white d-flex align-items-center justify-content-center p-0"
-        [title]="(isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate"
-        [attr.aria-label]="(isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate"
+        [title]="toggleLabel"
+        [attr.aria-label]="toggleLabel"
         [attr.aria-expanded]="!isCollapsed()"
         (click)="toggleCollapse.emit()">
         <app-icon name="sidebar" />
       </button>
+      <img class="sidebar__logo sidebar__fade" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
     </div>
 
     @if (opposition(); as opposition) {
       <button
         type="button"
-        class="sidebar__selector btn btn-light d-flex align-items-center gap-2 text-start p-2"
-        [class.justify-content-center]="!isShowingFullContent()"
+        class="sidebar__selector btn btn-light d-flex align-items-center gap-2 text-start"
         [title]="'appLayout.changeOpposition' | translate">
         <span class="app-opposition-badge">{{ opposition.abbreviation }}</span>
-        @if (isShowingFullContent()) {
-          <span class="sidebar__opposition-name flex-grow-1">{{ opposition.name }}</span>
-          <app-icon name="chevron-down" />
-        } @else {
-          <span class="visually-hidden">{{ opposition.name }}</span>
-        }
+        <span class="sidebar__opposition-name sidebar__fade">{{ opposition.name }}</span>
+        <app-icon class="sidebar__fade" name="chevron-down" />
       </button>
     }
 
     <nav class="d-flex flex-column gap-1" [attr.aria-label]="'appLayout.navLabel' | translate">
       @for (item of navItems; track item.path) {
         <a
-          class="sidebar__link app-nav-link d-flex align-items-center gap-3 text-nowrap overflow-hidden"
-          [class.justify-content-center]="!isShowingFullContent()"
-          [class.px-3]="isShowingFullContent()"
+          class="sidebar__link app-nav-link d-flex align-items-center gap-3"
           [routerLink]="item.path"
           routerLinkActive="app-nav-link--active"
           ariaCurrentWhenActive="page"
-          [title]="item.labelKey | translate">
+          [attr.title]="isCollapsed() ? (item.labelKey | translate) : null">
           <app-icon [name]="item.icon" />
-          @if (isShowingFullContent()) {
-            {{ item.labelKey | translate }}
-          } @else {
-            <span class="visually-hidden">{{ item.labelKey | translate }}</span>
-          }
+          <span class="sidebar__fade">{{ item.labelKey | translate }}</span>
         </a>
       }
     </nav>
 
     <div class="d-flex flex-column gap-2 mt-auto">
       @if (user(); as user) {
-        <div
-          class="d-flex align-items-center gap-2 overflow-hidden p-1"
-          [class.justify-content-center]="!isShowingFullContent()"
-          [title]="user.name + ' ' + user.surname">
+        <div class="sidebar__user d-flex align-items-center gap-2" [title]="user.name + ' ' + user.surname">
           <span class="app-avatar">{{ user | initials }}</span>
-          @if (isShowingFullContent()) {
-            <span class="sidebar__user-name text-truncate">{{ user.name }} {{ user.surname }}</span>
-          }
+          <span class="sidebar__user-name sidebar__fade text-truncate">{{ user.name }} {{ user.surname }}</span>
         </div>
       }
       <button
         type="button"
-        class="sidebar__logout btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 text-nowrap"
-        [title]="'appLayout.logout' | translate"
-        [attr.aria-label]="'appLayout.logout' | translate"
+        class="sidebar__logout btn btn-outline-primary d-flex align-items-center"
+        [attr.title]="isCollapsed() ? ('appLayout.logout' | translate) : null"
         (click)="logout.emit()">
-        <app-icon name="logout" />
-        @if (isShowingFullContent()) {
-          {{ 'appLayout.logout' | translate }}
-        }
+        <app-icon class="me-2" name="logout" />
+        <span class="sidebar__fade">{{ 'appLayout.logout' | translate }}</span>
       </button>
     </div>
   `,
@@ -102,45 +77,64 @@ import { Icon } from '../icon/icon';
       gap: 1.25rem;
       width: 16.5rem;
       padding: 1.25rem 0.875rem;
-      overflow-x: hidden;
-      transition: width 0.35s ease-in-out;
+      overflow: hidden;
+      transition: width 0.25s cubic-bezier(0.2, 0, 0, 1);
     }
 
     :host(.sidebar--collapsed) {
       width: 5.25rem;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      :host {
-        transition-duration: 1ms;
-      }
+    .sidebar__fade {
+      white-space: nowrap;
+      transition: opacity 0.15s ease 0.1s;
     }
 
-    .sidebar__logo {
-      height: 2.25rem;
+    :host(.sidebar--collapsed) .sidebar__fade {
+      opacity: 0;
+      transition-duration: 0.1s;
+      transition-delay: 0s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host,
+      .sidebar__fade {
+        transition: none;
+      }
     }
 
     .sidebar__toggle {
       flex-shrink: 0;
       width: 2.5rem;
       height: 2.5rem;
+      margin-left: 0.5rem;
       border: 2px solid var(--bs-border-color);
     }
 
+    .sidebar__logo {
+      height: 2.25rem;
+    }
+
     .sidebar__selector {
+      flex-shrink: 0;
+      padding: 0.5rem 0.625rem;
+      overflow: hidden;
       border: 2px solid var(--bs-dark);
       border-radius: 0.875rem;
     }
 
     .sidebar__opposition-name {
-      min-width: 0;
+      flex: 1 0 8.5rem;
       font-size: 0.8125rem;
       font-weight: 700;
       line-height: 1.25;
+      white-space: normal;
     }
 
     .sidebar__link {
       height: 2.75rem;
+      padding-left: 1.0625rem;
+      overflow: hidden;
 
       app-icon {
         width: 1.375rem;
@@ -148,13 +142,20 @@ import { Icon } from '../icon/icon';
       }
     }
 
+    .sidebar__user {
+      padding-left: 0.625rem;
+    }
+
     .sidebar__user-name {
+      min-width: 0;
       font-size: 0.875rem;
       font-weight: 700;
     }
 
     .sidebar__logout {
       height: 2.75rem;
+      padding-left: 1rem;
+      overflow: hidden;
       font-weight: 800;
     }
   `,
@@ -168,15 +169,4 @@ export class Sidebar {
   readonly logout = output();
 
   protected readonly navItems = NAV_ITEMS;
-  protected readonly isShowingFullContent = linkedSignal<boolean, boolean>({
-    source: this.isCollapsed,
-    computation: (isCollapsed, previous) => !isCollapsed && !previous,
-  });
-  readonly #host = inject<ElementRef<HTMLElement>>(ElementRef);
-
-  protected showFullContentAfterExpanding(event: TransitionEvent): void {
-    if (event.target === this.#host.nativeElement && event.propertyName === 'width' && !this.isCollapsed()) {
-      this.isShowingFullContent.set(true);
-    }
-  }
 }
