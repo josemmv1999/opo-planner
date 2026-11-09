@@ -3,6 +3,7 @@ import { Observable, delay, of } from 'rxjs';
 import { Credentials } from '../../common/models/credentials.model';
 import { RegisterData } from '../../common/models/register-data.model';
 import { User } from '../../common/models/user.model';
+import { MOCK_ONBOARDING_KEY, readMockFlag } from './mock-storage';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -15,6 +16,11 @@ export class AccountService {
   }
 
   getCurrentUser(): Observable<User> {
-    return of({ name: 'Ana', surname: 'García López', email: 'ana@example.com' }).pipe(delay(800));
+    return of({
+      name: 'Ana',
+      surname: 'García López',
+      email: 'ana@example.com',
+      hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
+    }).pipe(delay(800));
   }
 }

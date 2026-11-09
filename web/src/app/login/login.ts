@@ -21,7 +21,10 @@ export class Login {
 
   constructor() {
     effect(() => {
-      if (this.store.hasLoggedIn()) this.#router.navigate(['/home']);
+      const currentUser = this.store.currentUser();
+      if (this.store.hasLoggedIn() && currentUser) {
+        this.#router.navigate([currentUser.hasCompletedOnboarding ? '/home' : '/onboarding']);
+      }
     });
   }
 }

@@ -1,7 +1,10 @@
 {
   "actions": {
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "start": "Empezar"
   },
   "appLayout": {
     "logoAlt": "opo-planner",
@@ -134,5 +137,63 @@
     "required": "Este campo es obligatorio",
     "email": "Introduce un email válido",
     "password": "Mínimo 8 caracteres, con una mayúscula, una minúscula y un número"
+  },
+  "onboarding": {
+    "logoAlt": "opo-planner",
+    "stepCount": "Paso {{current}} de {{total}}",
+    "stepsLabel": "Pasos",
+    "stepDone": "Hecho:",
+    "steps": {
+      "oppositions": "Oposiciones",
+      "schedule": "Horario",
+      "interface": "Interfaz"
+    },
+    "oppositions": {
+      "title": "¿Qué oposiciones preparas?",
+      "lead": "Elige una o varias. Cada una va por separado: su temario, sus exámenes y su calendario.",
+      "label": "Oposiciones",
+      "chosenOne": "{{count}} elegida",
+      "chosen": "{{count}} elegidas",
+      "loadError": "No hemos podido cargar las oposiciones."
+    },
+    "schedule": {
+      "title": "Tu horario de estudio",
+      "lead": "Es el horario por defecto de cada oposición. Luego lo ajustas en el planner.",
+      "tabsLabel": "Oposiciones elegidas",
+      "completed": "listo",
+      "days": "Días de estudio",
+      "dayInitials": ["L", "M", "X", "J", "V", "S", "D"],
+      "dayLabels": {
+        "names": ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"],
+        "range": "{{from}} a {{to}}",
+        "and": " y "
+      },
+      "slots": "Franjas",
+      "start": "Desde",
+      "end": "Hasta",
+      "removeSlot": "Quitar franja",
+      "removeSlotLabel": "Quitar franja de {{start}} a {{end}}",
+      "addSlot": "Añadir franja",
+      "summaryOne": "1 día · {{hours}} h a la semana",
+      "summary": "{{days}} días · {{hours}} h a la semana",
+      "reversed": "La hora de fin tiene que ser posterior a la de inicio.",
+      "overlap": "Se solapa con la franja de {{start}} a {{end}}.",
+      "clash": "Coincide con tu horario de {{name}} ({{days}}, {{start}}–{{end}}). Puedes seguir igualmente."
+    },
+    "interface": {
+      "title": "¿Cómo quieres ver la app?",
+      "lead": "En este ordenador. Lo puedes cambiar cuando quieras en Ajustes.",
+      "label": "Interfaz",
+      "desktop": "Ordenador",
+      "desktopHint": "Menú lateral que puedes plegar a iconos.",
+      "touch": "Tablet y móvil",
+      "touchHint": "Barra de navegación abajo, pensada para el dedo."
+    },
+    "errors": {
+      "noOpposition": "Elige al menos una oposición.",
+      "incompleteSchedule": "Completa el horario de {{name}}.",
+      "incompleteScheduleOne": "Elige al menos un día y una franja válida.",
+      "saving": "No hemos podido guardar. Inténtalo de nuevo."
+    }
   }
 }
