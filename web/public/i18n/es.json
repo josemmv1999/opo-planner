@@ -52,14 +52,17 @@
       "empty": "No tienes tareas para hoy"
     },
     "blocks": {
-      "title": "Bloques",
-      "weak": "Más flojos",
+      "weakTitle": "Bloques más flojos",
+      "weakMeta": "% de aciertos",
       "noWeak": "Todavía no hay datos",
       "percentage": "{{percentage}} %",
       "practice": "Practicar",
-      "studied": "Estudiados",
+      "practiceBlock": "Practicar {{name}}",
+      "studiedTitle": "Estudiados",
+      "studiedCountOne": "{{count}} bloque",
+      "studiedCount": "{{count}} bloques",
       "noStudied": "Aún no has marcado ningún bloque",
-      "practiceBlock": "Practicar {{name}}"
+      "seeSyllabus": "Ver temario"
     }
   },
   "login": {
