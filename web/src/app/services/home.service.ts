@@ -13,6 +13,7 @@ export class HomeService {
   getHomeData(): Observable<HomeData> {
     return of({
       examDate: '2027-06-12',
+      studyStartDate: daysAgo(70),
       tasks: [
         { id: 1, text: 'Repasar la Constitución', start: todayAt(9), end: todayAt(10, 30), isDone: true },
         { id: 2, text: 'Simulacro de Procedimiento Administrativo', start: todayAt(11), end: todayAt(12), isDone: false },

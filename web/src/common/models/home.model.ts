@@ -26,6 +26,7 @@ export interface StudyDay {
 
 export interface HomeData {
   examDate: string;
+  studyStartDate: string | null;
   tasks: PlannerTask[];
   streakDays: number;
   lastSevenDays: StudyDay[];

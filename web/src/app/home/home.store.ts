@@ -15,6 +15,7 @@ interface HomeState extends Omit<HomeData, 'examDate'> {
 export const HomeStore = signalStore(
   withState<HomeState>({
     examDate: null,
+    studyStartDate: null,
     tasks: [],
     streakDays: 0,
     lastSevenDays: [],

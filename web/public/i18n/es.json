@@ -31,7 +31,9 @@
       "title": "Cuenta atrás",
       "day": "día",
       "days": "días",
-      "examDate": "Examen previsto: {{date}}"
+      "examDate": "Examen previsto: {{date}}",
+      "progress": "{{percentage}} % del camino",
+      "progressLabel": "Camino recorrido hasta el examen"
     },
     "streak": {
       "title": "Racha",
