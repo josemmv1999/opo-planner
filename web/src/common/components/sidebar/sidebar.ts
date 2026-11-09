@@ -139,6 +139,10 @@ import { Icon } from '../icon/icon';
     }
 
     :host(.sidebar--collapsed) {
+      .sidebar__brand {
+        max-width: 2.875rem;
+      }
+
       .sidebar__toggle {
         grid-area: 1 / 1;
         justify-self: start;
@@ -152,7 +156,7 @@ import { Icon } from '../icon/icon';
       }
 
       .sidebar__head:hover,
-      .sidebar__head:focus-within {
+      .sidebar__head:has(.sidebar__toggle:focus-visible) {
         .sidebar__brand {
           opacity: 0;
         }
