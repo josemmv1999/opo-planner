@@ -15,18 +15,20 @@ import { Icon } from '../icon/icon';
     '[class.sidebar--collapsed]': 'isCollapsed()',
   },
   template: `
-    <div class="d-flex align-items-center gap-2">
+    <div class="sidebar__head d-flex align-items-center">
+      <span class="sidebar__brand sidebar__fade d-flex">
+        <img class="sidebar__logo" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
+      </span>
       @let toggleLabel = (isCollapsed() ? 'appLayout.expand' : 'appLayout.collapse') | translate;
       <button
         type="button"
-        class="sidebar__toggle btn btn-light bg-white d-flex align-items-center justify-content-center p-0"
+        class="sidebar__toggle btn d-flex align-items-center justify-content-center p-0"
         [title]="toggleLabel"
         [attr.aria-label]="toggleLabel"
         [attr.aria-expanded]="!isCollapsed()"
         (click)="toggleCollapse.emit()">
         <app-icon name="sidebar" />
       </button>
-      <img class="sidebar__logo sidebar__fade" src="/brand/logo.svg" [alt]="'appLayout.logoAlt' | translate" />
     </div>
 
     @if (opposition(); as opposition) {
@@ -56,9 +58,13 @@ import { Icon } from '../icon/icon';
 
     <div class="d-flex flex-column gap-2 mt-auto">
       @if (user(); as user) {
-        <div class="sidebar__user d-flex align-items-center gap-2" [title]="user.name + ' ' + user.surname">
+        <div
+          class="sidebar__user d-flex align-items-center gap-2"
+          [title]="user.name + ' ' + user.surname">
           <span class="app-avatar">{{ user | initials }}</span>
-          <span class="sidebar__user-name sidebar__fade text-truncate">{{ user.name }} {{ user.surname }}</span>
+          <span class="sidebar__user-name sidebar__fade text-truncate"
+            >{{ user.name }} {{ user.surname }}</span
+          >
         </div>
       }
       <button
@@ -98,21 +104,44 @@ import { Icon } from '../icon/icon';
 
     @media (prefers-reduced-motion: reduce) {
       :host,
-      .sidebar__fade {
+      .sidebar__fade,
+      .sidebar__toggle {
         transition: none;
       }
     }
 
-    .sidebar__toggle {
-      flex-shrink: 0;
-      width: 2.5rem;
-      height: 2.5rem;
-      margin-left: 0.5rem;
-      border: 2px solid var(--bs-border-color);
+    .sidebar__brand {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .sidebar__logo {
+      flex-shrink: 0;
       height: 2.25rem;
+    }
+
+    .sidebar__toggle {
+      flex-shrink: 0;
+      width: 2.75rem;
+      height: 2.75rem;
+      color: var(--bs-body-color);
+      border: 0;
+      border-radius: var(--bs-border-radius);
+      transition: margin-right 0.25s cubic-bezier(0.2, 0, 0, 1);
+
+      &:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.08);
+      }
+
+      app-icon {
+        width: 1.375rem;
+        height: 1.375rem;
+      }
+    }
+
+    :host(.sidebar--collapsed) .sidebar__toggle {
+      margin-right: 0.25rem;
     }
 
     .sidebar__selector {
