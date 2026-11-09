@@ -35,6 +35,12 @@ describe('TrueFalseGame', () => {
     button(key).click();
     await fixture.whenStable();
   };
+  const clickNext = async () => {
+    (button('trueFalseGame.next') ?? button('trueFalseGame.seeResult')).click();
+    await fixture.whenStable();
+  };
+  const feedback = () => element.querySelector('[role="status"]');
+  const explanation = () => element.querySelector('.true-false-game__explanation')?.textContent?.trim();
   const statementText = () => element.querySelector('.true-false-game__statement')?.textContent?.trim();
   const segments = () =>
     [...element.querySelectorAll('.true-false-game__segment')].map((s) =>
@@ -43,7 +49,7 @@ describe('TrueFalseGame', () => {
   const playRound = async (answers: boolean[]) => {
     for (const value of answers) {
       await click(value ? 'trueFalseGame.true' : 'trueFalseGame.false');
-      await click('trueFalseGame.next');
+      await clickNext();
     }
   };
 
@@ -58,7 +64,8 @@ describe('TrueFalseGame', () => {
     expect(statementText()).toBe('Afirmación 1');
     expect(segments()).toEqual(['bg-primary', 'bg-dark-subtle', 'bg-dark-subtle', 'bg-dark-subtle', 'bg-dark-subtle']);
     expect(button('trueFalseGame.true').disabled).toBe(false);
-    expect(element.querySelector('.alert')).toBeNull();
+    expect(explanation()).toBeUndefined();
+    expect(feedback()?.textContent).toContain('trueFalseGame.progress');
   });
 
   it('a right answer fills the chosen button, disables both and shows the explanation', async () => {
@@ -69,20 +76,21 @@ describe('TrueFalseGame', () => {
     expect(button('trueFalseGame.false').classList).toContain('btn-outline-danger');
     expect(button('trueFalseGame.true').disabled).toBe(true);
     expect(button('trueFalseGame.false').disabled).toBe(true);
-    const feedback = element.querySelector('.alert');
-    expect(feedback?.classList).toContain('alert-success');
-    expect(feedback?.textContent).toContain('trueFalseGame.correct');
-    expect(feedback?.textContent).toContain('Explicación 1');
+    expect(feedback()?.classList).toContain('text-success');
+    expect(feedback()?.textContent).toContain('trueFalseGame.correct');
+    expect(explanation()).toBe('Explicación 1');
     expect(segments()[0]).toBe('bg-success');
   });
 
-  it('a wrong answer shows the error feedback and a red segment', async () => {
+  it('a wrong answer shows the error feedback, the right answer and a red segment', async () => {
     await render(SEVEN_STATEMENTS);
     await click('trueFalseGame.false');
 
     expect(button('trueFalseGame.false').classList).toContain('btn-danger');
-    expect(element.querySelector('.alert')?.classList).toContain('alert-danger');
-    expect(element.querySelector('.alert')?.textContent).toContain('trueFalseGame.incorrect');
+    expect(button('trueFalseGame.true').classList).toContain('btn-outline-success');
+    expect(feedback()?.classList).toContain('text-danger');
+    expect(feedback()?.textContent).toContain('trueFalseGame.incorrect');
+    expect(feedback()?.textContent).toContain('trueFalseGame.wasTrue');
     expect(segments()[0]).toBe('bg-danger');
   });
 
@@ -99,12 +107,21 @@ describe('TrueFalseGame', () => {
   it('"next" moves to the following statement and marks it as current', async () => {
     await render(SEVEN_STATEMENTS);
     await click('trueFalseGame.true');
-    await click('trueFalseGame.next');
+    await clickNext();
 
     expect(statementText()).toBe('Afirmación 2');
     expect(segments()).toEqual(['bg-success', 'bg-primary', 'bg-dark-subtle', 'bg-dark-subtle', 'bg-dark-subtle']);
     expect(button('trueFalseGame.true').disabled).toBe(false);
-    expect(element.querySelector('.alert')).toBeNull();
+    expect(explanation()).toBeUndefined();
+  });
+
+  it('shows see result instead of next on the last statement', async () => {
+    await render(SEVEN_STATEMENTS);
+    await playRound([true, true, true, true]);
+    await click('trueFalseGame.true');
+
+    expect(button('trueFalseGame.next')).toBeUndefined();
+    expect(button('trueFalseGame.seeResult')).toBeTruthy();
   });
 
   it('ends the round after 5 statements with the number of right answers', async () => {
@@ -114,6 +131,7 @@ describe('TrueFalseGame', () => {
     expect(statementText()).toBeUndefined();
     expect(element.querySelector('.display-4')?.textContent?.trim()).toBe('3/5');
     expect(segments()).toEqual(['bg-success', 'bg-danger', 'bg-success', 'bg-success', 'bg-danger']);
+    expect(element.textContent).toContain('trueFalseGame.verdict.good');
     expect(button('trueFalseGame.playAgain')).toBeTruthy();
   });
 
@@ -136,7 +154,7 @@ describe('TrueFalseGame', () => {
     for (let i = 0; i < 5; i++) {
       seen.push(statementText() ?? '');
       await click('trueFalseGame.true');
-      await click('trueFalseGame.next');
+      await clickNext();
     }
     expect(seen).toEqual(['Afirmación 6', 'Afirmación 7', 'Afirmación 1', 'Afirmación 2', 'Afirmación 3']);
   });
