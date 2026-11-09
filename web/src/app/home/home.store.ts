@@ -17,6 +17,8 @@ export const HomeStore = signalStore(
     examDate: null,
     studyStartDate: null,
     tasks: [],
+    mockExamLogs: [],
+    weekDaysWithTasks: [],
     streakDays: 0,
     lastSevenDays: [],
     studiedBlocks: [],
