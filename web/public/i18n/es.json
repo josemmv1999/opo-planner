@@ -55,6 +55,19 @@
     "hasAccount": "¿Ya tienes cuenta?",
     "goToLogin": "Inicia sesión"
   },
+  "trueFalseGame": {
+    "title": "Verdadero o falso",
+    "score": "{{correct}} aciertos",
+    "progress": "Pregunta {{current}} de {{total}}",
+    "true": "Verdadero",
+    "false": "Falso",
+    "correct": "¡Correcto!",
+    "incorrect": "No es así",
+    "next": "Siguiente",
+    "roundOver": "aciertos en esta ronda",
+    "playAgain": "Otra ronda",
+    "disclaimer": "No cuenta para la racha ni para las estadísticas"
+  },
   "validation": {
     "required": "Este campo es obligatorio",
     "email": "Introduce un email válido",
