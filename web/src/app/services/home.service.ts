@@ -12,7 +12,6 @@ const daysAgo = (days: number): string => formatISO(subDays(startOfToday(), days
 export class HomeService {
   getHomeData(): Observable<HomeData> {
     return of({
-      oppositionName: 'Auxiliar Administrativo del Estado',
       examDate: '2027-06-12',
       tasks: [
         { id: 1, text: 'Repasar la Constitución', start: todayAt(9), end: todayAt(10, 30), isDone: true },

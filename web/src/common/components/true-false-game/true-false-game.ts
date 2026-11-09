@@ -23,15 +23,15 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
   imports: [TranslatePipe, Icon],
   template: `
     <section class="card card--cyan h-100">
-      <div class="card-body d-flex flex-column">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-          <h2 class="card-title fs-5 mb-0">{{ 'trueFalseGame.title' | translate }}</h2>
-          <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
-            {{ 'trueFalseGame.score' | translate: { correct: correctCount() } }}
+      <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <h2 class="card-title true-false-game__title mb-0">{{ 'trueFalseGame.title' | translate }}</h2>
+          <span class="true-false-game__score badge rounded-pill bg-warning text-dark border border-2 border-dark">
+            {{ (correctCount() === 1 ? 'trueFalseGame.scoreOne' : 'trueFalseGame.score') | translate: { correct: correctCount() } }}
           </span>
         </div>
 
-        <ol class="d-flex gap-1 list-unstyled mb-4" aria-hidden="true">
+        <ol class="true-false-game__segments d-flex list-unstyled mb-0" aria-hidden="true">
           @for (segment of segments(); track $index) {
             <li
               class="true-false-game__segment flex-fill rounded-pill"
@@ -43,36 +43,36 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
         </ol>
 
         @if (currentStatement(); as statement) {
-          <p class="visually-hidden">
+          <p class="true-false-game__progress text-body-secondary mb-0">
             {{ 'trueFalseGame.progress' | translate: { current: currentIndex() + 1, total: roundStatements().length } }}
           </p>
-          <p class="true-false-game__statement fw-bold">{{ statement.text }}</p>
+          <p class="true-false-game__statement mb-0">{{ statement.text }}</p>
           <div class="true-false-game__answers">
             <button
               #trueButton
               type="button"
-              class="true-false-game__answer btn d-flex align-items-center justify-content-center"
+              class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
               [class.btn-success]="selectedAnswer() === true"
               [class.btn-outline-success]="selectedAnswer() !== true"
               [disabled]="hasAnswered()"
               (click)="answer(true)">
-              <app-icon class="me-2" name="check" />
+              <app-icon name="check" />
               {{ 'trueFalseGame.true' | translate }}
             </button>
             <button
               type="button"
-              class="true-false-game__answer btn d-flex align-items-center justify-content-center"
+              class="true-false-game__answer btn d-flex align-items-center justify-content-center gap-2"
               [class.btn-danger]="selectedAnswer() === false"
               [class.btn-outline-danger]="selectedAnswer() !== false"
               [disabled]="hasAnswered()"
               (click)="answer(false)">
-              <app-icon class="me-2" name="close" />
+              <app-icon name="close" />
               {{ 'trueFalseGame.false' | translate }}
             </button>
           </div>
           @if (hasAnswered()) {
             <div
-              class="alert mt-3 mb-0"
+              class="true-false-game__feedback alert mb-0"
               [class.alert-success]="isCorrect()"
               [class.alert-danger]="!isCorrect()"
               role="status">
@@ -81,8 +81,13 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
               </p>
               <p class="mb-0">{{ statement.explanation }}</p>
             </div>
-            <button #nextButton type="button" class="btn btn-primary align-self-end mt-3" (click)="next()">
+            <button
+              #nextButton
+              type="button"
+              class="true-false-game__next btn btn-primary border-dark d-flex align-items-center justify-content-center gap-2"
+              (click)="next()">
               {{ 'trueFalseGame.next' | translate }}
+              <app-icon name="arrow-right" />
             </button>
           }
         } @else {
@@ -98,7 +103,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
           </div>
         }
 
-        <p class="small text-body-secondary mt-auto pt-3 mb-0">{{ 'trueFalseGame.disclaimer' | translate }}</p>
+        <p class="true-false-game__disclaimer text-body-secondary mt-auto mb-0">{{ 'trueFalseGame.disclaimer' | translate }}</p>
       </div>
     </section>
   `,
@@ -108,27 +113,99 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       container-type: inline-size;
     }
 
+    .true-false-game__title {
+      font-size: 1.125rem;
+    }
+
+    .true-false-game__score {
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .true-false-game__segments {
+      gap: 0.3125rem;
+    }
+
     .true-false-game__segment {
-      height: 0.375rem;
+      height: 0.4375rem;
+    }
+
+    .true-false-game__progress {
+      font-size: 0.75rem;
+      font-weight: 700;
     }
 
     .true-false-game__statement {
-      font-size: clamp(1.125rem, 0.875rem + 2cqi, 1.5rem);
+      font-size: clamp(1.0625rem, 0.875rem + 1.5cqi, 1.3125rem);
+      font-weight: 700;
+      line-height: 1.4;
     }
 
     .true-false-game__answers {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
-      gap: 0.5rem;
+      gap: 0.625rem;
     }
 
     .true-false-game__answer {
       min-width: 0;
+      height: 3rem;
+      font-weight: 800;
+
+      app-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
     }
 
     .true-false-game__answer.btn-success:disabled,
     .true-false-game__answer.btn-danger:disabled {
       opacity: 1;
+    }
+
+    .true-false-game__feedback {
+      border-width: 2px;
+    }
+
+    .true-false-game__next {
+      height: 3rem;
+      font-weight: 800;
+    }
+
+    .true-false-game__disclaimer {
+      font-size: 0.75rem;
+    }
+
+    @container (min-width: 20rem) {
+      .true-false-game__title {
+        font-size: 1.25rem;
+      }
+
+      .true-false-game__score {
+        font-size: 0.8125rem;
+      }
+
+      .true-false-game__segments {
+        gap: 0.375rem;
+      }
+
+      .true-false-game__segment {
+        height: 0.5rem;
+      }
+
+      .true-false-game__progress {
+        font-size: 0.8125rem;
+      }
+
+
+      .true-false-game__answer {
+        height: 3.25rem;
+
+        app-icon {
+          width: 1.375rem;
+          height: 1.375rem;
+        }
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

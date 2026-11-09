@@ -72,11 +72,11 @@ Cada oposición es independiente. Temario, preguntas, exámenes, calendario y es
 
 - Con una sola oposición no se pregunta.
 - En ordenador, el selector está en el sidebar.
-- En tablet y móvil es una sexta pestaña pequeña en la barra inferior.
+- En tablet y móvil, el selector es el nombre de la oposición en la cabecera de la pantalla, con una flecha.
 
 ### CU-05 · Resolver y cambiar la interfaz
 
-**Actor:** usuario. Hay dos interfaces: **ordenador** (sidebar que se colapsa a iconos con tooltip) y **tablet y móvil** (barra inferior).
+**Actor:** usuario. Hay dos interfaces: **ordenador** (sidebar que se colapsa a iconos con tooltip) y **tablet y móvil** (barra inferior flotante, solo con iconos). Las dos tienen las mismas funcionalidades; solo cambia la colocación.
 
 1.  Detecta el tipo de dispositivo por **pantalla táctil más ancho de pantalla**. El iPad Pro de 13" usa la interfaz de tablet; solo los portátiles usan el sidebar.
 2.  Si hay una preferencia guardada en la **caché de este dispositivo**, manda esa.

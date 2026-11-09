@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { filter, map } from 'rxjs';
 import { BottomNav } from '../../common/components/bottom-nav/bottom-nav';
 import { Icon } from '../../common/components/icon/icon';
-import { MobileHeader } from '../../common/components/mobile-header/mobile-header';
 import { Modal } from '../../common/components/modal/modal';
+import { PageHeader } from '../../common/components/page-header/page-header';
 import { Sidebar } from '../../common/components/sidebar/sidebar';
 import { InitialsPipe } from '../../common/pipes/initials.pipe';
+import { greetingKeyFor } from '../../common/utils/greeting-key';
 import { AppLayoutStore } from './app-layout.store';
 
 const SIDEBAR_COLLAPSED_KEY = 'isSidebarCollapsed';
@@ -27,13 +30,14 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
   }
 };
 
+const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChild ? deepestChild(route.firstChild) : route);
+
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, TranslatePipe, Sidebar, BottomNav, MobileHeader, Modal, Icon, InitialsPipe],
+  imports: [RouterOutlet, TranslatePipe, Sidebar, BottomNav, PageHeader, Modal, Icon, InitialsPipe],
   providers: [AppLayoutStore],
   host: { class: 'd-flex flex-column flex-lg-row min-vh-100' },
   template: `
-    <app-mobile-header class="d-flex d-lg-none" />
     <app-sidebar
       class="d-none d-lg-flex"
       [isCollapsed]="isSidebarCollapsed()"
@@ -41,13 +45,20 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
       [opposition]="store.activeOpposition()"
       (toggleCollapse)="toggleSidebar()"
       (logout)="logout()" />
-    <main class="flex-grow-1 p-3 p-lg-4">
-      <router-outlet />
+    <main class="app-layout__main flex-grow-1 px-3 pt-4 p-lg-5">
+      <div class="app-layout__content d-flex flex-column gap-4 mx-auto">
+        @let greeting = greetingParams();
+        <app-page-header
+          [isHome]="!pageTitleKey()"
+          [greeting]="greeting ? (greeting.key | translate: { name: greeting.name }) : ''"
+          [title]="pageTitleKey() ? (pageTitleKey() | translate) : ''"
+          [opposition]="store.activeOpposition()"
+          [user]="store.currentUser()"
+          (openAccount)="store.openAccountModal()" />
+        <router-outlet />
+      </div>
     </main>
-    <app-bottom-nav
-      class="d-block d-lg-none"
-      [user]="store.currentUser()"
-      (openAccount)="store.openAccountModal()" />
+    <app-bottom-nav class="d-block d-lg-none" />
 
     <app-modal
       [isOpen]="store.isAccountModalOpen()"
@@ -76,9 +87,19 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
     </app-modal>
   `,
   styles: `
-    main {
+    .app-layout__main {
       min-width: 0;
+    }
+
+    .app-layout__content {
+      max-width: 70rem;
       container-type: inline-size;
+    }
+
+    @media (max-width: 991.98px) {
+      .app-layout__main {
+        padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,6 +108,18 @@ export class AppLayout {
   protected readonly store = inject(AppLayoutStore);
   protected readonly isSidebarCollapsed = signal(readIsSidebarCollapsed());
   readonly #router = inject(Router);
+  readonly #route = inject(ActivatedRoute);
+
+  protected readonly pageTitleKey = toSignal(
+    this.#router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => deepestChild(this.#route).snapshot.data['titleKey'] as string | undefined),
+    ),
+  );
+  protected readonly greetingParams = computed(() => {
+    const user = this.store.currentUser();
+    return user ? { key: greetingKeyFor(new Date()), name: user.name } : null;
+  });
 
   constructor() {
     this.store.loadLayoutData();
