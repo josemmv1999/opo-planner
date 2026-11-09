@@ -10,6 +10,11 @@
 @import 'styles/app-nav';
 @import 'styles/identity';
 
+:focus-visible {
+  outline: 0.1875rem solid var(--bs-primary);
+  outline-offset: 0.125rem;
+}
+
 html:has(dialog:modal) {
   overflow: hidden;
 }

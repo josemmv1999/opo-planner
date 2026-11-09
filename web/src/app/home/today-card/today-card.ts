@@ -60,6 +60,9 @@ import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
     }
 
     .today-card__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.5rem;
       font-size: 0.875rem;
       font-weight: 800;
     }

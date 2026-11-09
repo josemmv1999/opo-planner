@@ -17,13 +17,18 @@ let nextId = 0;
         [id]="id"
         [type]="isVisible() ? 'text' : 'password'"
         [formControl]="control()"
+        [attr.autocomplete]="autocomplete()"
         [attr.aria-invalid]="!!error()"
         [attr.aria-describedby]="error() ? messageId : null" />
+      @let toggleLabel = (isVisible() ? 'passwordInput.hide' : 'passwordInput.show') | translate;
       <button
         type="button"
         class="input-group-text bg-white border-start-0 ms-0"
         [class.border-danger]="error()"
-        [title]="(isVisible() ? 'passwordInput.hide' : 'passwordInput.show') | translate"
+        [title]="toggleLabel"
+        [attr.aria-label]="toggleLabel"
+        [attr.aria-pressed]="isVisible()"
+        [attr.aria-controls]="id"
         (click)="isVisible.set(!isVisible())">
         <app-icon [name]="isVisible() ? 'eye-off' : 'eye'" />
       </button>
@@ -46,6 +51,7 @@ export class PasswordInput {
   readonly control = input.required<FormControl<string>>();
   readonly label = input.required<string>();
   readonly error = input('');
+  readonly autocomplete = input<'current-password' | 'new-password'>('current-password');
 
   protected readonly isVisible = signal(false);
 }
