@@ -17,6 +17,7 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
       <app-input
         formControlName="email"
         type="email"
+        autocomplete="email"
         [label]="'login.email' | translate"
         [placeholder]="'login.emailPlaceholder' | translate"
         [error]="errorKey(form.controls.email) | translate" />
@@ -32,7 +33,6 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
       <app-button
         type="submit"
         [isFullWidth]="true"
-        [isDisabled]="form.invalid"
         [isLoading]="isLoggingIn()">
         {{ 'login.submit' | translate }}
       </app-button>
@@ -58,6 +58,10 @@ export class LoginForm {
   });
 
   protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.submitted.emit(this.form.getRawValue());
   }
 }

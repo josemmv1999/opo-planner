@@ -19,22 +19,26 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
         <app-input
           class="col-sm-6"
           formControlName="name"
+          autocomplete="given-name"
           [label]="'register.name' | translate"
           [error]="errorKey(form.controls.name) | translate" />
         <app-input
           class="col-sm-6"
           formControlName="surname"
+          autocomplete="family-name"
           [label]="'register.surname' | translate"
           [error]="errorKey(form.controls.surname) | translate" />
       </div>
       <app-input
         formControlName="email"
         type="email"
+        autocomplete="email"
         [label]="'register.email' | translate"
         [placeholder]="'register.emailPlaceholder' | translate"
         [error]="errorKey(form.controls.email) | translate" />
       <app-password-input
         [control]="form.controls.password"
+        autocomplete="new-password"
         [label]="'register.password' | translate"
         [error]="errorKey(form.controls.password) | translate" />
       <!-- TODO: Modularize this part of the code, this can be an standalone component too -->
@@ -46,7 +50,6 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
       <app-button
         type="submit"
         [isFullWidth]="true"
-        [isDisabled]="form.invalid"
         [isLoading]="isRegistering()">
         {{ 'register.submit' | translate }}
       </app-button>
@@ -74,6 +77,10 @@ export class RegisterForm {
   });
 
   protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.submitted.emit(this.form.getRawValue());
   }
 }

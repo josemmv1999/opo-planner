@@ -25,6 +25,7 @@ let nextId = 0;
       [disabled]="isDisabled()"
       [readOnly]="readonly()"
       [required]="required()"
+      [attr.autocomplete]="autocomplete()"
       [attr.aria-invalid]="hasError()"
       [attr.aria-describedby]="hasError() || hint() ? messageId : null"
       (input)="onInput($event)"
@@ -51,6 +52,7 @@ export class InputField implements ControlValueAccessor {
   readonly label = input('');
   readonly type = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel' | 'url'>('text');
   readonly placeholder = input('');
+  readonly autocomplete = input<string | null>(null);
   readonly readonly = input(false);
   readonly required = input(false);
   readonly error = input('');
