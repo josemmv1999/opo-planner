@@ -3,8 +3,19 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar"
   },
+  "appLayout": {
+    "logoAlt": "opo-planner",
+    "navLabel": "Navegación principal",
+    "logout": "Cerrar sesión",
+    "account": "Tu cuenta",
+    "collapse": "Plegar menú",
+    "expand": "Desplegar menú"
+  },
   "authLayout": {
     "logoAlt": "opo-planner"
+  },
+  "emptyState": {
+    "message": "Todavía no hay nada por aquí"
   },
   "login": {
     "title": "Iniciar sesión",
@@ -15,6 +26,21 @@
     "error": "Usuario o contraseña incorrectos",
     "noAccount": "¿No tienes cuenta?",
     "goToRegister": "Regístrate"
+  },
+  "nav": {
+    "home": "Inicio",
+    "syllabus": "Temario oficial",
+    "notes": "Apuntes",
+    "exams": "Exámenes",
+    "mockExams": "Simulacros por tema",
+    "planner": "Planner"
+  },
+  "notifications": {
+    "close": "Cerrar"
+  },
+  "passwordInput": {
+    "show": "Mostrar contraseña",
+    "hide": "Ocultar contraseña"
   },
   "register": {
     "title": "Crear cuenta",
@@ -28,13 +54,6 @@
     "success": "Cuenta creada",
     "hasAccount": "¿Ya tienes cuenta?",
     "goToLogin": "Inicia sesión"
-  },
-  "passwordInput": {
-    "show": "Mostrar contraseña",
-    "hide": "Ocultar contraseña"
-  },
-  "notifications": {
-    "close": "Cerrar"
   },
   "validation": {
     "required": "Este campo es obligatorio",

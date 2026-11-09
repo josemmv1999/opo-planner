@@ -1,0 +1,15 @@
+.app-nav-link {
+  color: var(--bs-body-color);
+  font-weight: $font-weight-semibold;
+  border-radius: var(--bs-border-radius);
+
+  &:hover {
+    color: var(--bs-primary);
+    text-decoration: none;
+  }
+
+  &--active {
+    color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.12);
+  }
+}

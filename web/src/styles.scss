@@ -7,6 +7,8 @@
 @import 'styles/button';
 @include meta.load-css('styles/input');
 @import 'styles/auth-page';
+@import 'styles/app-nav';
+@import 'styles/identity';
 
 html:has(dialog:modal) {
   overflow: hidden;
