@@ -17,6 +17,43 @@
   "emptyState": {
     "message": "Todavía no hay nada por aquí"
   },
+  "home": {
+    "loading": "Cargando",
+    "error": "No se ha podido cargar la página de inicio",
+    "greeting": {
+      "morning": "Buenos días, {{name}}",
+      "afternoon": "Buenas tardes, {{name}}",
+      "evening": "Buenas noches, {{name}}"
+    },
+    "countdown": {
+      "title": "Cuenta atrás",
+      "day": "día para el examen",
+      "days": "días para el examen"
+    },
+    "streak": {
+      "title": "Racha",
+      "day": "día seguido",
+      "days": "días seguidos",
+      "studied": "estudiado",
+      "notStudied": "sin estudiar",
+      "pending": "hoy, todavía sin estudiar"
+    },
+    "today": {
+      "title": "Hoy",
+      "progress": "{{done}} de {{total}} hechas",
+      "seePlanner": "Ver planner",
+      "empty": "No tienes tareas para hoy"
+    },
+    "blocks": {
+      "title": "Bloques",
+      "weak": "Más flojos",
+      "noWeak": "Todavía no hay datos",
+      "percentage": "{{percentage}} %",
+      "practice": "Practicar",
+      "studied": "Estudiados",
+      "noStudied": "Aún no has marcado ningún bloque"
+    }
+  },
   "login": {
     "title": "Iniciar sesión",
     "email": "Email",
