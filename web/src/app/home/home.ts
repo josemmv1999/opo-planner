@@ -24,7 +24,7 @@ import { TodayCard } from './today-card/today-card';
     } @else {
       <div class="home__grid">
         @if (store.examDate(); as examDate) {
-          <app-countdown-card class="home__countdown" [examDate]="examDate" />
+          <app-countdown-card class="home__countdown" [examDate]="examDate" [studyStartDate]="store.studyStartDate()" />
         }
         <app-streak-card class="home__streak" [days]="store.streakDays()" [lastSevenDays]="store.lastSevenDays()" />
         <app-today-card class="home__today" [tasks]="store.tasks()" (toggled)="store.toggleTask($event)" />

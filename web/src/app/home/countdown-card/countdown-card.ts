@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { differenceInCalendarDays, parseISO, startOfYear } from 'date-fns';
 import { Icon } from '../../../common/components/icon/icon';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
+import { injectNow } from '../../../common/utils/inject-now';
+import { journeyPercentage } from '../../../common/utils/journey-percentage';
 
 @Component({
   selector: 'app-countdown-card',
@@ -17,6 +19,20 @@ import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
             {{ (daysLeft() === 1 ? 'home.countdown.day' : 'home.countdown.days') | translate }}
           </span>
         </p>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <div
+            class="countdown-card__bar progress flex-grow-1"
+            role="progressbar"
+            [attr.aria-label]="'home.countdown.progressLabel' | translate"
+            [attr.aria-valuenow]="progress()"
+            aria-valuemin="0"
+            aria-valuemax="100">
+            <div class="progress-bar bg-warning" [style.width.%]="progress()"></div>
+          </div>
+          <span class="countdown-card__progress" aria-hidden="true">
+            {{ 'home.countdown.progress' | translate: { percentage: progress() } }}
+          </span>
+        </div>
         <p class="countdown-card__date d-flex align-items-center gap-2 mt-auto mb-0">
           <app-icon class="countdown-card__flag" name="flag" />
           <span class="countdown-card__date-long">
@@ -36,6 +52,19 @@ import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
     .countdown-card__label {
       font-size: 0.75rem;
       opacity: 0.85;
+    }
+
+    .countdown-card__bar {
+      --bs-progress-height: 0.5rem;
+      --bs-progress-bg: rgba(var(--bs-white-rgb), 0.2);
+      --bs-progress-border-radius: var(--bs-border-radius-pill);
+      min-width: 4rem;
+    }
+
+    .countdown-card__progress {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .countdown-card__days {
@@ -100,6 +129,16 @@ import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
 })
 export class CountdownCard {
   readonly examDate = input.required<string>();
+  readonly studyStartDate = input<string | null>(null);
 
-  protected readonly daysLeft = computed(() => differenceInCalendarDays(parseISO(this.examDate()), new Date()));
+  readonly #now = injectNow();
+  readonly #startDate = computed(() => {
+    const studyStartDate = this.studyStartDate();
+    return studyStartDate ? parseISO(studyStartDate) : startOfYear(this.#now());
+  });
+
+  protected readonly daysLeft = computed(() => differenceInCalendarDays(parseISO(this.examDate()), this.#now()));
+  protected readonly progress = computed(() =>
+    journeyPercentage(this.#startDate(), parseISO(this.examDate()), this.#now()),
+  );
 }
