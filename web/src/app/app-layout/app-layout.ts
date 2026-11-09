@@ -98,7 +98,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
 
     .app-layout__content {
       gap: 1.5rem;
-      max-width: 70rem;
+      max-width: 120rem;
       container-type: inline-size;
     }
 

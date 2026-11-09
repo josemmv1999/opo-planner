@@ -120,7 +120,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
       .home__grid {
         flex: 1;
         grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.25fr) minmax(0, 1fr);
-        grid-template-rows: auto minmax(12rem, 1fr) auto;
+        grid-template-rows: auto minmax(12rem, auto) auto;
         grid-template-areas:
           'countdown streak calendar'
           'game game calendar'
