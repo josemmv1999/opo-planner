@@ -170,6 +170,13 @@ import { buildAgenda } from './build-agenda';
       opacity: 0.6;
     }
 
+    .calendar-card__agenda {
+      flex: 1 1 auto;
+      height: var(--calendar-card-agenda-height, auto);
+      min-height: var(--calendar-card-agenda-min-height, auto);
+      overflow-y: auto;
+    }
+
     .calendar-card__entry {
       display: flex;
       align-items: flex-start;

@@ -91,7 +91,7 @@ Cada oposición es independiente. Temario, preguntas, exámenes, calendario y es
 
 ## 3. Estudio
 
-**Navegación principal** (por oposición activa): Temario oficial · Apuntes · Exámenes · Simulacros por tema · Planner.
+**Navegación principal** (por oposición activa): Inicio · Temario oficial · Apuntes · Exámenes · Simulacros por tema. El planner se abre desde el calendario del inicio.
 
 ### CU-06 · Ver la home
 

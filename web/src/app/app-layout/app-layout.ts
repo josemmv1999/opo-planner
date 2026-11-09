@@ -45,8 +45,8 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
       [opposition]="store.activeOpposition()"
       (toggleCollapse)="toggleSidebar()"
       (logout)="logout()" />
-    <main class="app-layout__main flex-grow-1 px-3 pt-4 p-lg-5">
-      <div class="app-layout__content d-flex flex-column gap-4 mx-auto">
+    <main class="app-layout__main flex-grow-1 px-3 pt-4 px-lg-5">
+      <div class="app-layout__content d-flex flex-column mx-auto">
         @let greeting = greetingParams();
         <app-page-header
           [isHome]="!pageTitleKey()"
@@ -91,9 +91,34 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
       min-width: 0;
     }
 
+    :host {
+      --app-layout-padding-y: 1.5rem;
+    }
+
     .app-layout__content {
+      gap: 1.5rem;
       max-width: 70rem;
       container-type: inline-size;
+    }
+
+    @media (min-width: 992px) {
+      .app-layout__main {
+        padding-block: var(--app-layout-padding-y);
+      }
+
+      .app-layout__content {
+        min-height: calc(100dvh - 2 * var(--app-layout-padding-y));
+      }
+    }
+
+    @media (min-width: 992px) and (max-height: 56rem) {
+      :host {
+        --app-layout-padding-y: 0.75rem;
+      }
+
+      .app-layout__content {
+        gap: 1rem;
+      }
     }
 
     @media (max-width: 991.98px) {

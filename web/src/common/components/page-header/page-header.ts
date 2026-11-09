@@ -76,6 +76,12 @@ import { Icon } from '../icon/icon';
         font-size: 2rem;
       }
     }
+
+    @media (min-width: 992px) and (max-height: 56rem) {
+      .page-header__title {
+        font-size: 1.625rem;
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

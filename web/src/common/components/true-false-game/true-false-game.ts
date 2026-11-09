@@ -24,7 +24,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
   imports: [TranslatePipe, Icon],
   template: `
     <section class="card card--cyan h-100">
-      <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+      <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4 overflow-y-auto">
         <div class="d-flex align-items-center justify-content-between gap-2">
           <h2 class="card-title true-false-game__title mb-0">{{ 'trueFalseGame.title' | translate }}</h2>
           <span class="true-false-game__score badge rounded-pill bg-warning text-dark border border-2 border-dark">
@@ -234,6 +234,11 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 
       .true-false-game__answers {
         grid-template-columns: minmax(0, 1fr);
+      }
+
+      .true-false-game__answer,
+      .true-false-game__next {
+        height: 2.75rem;
       }
     }
   `,
