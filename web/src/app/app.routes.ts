@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { EmptyState } from '../common/components/empty-state/empty-state';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
+import { Home } from './home/home';
 import { Login } from './login/login';
 import { Register } from './register/register';
 
@@ -19,7 +20,7 @@ export const routes: Routes = [
     path: '',
     component: AppLayout,
     children: [
-      { path: 'home', component: EmptyState, data: { titleKey: 'nav.home', icon: 'home' } },
+      { path: 'home', component: Home },
       { path: 'syllabus', component: EmptyState, data: { titleKey: 'nav.syllabus', icon: 'syllabus' } },
       { path: 'notes', component: EmptyState, data: { titleKey: 'nav.notes', icon: 'notes' } },
       { path: 'exams', component: EmptyState, data: { titleKey: 'nav.exams', icon: 'timer' } },
