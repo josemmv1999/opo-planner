@@ -35,7 +35,7 @@ describe('TrueFalseGame', () => {
     button(key).click();
     await fixture.whenStable();
   };
-  const statementText = () => element.querySelector('p.fs-4')?.textContent?.trim();
+  const statementText = () => element.querySelector('.true-false-game__statement')?.textContent?.trim();
   const segments = () =>
     [...element.querySelectorAll('.true-false-game__segment')].map((s) =>
       ['bg-success', 'bg-danger', 'bg-primary', 'bg-dark-subtle'].find((c) => s.classList.contains(c)),

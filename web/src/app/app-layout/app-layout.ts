@@ -78,6 +78,7 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
   styles: `
     main {
       min-width: 0;
+      container-type: inline-size;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
