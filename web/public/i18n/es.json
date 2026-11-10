@@ -131,7 +131,12 @@
       "perfect": "¡Ronda perfecta!",
       "good": "Buena ronda.",
       "review": "Toca repasar."
-    }
+    },
+    "fullExplanation": "Ver explicación completa",
+    "explanationTitle": "Explicación",
+    "understood": "Entendido",
+    "recapRight": "Acertada:",
+    "recapWrong": "Fallada:"
   },
   "validation": {
     "required": "Este campo es obligatorio",
