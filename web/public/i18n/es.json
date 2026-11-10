@@ -372,7 +372,8 @@
     "legend": {
       "study": "Tu horario de estudio",
       "task": "Tarea",
-      "record": "Examen o simulacro (registro)"
+      "record": "Examen o simulacro (registro)",
+      "other": "Otras oposiciones"
     },
     "task": {
       "new": "Nueva tarea",
@@ -390,6 +391,17 @@
       },
       "clash": "Coincide con «{{text}}» ({{start}} – {{end}}) de {{opposition}}. Puedes guardarla igualmente."
     },
-    "moveError": "No hemos podido mover la tarea. La hemos dejado donde estaba."
+    "moveError": "No hemos podido mover la tarea. La hemos dejado donde estaba.",
+    "view": {
+      "label": "Qué calendario ver",
+      "own": "Esta oposición",
+      "full": "Calendario completo"
+    },
+    "schedule": {
+      "open": "Horario",
+      "title": "Horario de estudio",
+      "lead": "Es tu horario por defecto para esta oposición. Sale sombreado en el planner para que veas cuándo te toca estudiar.",
+      "saveError": "No hemos podido guardar el horario. Inténtalo de nuevo."
+    }
   }
 }

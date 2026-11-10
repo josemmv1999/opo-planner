@@ -80,3 +80,35 @@ export const findClash = (
   }
   return null;
 };
+
+const NEW_SLOT_MINUTES = 120;
+
+export const toggleScheduleDay = (schedule: StudySchedule, day: number): StudySchedule => ({
+  ...schedule,
+  days: schedule.days.includes(day)
+    ? schedule.days.filter((selected) => selected !== day)
+    : [...schedule.days, day].sort((a, b) => a - b),
+});
+
+export const addScheduleSlot = (schedule: StudySchedule, fallbackStart: string): StudySchedule => {
+  const start = schedule.slots.at(-1)?.end ?? fallbackStart;
+  return {
+    ...schedule,
+    slots: [...schedule.slots, { start, end: addMinutesToTime(start, NEW_SLOT_MINUTES) }],
+  };
+};
+
+export const removeScheduleSlot = (schedule: StudySchedule, index: number): StudySchedule => ({
+  ...schedule,
+  slots: schedule.slots.filter((_, i) => i !== index),
+});
+
+export const updateScheduleSlot = (
+  schedule: StudySchedule,
+  index: number,
+  part: keyof TimeSlot,
+  value: string,
+): StudySchedule => ({
+  ...schedule,
+  slots: schedule.slots.map((slot, i) => (i === index ? { ...slot, [part]: value } : slot)),
+});

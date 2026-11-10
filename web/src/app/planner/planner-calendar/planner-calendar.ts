@@ -107,6 +107,7 @@ const clamp = (value: number, min: number, max: number): number =>
                   [class.planner-calendar__entry--short]="entry.isShort"
                   [class.planner-calendar__entry--done]="entry.isDone"
                   [class.planner-calendar__entry--record]="entry.isRecord"
+                  [class.planner-calendar__entry--other]="entry.oppositionName !== null"
                   [class.planner-calendar__entry--dragging]="drag()?.id === entry.id"
                   [style.grid-row]="rowsOf(entry)"
                   [style.transform]="shiftOf(entry)"
@@ -120,12 +121,13 @@ const clamp = (value: number, min: number, max: number): number =>
                       ? ('planner.record' | translate)
                       : (entry.start | formatDate: 'HH:mm') +
                         ' – ' +
-                        (entry.end | formatDate: 'HH:mm')
+                        (entry.end | formatDate: 'HH:mm') +
+                        (entry.oppositionName ? ' · ' + entry.oppositionName : '')
                   ">
                   <span class="planner-calendar__entry-head d-flex align-items-center">
                     @if (entry.isRecord) {
                       <app-icon class="planner-calendar__record-icon" name="tests" />
-                    } @else {
+                    } @else if (entry.oppositionName === null) {
                       <input
                         type="checkbox"
                         class="form-check-input m-0"
@@ -138,7 +140,7 @@ const clamp = (value: number, min: number, max: number): number =>
                       {{ entry.end | formatDate: 'HH:mm' }}
                     </span>
                   </span>
-                  @if (entry.isRecord) {
+                  @if (entry.isRecord || entry.oppositionName !== null) {
                     <span class="planner-calendar__text">{{ entry.text }}</span>
                   } @else {
                     <button
@@ -169,6 +171,12 @@ const clamp = (value: number, min: number, max: number): number =>
           <i class="planner-calendar__swatch planner-calendar__swatch--record"></i>
           {{ 'planner.legend.record' | translate }}
         </span>
+        @if (isFullCalendar()) {
+          <span class="d-flex align-items-center">
+            <i class="planner-calendar__swatch planner-calendar__swatch--other"></i>
+            {{ 'planner.legend.other' | translate }}
+          </span>
+        }
       </div>
     </section>
   `,
@@ -266,7 +274,10 @@ const clamp = (value: number, min: number, max: number): number =>
       cursor: copy;
     }
 
-    .planner-calendar__entry:not(.planner-calendar__entry--record) {
+    .planner-calendar__entry:not(
+      .planner-calendar__entry--record,
+      .planner-calendar__entry--other
+    ) {
       cursor: grab;
     }
 
@@ -380,6 +391,17 @@ const clamp = (value: number, min: number, max: number): number =>
       box-shadow: none;
     }
 
+    .planner-calendar__entry--other {
+      background-color: #fdebd6;
+      border-color: var(--bs-secondary);
+      box-shadow: none;
+    }
+
+    .planner-calendar__swatch--other {
+      background-color: #fdebd6;
+      border-color: var(--bs-secondary);
+    }
+
     .planner-calendar__record-icon {
       color: var(--bs-primary);
     }
@@ -475,6 +497,7 @@ const clamp = (value: number, min: number, max: number): number =>
 })
 export class PlannerCalendar {
   readonly days = input.required<PlannerDay[]>();
+  readonly isFullCalendar = input(false);
   readonly selectedDay = input.required<number>();
   readonly daySelected = output<number>();
   readonly doneToggled = output<number>();
@@ -509,7 +532,8 @@ export class PlannerCalendar {
 
   protected startDrag(event: PointerEvent, entry: PlacedEntry, dayIndex: number): void {
     const target = event.target as HTMLElement;
-    if (entry.isRecord || event.button !== 0 || target.matches('input')) return;
+    const isReadOnly = entry.isRecord || entry.oppositionName !== null;
+    if (isReadOnly || event.button !== 0 || target.matches('input')) return;
     const element = event.currentTarget as HTMLElement;
     const rows = element.parentElement;
     if (!rows) return;

@@ -1,8 +1,8 @@
 import { TimeSlot } from '../../common/models/onboarding.model';
 import {
+  CalendarEntry,
   OtherPlannerEntry,
   PlacedEntry,
-  PlannerEntry,
   RowRange,
   TaskDraft,
 } from '../../common/models/planner.model';
@@ -42,7 +42,7 @@ export const toRowRange = (startMinutes: number, endMinutes: number): RowRange =
 export const slotRows = (slots: TimeSlot[]): RowRange[] =>
   slots.map(({ start, end }) => toRowRange(timeMinutes(start), timeMinutes(end)));
 
-export const placeEntries = (entries: PlannerEntry[]): PlacedEntry[] => {
+export const placeEntries = (entries: CalendarEntry[]): PlacedEntry[] => {
   const laneEnds: number[] = [];
   return [...entries]
     .sort((a, b) => a.start.localeCompare(b.start) || b.end.localeCompare(a.end))

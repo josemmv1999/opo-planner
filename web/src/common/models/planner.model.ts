@@ -17,9 +17,15 @@ export interface OtherPlannerEntry {
   oppositionName: string;
 }
 
+export interface OtherSchedule {
+  oppositionName: string;
+  schedule: StudySchedule;
+}
+
 export interface PlannerWeek {
   examDate: string;
   schedule: StudySchedule;
+  otherSchedules: OtherSchedule[];
   entries: PlannerEntry[];
   otherEntries: OtherPlannerEntry[];
 }
@@ -32,7 +38,11 @@ export interface PlannerRecord {
   end: string;
 }
 
-export interface PlacedEntry extends PlannerEntry {
+export interface CalendarEntry extends PlannerEntry {
+  oppositionName: string | null;
+}
+
+export interface PlacedEntry extends CalendarEntry {
   lane: number;
   startRow: number;
   endRow: number;
