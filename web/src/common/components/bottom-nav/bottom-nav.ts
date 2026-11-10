@@ -23,16 +23,19 @@ import { Icon } from '../icon/icon';
           <app-icon [name]="item.icon" />
         </a>
       }
-      @if (user(); as user) {
-        <button
-          type="button"
-          class="bottom-nav__link d-flex align-items-center justify-content-center border-0 bg-transparent"
-          [title]="'appLayout.profile' | translate"
-          [attr.aria-label]="'appLayout.profile' | translate"
-          (click)="openAccount.emit()">
-          <span class="app-avatar">{{ user | initials }}</span>
-        </button>
-      }
+      <button
+        type="button"
+        class="bottom-nav__link d-flex align-items-center justify-content-center border-0 bg-transparent"
+        [title]="'appLayout.profile' | translate"
+        [attr.aria-label]="'appLayout.profile' | translate"
+        [disabled]="!user()"
+        (click)="openAccount.emit()">
+        <span class="app-avatar">
+          @if (user(); as user) {
+            {{ user | initials }}
+          }
+        </span>
+      </button>
     </nav>
   `,
   styles: `
