@@ -86,10 +86,8 @@
   },
   "nav": {
     "home": "Inicio",
-    "syllabus": "Temario oficial",
-    "notes": "Apuntes",
+    "syllabus": "Temario",
     "exams": "Exámenes",
-    "mockExams": "Simulacros por tema",
     "planner": "Planner"
   },
   "notifications": {

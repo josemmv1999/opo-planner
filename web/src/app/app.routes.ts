@@ -24,9 +24,7 @@ export const routes: Routes = [
     children: [
       { path: 'home', component: Home },
       { path: 'syllabus', component: EmptyState, data: { titleKey: 'nav.syllabus', icon: 'syllabus' } },
-      { path: 'notes', component: EmptyState, data: { titleKey: 'nav.notes', icon: 'notes' } },
       { path: 'exams', component: EmptyState, data: { titleKey: 'nav.exams', icon: 'timer' } },
-      { path: 'mock-exams', component: EmptyState, data: { titleKey: 'nav.mockExams', icon: 'tests' } },
       { path: 'planner', component: EmptyState, data: { titleKey: 'nav.planner', icon: 'planner' } },
     ],
   },
