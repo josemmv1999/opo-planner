@@ -50,8 +50,7 @@ const barColor = (percentage: number): string => {
               </div>
               <a
                 class="weak-blocks-card__practice btn btn-outline-primary"
-                routerLink="/mock-exams"
-                [queryParams]="{ block: block.id }"
+                routerLink="/syllabus"
                 [title]="'home.blocks.practice' | translate"
                 [attr.aria-label]="'home.blocks.practiceBlock' | translate: { name: block.name }">
                 <span class="weak-blocks-card__practice-text">{{
