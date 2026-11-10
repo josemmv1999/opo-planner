@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NAV_ITEMS } from '../../constants/nav-items';
@@ -11,7 +11,7 @@ import { Icon } from '../icon/icon';
   imports: [RouterLink, RouterLinkActive, TranslatePipe, Icon, InitialsPipe],
   host: { class: 'bg-white border border-2 border-dark' },
   template: `
-    <nav class="d-flex align-items-center justify-content-between h-100" [attr.aria-label]="'appLayout.navLabel' | translate">
+    <nav class="bottom-nav__items d-flex align-items-center h-100" [attr.aria-label]="'appLayout.navLabel' | translate">
       @for (item of navItems; track item.path) {
         <a
           class="bottom-nav__link d-flex align-items-center justify-content-center"
@@ -23,19 +23,19 @@ import { Icon } from '../icon/icon';
           <app-icon [name]="item.icon" />
         </a>
       }
-      <button
-        type="button"
-        class="bottom-nav__link d-flex align-items-center justify-content-center border-0 bg-transparent"
+      <a
+        class="bottom-nav__link d-flex align-items-center justify-content-center"
+        routerLink="/profile"
+        routerLinkActive="bottom-nav__link--active"
+        ariaCurrentWhenActive="page"
         [title]="'appLayout.profile' | translate"
-        [attr.aria-label]="'appLayout.profile' | translate"
-        [disabled]="!user()"
-        (click)="openAccount.emit()">
+        [attr.aria-label]="'appLayout.profile' | translate">
         <span class="app-avatar">
           @if (user(); as user) {
             {{ user | initials }}
           }
         </span>
-      </button>
+      </a>
     </nav>
   `,
   styles: `
@@ -53,9 +53,14 @@ import { Icon } from '../icon/icon';
       box-shadow: 0.25rem 0.25rem 0 var(--bs-dark);
     }
 
+    .bottom-nav__items {
+      gap: 0.25rem;
+    }
+
     .bottom-nav__link {
-      width: 3rem;
-      height: 2.75rem;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 3rem;
       color: var(--bs-body-color);
       border-radius: 0.875rem;
 
@@ -74,7 +79,6 @@ import { Icon } from '../icon/icon';
 })
 export class BottomNav {
   readonly user = input<User | null>(null);
-  readonly openAccount = output();
 
   protected readonly navItems = NAV_ITEMS;
 }
