@@ -345,7 +345,8 @@
     "backToResult": "Volver al resultado",
     "reviewCorrect": "Acertada",
     "reviewWrong": "Fallada",
-    "reviewBlank": "Sin responder"
+    "reviewBlank": "Sin responder",
+    "shortcuts": "Con el teclado: A–D para responder, ← → para cambiar de pregunta y M para marcarla."
   },
   "examResult": {
     "title": "Resultado",
