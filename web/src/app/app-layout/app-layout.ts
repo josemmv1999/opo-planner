@@ -11,11 +11,8 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
 import { BottomNav } from '../../common/components/bottom-nav/bottom-nav';
-import { Icon } from '../../common/components/icon/icon';
-import { Modal } from '../../common/components/modal/modal';
 import { PageHeader } from '../../common/components/page-header/page-header';
 import { Sidebar } from '../../common/components/sidebar/sidebar';
-import { InitialsPipe } from '../../common/pipes/initials.pipe';
 import { greetingKeyFor } from '../../common/utils/greeting-key';
 import { injectIsTouchLayout } from '../../common/utils/touch-layout';
 import { AppLayoutStore } from './app-layout.store';
@@ -43,7 +40,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, TranslatePipe, Sidebar, BottomNav, PageHeader, Modal, Icon, InitialsPipe],
+  imports: [RouterOutlet, TranslatePipe, Sidebar, BottomNav, PageHeader],
   providers: [AppLayoutStore],
   host: {
     class: 'd-flex min-vh-100',
@@ -73,40 +70,8 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
       </div>
     </main>
     @if (isTouchLayout()) {
-      <app-bottom-nav
-        class="d-block"
-        [user]="store.currentUser()"
-        (openAccount)="store.openAccountModal()" />
+      <app-bottom-nav class="d-block" [user]="store.currentUser()" />
     }
-
-    <app-modal
-      [isOpen]="store.isAccountModalOpen()"
-      [label]="'appLayout.account' | translate"
-      (closed)="store.closeAccountModal()">
-      <ng-template>
-        @if (store.currentUser(); as user) {
-          <div class="d-flex align-items-center gap-3 mb-4">
-            <span class="app-avatar">{{ user | initials }}</span>
-            <div class="overflow-hidden">
-              <p class="fw-bold mb-0 text-truncate">{{ user.name }} {{ user.surname }}</p>
-              <p class="text-body-secondary mb-0 text-truncate">{{ user.email }}</p>
-            </div>
-          </div>
-        }
-        <div class="d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-outline-primary" (click)="store.closeAccountModal()">
-            {{ 'actions.cancel' | translate }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary d-flex align-items-center"
-            (click)="logout()">
-            <app-icon class="me-2" name="logout" />
-            {{ 'appLayout.logout' | translate }}
-          </button>
-        </div>
-      </ng-template>
-    </app-modal>
   `,
   styles: `
     .app-layout__main {
