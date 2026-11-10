@@ -16,3 +16,17 @@ export interface ExamAttempt {
   minutesTaken: number;
   percentage: number;
 }
+
+export interface ExamQuestion {
+  id: number;
+  statement: string;
+  options: string[];
+  correctOption: number;
+}
+
+export interface ExamDetail {
+  id: string;
+  name: string;
+  minutes: number;
+  questions: ExamQuestion[];
+}
