@@ -97,13 +97,6 @@ import { buildAgenda } from './build-agenda';
                     {{ 'home.calendar.autoLog' | translate }}
                   </span>
                 </span>
-                <span
-                  class="calendar-card__score badge rounded-pill bg-info text-dark border border-dark ms-auto">
-                  {{ entry.log.correctAnswers }}/{{ entry.log.totalQuestions }}
-                  <span class="visually-hidden">{{
-                    'home.calendar.correctAnswers' | translate
-                  }}</span>
-                </span>
               </li>
             } @else {
               <li class="calendar-card__now d-flex align-items-center gap-2">

@@ -376,13 +376,29 @@ export const PlannerStore = signalStore(
           ),
         ),
       ),
-      toggleDone(entryId: number): void {
-        patchState(store, ({ entries }) => ({
-          entries: entries.map((entry) =>
-            entry.id === entryId ? { ...entry, isDone: !entry.isDone } : entry,
+      toggleDone: rxMethod<number>(
+        pipe(
+          map((entryId) => store.entries().find(({ id }) => id === entryId)),
+          filter((entry): entry is PlannerEntry => entry !== undefined && !entry.isRecord),
+          tap((entry) =>
+            patchState(store, ({ entries }) => ({
+              entries: replaceEntry(entries, { ...entry, isDone: !entry.isDone }),
+            })),
           ),
-        }));
-      },
+          concatMap((entry) =>
+            plannerService.setDone(entry.id, !entry.isDone).pipe(
+              tapResponse({
+                next: () => undefined,
+                error: () =>
+                  patchState(store, ({ entries }) => ({
+                    entries: replaceEntry(entries, entry),
+                    error: 'moving' as const,
+                  })),
+              }),
+            ),
+          ),
+        ),
+      ),
     };
   }),
 );

@@ -70,6 +70,7 @@ describe('PlannerStore', () => {
                 isRecord: false,
               }),
             deleteTask: (taskId: number) => of(taskId),
+            setDone: (taskId: number) => of(taskId),
             saveSchedule: (schedule: StudySchedule) => of(schedule),
           },
         },

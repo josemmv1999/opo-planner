@@ -1,24 +1,7 @@
 import { Injectable } from '@angular/core';
-import {
-  addDays,
-  addMinutes,
-  eachDayOfInterval,
-  formatISO,
-  isWeekend,
-  startOfToday,
-  startOfWeek,
-  subDays,
-} from 'date-fns';
+import { formatISO, startOfToday, subDays } from 'date-fns';
 import { Observable, delay, of } from 'rxjs';
 import { HomeData } from '../../common/models/home.model';
-
-const todayAt = (hours: number, minutes = 0): string =>
-  addMinutes(startOfToday(), hours * 60 + minutes).toISOString();
-
-const thisWeekDays = (): Date[] => {
-  const monday = startOfWeek(startOfToday(), { weekStartsOn: 1 });
-  return eachDayOfInterval({ start: monday, end: addDays(monday, 6) });
-};
 
 const daysAgo = (days: number): string =>
   formatISO(subDays(startOfToday(), days), { representation: 'date' });
@@ -29,42 +12,6 @@ export class HomeService {
     return of({
       examDate: '2027-06-12',
       studyStartDate: daysAgo(70),
-      tasks: [
-        {
-          id: 1,
-          text: 'Repasar la Constitución',
-          start: todayAt(9),
-          end: todayAt(10, 30),
-          isDone: true,
-        },
-        {
-          id: 2,
-          text: 'Simulacro de Procedimiento Administrativo',
-          start: todayAt(11),
-          end: todayAt(12),
-          isDone: false,
-        },
-        {
-          id: 3,
-          text: 'Pasar a limpio los apuntes de Ofimática',
-          start: todayAt(17),
-          end: todayAt(18, 30),
-          isDone: false,
-        },
-      ],
-      mockExamLogs: [
-        {
-          id: 1,
-          text: 'Simulacro · Tema 3, la Corona',
-          start: todayAt(10, 35),
-          end: todayAt(10, 58),
-          correctAnswers: 8,
-          totalQuestions: 10,
-        },
-      ],
-      weekDaysWithTasks: thisWeekDays()
-        .filter((day) => !isWeekend(day))
-        .map((day) => formatISO(day, { representation: 'date' })),
       streakDays: 4,
       lastSevenDays: [
         { date: daysAgo(6), hasStudied: true },

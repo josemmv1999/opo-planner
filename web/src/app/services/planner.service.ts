@@ -117,6 +117,13 @@ export class PlannerService {
     return of(schedule).pipe(delay(DELAY_MS));
   }
 
+  setDone(taskId: number, isDone: boolean): Observable<number> {
+    this.#entries = this.#entries.map((entry) =>
+      entry.id === taskId ? { ...entry, isDone } : entry,
+    );
+    return of(taskId).pipe(delay(DELAY_MS));
+  }
+
   deleteTask(taskId: number): Observable<number> {
     this.#entries = this.#entries.filter(({ id }) => id !== taskId);
     return of(taskId).pipe(delay(DELAY_MS));
