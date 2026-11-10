@@ -12,6 +12,9 @@ import { OppositionService } from '../services/opposition.service';
 interface AppLayoutState {
   currentUser: User | null;
   activeOpposition: Opposition | null;
+  userOppositions: Opposition[];
+  isOppositionModalOpen: boolean;
+  isChangingOpposition: boolean;
   isLoadingLayoutData: boolean;
   isSavingUser: boolean;
   error: 'loading' | 'saving' | null;
@@ -21,6 +24,9 @@ export const AppLayoutStore = signalStore(
   withState<AppLayoutState>({
     currentUser: null,
     activeOpposition: null,
+    userOppositions: [],
+    isOppositionModalOpen: false,
+    isChangingOpposition: false,
     isLoadingLayoutData: false,
     isSavingUser: false,
     error: null,
@@ -44,6 +50,43 @@ export const AppLayoutStore = signalStore(
                 next: ({ currentUser, activeOpposition }) =>
                   patchState(store, { currentUser, activeOpposition, isLoadingLayoutData: false }),
                 error: () => patchState(store, { isLoadingLayoutData: false, error: 'loading' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      openOppositionModal: rxMethod<void>(
+        pipe(
+          switchMap(() =>
+            oppositionService.getUserOppositions().pipe(
+              tapResponse({
+                next: (userOppositions) =>
+                  patchState(store, { userOppositions, isOppositionModalOpen: true }),
+                error: () => notificationService.error('appLayout.oppositionsError'),
+              }),
+            ),
+          ),
+        ),
+      ),
+      closeOppositionModal(): void {
+        patchState(store, { isOppositionModalOpen: false });
+      },
+      changeOpposition: rxMethod<string>(
+        pipe(
+          tap(() => patchState(store, { isChangingOpposition: true })),
+          switchMap((oppositionId) =>
+            oppositionService.setActiveOpposition(oppositionId).pipe(
+              tapResponse({
+                next: (activeOpposition) =>
+                  patchState(store, {
+                    activeOpposition,
+                    isChangingOpposition: false,
+                    isOppositionModalOpen: false,
+                  }),
+                error: () => {
+                  patchState(store, { isChangingOpposition: false });
+                  notificationService.error('appLayout.oppositionsError');
+                },
               }),
             ),
           ),

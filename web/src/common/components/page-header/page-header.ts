@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Opposition } from '../../models/opposition.model';
@@ -14,8 +14,15 @@ import { Icon } from '../icon/icon';
         <button
           type="button"
           class="page-header__selector text-start p-0 border-0 bg-transparent"
-          [title]="'appLayout.changeOpposition' | translate">
-          {{ name.start }}<span class="text-nowrap">{{ name.lastWord }}@if (isTouchLayout()) {<app-icon class="page-header__arrow text-primary ms-1" name="chevron-down" />}</span>
+          [title]="'appLayout.changeOpposition' | translate"
+          (click)="oppositionClicked.emit()">
+          {{ name.start
+          }}<span class="text-nowrap"
+            >{{ name.lastWord }}
+            @if (isTouchLayout()) {
+              <app-icon class="page-header__arrow text-primary ms-1" name="chevron-down" />
+            }
+          </span>
         </button>
       }
     </ng-template>
@@ -78,6 +85,7 @@ export class PageHeader {
   readonly greeting = input('');
   readonly title = input('');
   readonly opposition = input.required<Opposition | null>();
+  readonly oppositionClicked = output();
 
   protected readonly oppositionNameParts = computed(() => {
     const name = this.opposition()?.name;

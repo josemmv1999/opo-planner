@@ -14,7 +14,9 @@
     "collapse": "Plegar menú",
     "expand": "Desplegar menú",
     "changeOpposition": "Cambiar de oposición",
-    "profile": "Tu perfil"
+    "profile": "Tu perfil",
+    "addOpposition": "Añadir otra oposición",
+    "oppositionsError": "No hemos podido cambiar de oposición. Inténtalo de nuevo."
   },
   "authLayout": {
     "logoAlt": "opo-planner"
@@ -441,8 +443,30 @@
     "email": "Email",
     "saved": "Hemos guardado tus datos.",
     "saveError": "No hemos podido guardar tus datos. Inténtalo de nuevo.",
-    "opposition": "Tu oposición",
     "session": "Sesión",
-    "sessionText": "Cierra la sesión si usas un dispositivo compartido."
+    "sessionText": "Cierra la sesión si usas un dispositivo compartido.",
+    "oppositions": "Tus oposiciones",
+    "oppositionsLoadError": "No hemos podido cargar tus oposiciones.",
+    "active": "Activa",
+    "addOpposition": "Añadir oposición",
+    "allOppositions": "Ya preparas todas las oposiciones disponibles.",
+    "addTitle": "Añadir oposiciones",
+    "addLead": "Cada una va por separado: su temario, sus exámenes y su calendario. Su horario de estudio lo ajustas luego en el planner.",
+    "add": "Añadir",
+    "addError": "No hemos podido añadir las oposiciones. Inténtalo de nuevo.",
+    "oppositionsAdded": "Hemos añadido las oposiciones.",
+    "menu": "Menú en este dispositivo",
+    "menuAuto": "Automático según el dispositivo",
+    "menuDetected": {
+      "desktop": "Ahora se usa el menú lateral de ordenador.",
+      "touch": "Ahora se usa la barra inferior de tablet y móvil."
+    },
+    "menuHint": "En pantallas estrechas siempre se usa la barra inferior.",
+    "password": "Contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Contraseña nueva",
+    "changePassword": "Cambiar contraseña",
+    "passwordChanged": "Hemos cambiado tu contraseña.",
+    "passwordError": "No hemos podido cambiar la contraseña. Revisa la actual."
   }
 }

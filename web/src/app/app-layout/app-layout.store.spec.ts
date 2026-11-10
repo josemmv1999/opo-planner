@@ -29,7 +29,9 @@ describe('AppLayoutStore', () => {
         { provide: AccountService, useValue: { getCurrentUser: () => of(USER), updateProfile } },
         {
           provide: OppositionService,
-          useValue: { getActiveOpposition: () => of({ abbreviation: 'C2', name: 'AGE' }) },
+          useValue: {
+            getActiveOpposition: () => of({ id: 'age-c2', abbreviation: 'C2', name: 'AGE' }),
+          },
         },
         { provide: NotificationService, useValue: { success } },
       ],

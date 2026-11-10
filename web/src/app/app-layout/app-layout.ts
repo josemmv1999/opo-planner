@@ -7,14 +7,16 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
+import { Icon } from '../../common/components/icon/icon';
+import { Modal } from '../../common/components/modal/modal';
 import { BottomNav } from '../../common/components/bottom-nav/bottom-nav';
 import { PageHeader } from '../../common/components/page-header/page-header';
 import { Sidebar } from '../../common/components/sidebar/sidebar';
 import { greetingKeyFor } from '../../common/utils/greeting-key';
-import { injectIsTouchLayout } from '../../common/utils/touch-layout';
+import { InterfaceModeService } from '../../common/services/interface-mode.service';
 import { AppLayoutStore } from './app-layout.store';
 
 const SIDEBAR_COLLAPSED_KEY = 'isSidebarCollapsed';
@@ -40,7 +42,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, TranslatePipe, Sidebar, BottomNav, PageHeader],
+  imports: [RouterOutlet, RouterLink, Modal, Icon, TranslatePipe, Sidebar, BottomNav, PageHeader],
   providers: [AppLayoutStore],
   host: {
     class: 'd-flex min-vh-100',
@@ -55,6 +57,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
         [user]="store.currentUser()"
         [opposition]="store.activeOpposition()"
         (toggleCollapse)="toggleSidebar()"
+        (changeOpposition)="store.openOppositionModal()"
         (logout)="logout()" />
     }
     <main class="app-layout__main flex-grow-1">
@@ -65,15 +68,66 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
           [greeting]="greeting ? (greeting.key | translate: { name: greeting.name }) : ''"
           [title]="pageTitleKey() ? (pageTitleKey() | translate) : ''"
           [opposition]="store.activeOpposition()"
-          [isTouchLayout]="isTouchLayout()" />
+          [isTouchLayout]="isTouchLayout()"
+          (oppositionClicked)="store.openOppositionModal()" />
         <router-outlet />
       </div>
     </main>
     @if (isTouchLayout()) {
       <app-bottom-nav class="d-block" [user]="store.currentUser()" />
     }
+
+    <app-modal
+      [isOpen]="store.isOppositionModalOpen()"
+      [label]="'appLayout.changeOpposition' | translate"
+      (closed)="store.closeOppositionModal()">
+      <ng-template>
+        <div class="d-flex flex-column gap-3">
+          <h2 class="h5 mb-0">{{ 'appLayout.changeOpposition' | translate }}</h2>
+          <div class="d-flex flex-column gap-2" role="radiogroup">
+            @for (opposition of store.userOppositions(); track opposition.id) {
+              @let isActive = opposition.id === store.activeOpposition()?.id;
+              <button
+                type="button"
+                role="radio"
+                class="app-layout__opposition d-flex align-items-center gap-2 text-start"
+                [attr.aria-checked]="isActive"
+                [disabled]="store.isChangingOpposition()"
+                (click)="
+                  isActive ? store.closeOppositionModal() : store.changeOpposition(opposition.id)
+                ">
+                <span class="app-opposition-badge">{{ opposition.abbreviation }}</span>
+                <span class="fw-bold flex-grow-1">{{ opposition.name }}</span>
+                @if (isActive) {
+                  <app-icon class="text-primary" name="check" />
+                }
+              </button>
+            }
+          </div>
+          <a
+            class="btn btn-outline-primary d-flex align-items-center align-self-start"
+            routerLink="/profile"
+            (click)="store.closeOppositionModal()">
+            <app-icon class="me-2" name="add" />
+            {{ 'appLayout.addOpposition' | translate }}
+          </a>
+        </div>
+      </ng-template>
+    </app-modal>
   `,
   styles: `
+    .app-layout__opposition {
+      padding: 0.75rem 0.875rem;
+      background-color: var(--bs-white);
+      border: 2px solid rgba(var(--bs-dark-rgb), 0.14);
+      border-radius: var(--bs-border-radius);
+
+      &[aria-checked='true'] {
+        border-color: var(--bs-primary);
+        box-shadow: 3px 3px 0 var(--bs-primary);
+      }
+    }
+
     .app-layout__main {
       min-width: 0;
       padding: 1.5rem 1rem 0;
@@ -118,7 +172,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
 export class AppLayout {
   protected readonly store = inject(AppLayoutStore);
   protected readonly isSidebarCollapsed = signal(readIsSidebarCollapsed());
-  protected readonly isTouchLayout = injectIsTouchLayout();
+  protected readonly isTouchLayout = inject(InterfaceModeService).isTouchLayout;
   readonly #router = inject(Router);
   readonly #route = inject(ActivatedRoute);
 

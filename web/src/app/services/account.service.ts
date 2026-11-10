@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { Observable, delay, of, throwError } from 'rxjs';
 import { Credentials } from '../../common/models/credentials.model';
 import { RegisterData } from '../../common/models/register-data.model';
-import { ProfileData, User } from '../../common/models/user.model';
+import { PasswordChange, ProfileData, User } from '../../common/models/user.model';
 import { MOCK_ONBOARDING_KEY, readMockFlag } from './mock-storage';
 
 @Injectable({ providedIn: 'root' })
@@ -22,6 +22,12 @@ export class AccountService {
       ...this.#profile,
       hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
     }).pipe(delay(800));
+  }
+
+  changePassword({ currentPassword }: PasswordChange): Observable<void> {
+    return currentPassword
+      ? of(undefined).pipe(delay(600))
+      : throwError(() => new Error('Wrong password'));
   }
 
   updateProfile(profile: ProfileData): Observable<ProfileData> {

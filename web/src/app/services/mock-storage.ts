@@ -1,5 +1,7 @@
 export const MOCK_ONBOARDING_KEY = 'mockHasCompletedOnboarding';
 export const INTERFACE_MODE_KEY = 'interfaceMode';
+export const MOCK_OPPOSITION_IDS_KEY = 'mockOppositionIds';
+export const MOCK_ACTIVE_OPPOSITION_KEY = 'mockActiveOppositionId';
 
 export const readMockFlag = (key: string): boolean => {
   try {
