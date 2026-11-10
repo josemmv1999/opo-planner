@@ -142,6 +142,9 @@ export class WeakBlocksCard {
   readonly weakBlocks = input.required<WeakBlock[]>();
 
   protected readonly weakBlocksWithColor = computed(() =>
-    this.weakBlocks().map((block) => ({ ...block, barColor: scoreBarClass(block.correctPercentage) })),
+    this.weakBlocks().map((block) => ({
+      ...block,
+      barColor: scoreBarClass(block.correctPercentage),
+    })),
   );
 }

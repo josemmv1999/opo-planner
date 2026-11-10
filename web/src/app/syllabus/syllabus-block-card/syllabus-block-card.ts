@@ -83,13 +83,14 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
                   · {{ 'syllabus.notesCount' | translate: { count: topic.notesCount } }}
                 </span>
               </span>
-              <a
+              <button
+                type="button"
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                [routerLink]="['/syllabus', topic.id, 'quiz']"
+                (click)="practised.emit(topic.id)"
                 [attr.aria-label]="'syllabus.practiceTopic' | translate: { number: topic.number }">
                 <app-icon class="me-2" name="tests" />
                 {{ 'syllabus.practice' | translate }}
-              </a>
+              </button>
             </li>
           }
         </ul>
@@ -236,6 +237,7 @@ export class SyllabusBlockCard {
   readonly isUpdating = input(false);
   readonly toggled = output();
   readonly studiedToggled = output();
+  readonly practised = output<number>();
 
   protected readonly barClass = computed(() => scoreBarClass(this.block().correctPercentage ?? 0));
 }

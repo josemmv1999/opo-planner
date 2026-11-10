@@ -12,7 +12,9 @@ import { journeyPercentage } from '../../../common/utils/journey-percentage';
   template: `
     <section class="card card--ink bg-primary text-white h-100">
       <div class="card-body card-body--home d-flex flex-column gap-2">
-        <h2 class="countdown-card__label card-label text-white">{{ 'home.countdown.title' | translate }}</h2>
+        <h2 class="countdown-card__label card-label text-white">
+          {{ 'home.countdown.title' | translate }}
+        </h2>
         <p class="countdown-card__days mb-0">
           <span class="countdown-card__number">{{ daysLeft() }}</span>
           <span class="countdown-card__unit">
@@ -38,7 +40,9 @@ import { journeyPercentage } from '../../../common/utils/journey-percentage';
           <span class="countdown-card__date-long">
             {{ 'home.countdown.examDate' | translate: { date: examDate() | formatDate: 'PPP' } }}
           </span>
-          <span class="countdown-card__date-short">{{ examDate() | formatDate: 'd MMM yyyy' }}</span>
+          <span class="countdown-card__date-short">{{
+            examDate() | formatDate: 'd MMM yyyy'
+          }}</span>
         </p>
       </div>
     </section>
@@ -137,7 +141,9 @@ export class CountdownCard {
     return studyStartDate ? parseISO(studyStartDate) : startOfYear(this.#now());
   });
 
-  protected readonly daysLeft = computed(() => differenceInCalendarDays(parseISO(this.examDate()), this.#now()));
+  protected readonly daysLeft = computed(() =>
+    differenceInCalendarDays(parseISO(this.examDate()), this.#now()),
+  );
   protected readonly progress = computed(() =>
     journeyPercentage(this.#startDate(), parseISO(this.examDate()), this.#now()),
   );

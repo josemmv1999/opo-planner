@@ -7,31 +7,34 @@ import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
   selector: 'app-quiz-setup',
   imports: [TranslatePipe, Icon],
   template: `
-    <section class="card card--cyan quiz-setup">
-      <div class="card-body d-flex flex-column gap-4">
-        <p class="text-body-secondary mb-0">{{ 'topicQuiz.setup.lead' | translate }}</p>
-        <fieldset class="m-0 p-0 border-0">
-          <legend class="quiz-setup__legend">{{ 'topicQuiz.setup.howMany' | translate }}</legend>
-          <div class="d-flex gap-2">
-            @for (option of counts; track option) {
-              <label class="quiz-setup__count d-flex flex-column align-items-center flex-fill">
-                <input
-                  class="visually-hidden"
-                  type="radio"
-                  name="question-count"
-                  [checked]="count() === option"
-                  (change)="countChanged.emit(option)" />
-                <strong>{{ option }}</strong>
-                <span class="text-body-secondary">{{
-                  'topicQuiz.setup.counts.' + option | translate
-                }}</span>
-              </label>
-            }
-          </div>
-        </fieldset>
+    <section class="d-flex flex-column gap-4">
+      <p class="text-body-secondary mb-0">{{ 'topicQuiz.setup.lead' | translate }}</p>
+      <fieldset class="m-0 p-0 border-0">
+        <legend class="quiz-setup__legend">{{ 'topicQuiz.setup.howMany' | translate }}</legend>
+        <div class="d-flex gap-2">
+          @for (option of counts; track option) {
+            <label class="quiz-setup__count d-flex flex-column align-items-center flex-fill">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="question-count"
+                [checked]="count() === option"
+                (change)="countChanged.emit(option)" />
+              <strong>{{ option }}</strong>
+              <span class="text-body-secondary">{{
+                'topicQuiz.setup.counts.' + option | translate
+              }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+      <div class="d-flex flex-wrap justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-primary" (click)="cancelled.emit()">
+          {{ 'actions.cancel' | translate }}
+        </button>
         <button
           type="button"
-          class="btn btn-primary d-flex align-items-center align-self-start"
+          class="btn btn-primary d-flex align-items-center"
           [class.is-loading]="isLoading()"
           [disabled]="isLoading()"
           (click)="started.emit()">
@@ -42,10 +45,6 @@ import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
     </section>
   `,
   styles: `
-    .quiz-setup {
-      max-width: 34rem;
-    }
-
     .quiz-setup__legend {
       margin-bottom: 0.5rem;
       font-size: 0.875rem;
@@ -53,6 +52,8 @@ import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
     }
 
     .quiz-setup__count {
+      min-width: 0;
+      text-align: center;
       gap: 0.125rem;
       padding: 0.875rem 0.5rem;
       cursor: pointer;
@@ -67,6 +68,7 @@ import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
 
       span {
         font-size: 0.75rem;
+        overflow-wrap: anywhere;
         font-weight: 700;
       }
 
@@ -88,6 +90,7 @@ export class QuizSetup {
   readonly isLoading = input(false);
   readonly countChanged = output<QuestionCount>();
   readonly started = output();
+  readonly cancelled = output();
 
   protected readonly counts = QUESTION_COUNTS;
 }

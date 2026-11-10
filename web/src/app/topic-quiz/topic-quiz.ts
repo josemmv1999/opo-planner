@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Icon } from '../../common/components/icon/icon';
 import { Modal } from '../../common/components/modal/modal';
 import { QuizQuestionCard } from './quiz-question/quiz-question';
 import { QuizResult } from './quiz-result/quiz-result';
@@ -10,38 +9,69 @@ import { TopicQuizStore } from './topic-quiz.store';
 
 @Component({
   selector: 'app-topic-quiz',
-  imports: [RouterLink, TranslatePipe, Icon, Modal, QuizSetup, QuizQuestionCard, QuizResult],
+  imports: [NgTemplateOutlet, TranslatePipe, Modal, QuizSetup, QuizQuestionCard, QuizResult],
   providers: [TopicQuizStore],
-  host: { class: 'd-flex flex-column gap-4' },
   template: `
-    @if (store.topic(); as topic) {
-      @if (store.phase() !== 'playing') {
-        <a
-          class="topic-quiz__back d-inline-flex align-items-center align-self-start"
-          [routerLink]="['/syllabus', topic.id]">
-          <app-icon class="me-1" name="chevron-left" />
-          {{ 'topicQuiz.backToTopic' | translate }}
-        </a>
+    <ng-template #heading>
+      @if (store.topic(); as topic) {
+        <div class="d-flex flex-column gap-1">
+          <p class="topic-quiz__eyebrow text-body-secondary mb-0">
+            {{ 'topicQuiz.eyebrow' | translate }}
+          </p>
+          <h2 class="topic-quiz__title mb-0">
+            {{ 'syllabus.topicName' | translate: { number: topic.number, name: topic.name } }}
+          </h2>
+        </div>
       }
-      <div class="d-flex flex-column gap-1">
-        <p class="topic-quiz__eyebrow text-body-secondary mb-0">
-          {{ 'topicQuiz.eyebrow' | translate }}
-        </p>
-        <h2 class="topic-quiz__title mb-0">
-          {{ 'syllabus.topicName' | translate: { number: topic.number, name: topic.name } }}
-        </h2>
-      </div>
+    </ng-template>
 
-      @switch (store.phase()) {
-        @case ('setup') {
-          <app-quiz-setup
-            [count]="store.count()"
-            [isLoading]="store.isLoadingQuestions()"
-            (countChanged)="store.setCount($event)"
-            (started)="store.start()" />
-        }
-        @case ('playing') {
-          @if (store.currentQuestion(); as question) {
+    <app-modal
+      [isOpen]="store.isSetupModalOpen()"
+      [label]="'topicQuiz.eyebrow' | translate"
+      (closed)="store.closeSetupModal()">
+      <ng-template>
+        <div class="d-flex flex-column gap-4">
+          @if (store.isLoadingTopic()) {
+            <div class="d-flex justify-content-center py-4">
+              <span class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">{{ 'topicQuiz.loading' | translate }}</span>
+              </span>
+            </div>
+          } @else if (store.error()) {
+            <div class="alert alert-danger mb-0" role="alert">
+              {{ 'topicQuiz.loadError' | translate }}
+            </div>
+          } @else {
+            <ng-container [ngTemplateOutlet]="heading" />
+            <app-quiz-setup
+              [count]="store.count()"
+              [isLoading]="store.isLoadingQuestions()"
+              (countChanged)="store.setCount($event)"
+              (started)="store.start()"
+              (cancelled)="store.closeSetupModal()" />
+          }
+        </div>
+      </ng-template>
+    </app-modal>
+
+    <app-modal
+      size="lg"
+      [isOpen]="store.isQuizModalOpen()"
+      [label]="'topicQuiz.eyebrow' | translate"
+      (closed)="store.requestClose()">
+      <ng-template>
+        <div class="d-flex flex-column gap-4">
+          <ng-container [ngTemplateOutlet]="heading" />
+          @if (store.phase() === 'finished') {
+            <app-quiz-result
+              [correctCount]="store.correctCount()"
+              [total]="store.questions().length"
+              [percentage]="store.percentage()"
+              [verdictKey]="store.verdictKey()"
+              [wrongQuestions]="store.wrongQuestions()"
+              (restarted)="store.restart()"
+              (closed)="store.requestClose()" />
+          } @else if (store.currentQuestion(); as question) {
             <app-quiz-question
               [question]="question"
               [index]="store.index()"
@@ -52,31 +82,11 @@ import { TopicQuizStore } from './topic-quiz.store';
               [isLast]="store.isLastQuestion()"
               (answered)="store.answer($event)"
               (nextClicked)="store.next()"
-              (exited)="store.openExitModal()" />
+              (exited)="store.requestClose()" />
           }
-        }
-        @case ('finished') {
-          <app-quiz-result
-            [topicId]="topic.id"
-            [correctCount]="store.correctCount()"
-            [total]="store.questions().length"
-            [percentage]="store.percentage()"
-            [verdictKey]="store.verdictKey()"
-            [wrongQuestions]="store.wrongQuestions()"
-            (restarted)="store.restart()" />
-        }
-      }
-    } @else if (store.error()) {
-      <div class="alert alert-danger mb-0" role="alert">
-        {{ 'topicQuiz.loadError' | translate }}
-      </div>
-    } @else {
-      <div class="d-flex justify-content-center py-5">
-        <span class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">{{ 'topicQuiz.loading' | translate }}</span>
-        </span>
-      </div>
-    }
+        </div>
+      </ng-template>
+    </app-modal>
 
     <app-modal
       [isOpen]="store.isExitModalOpen()"
@@ -90,7 +100,7 @@ import { TopicQuizStore } from './topic-quiz.store';
             <button type="button" class="btn btn-outline-primary" (click)="store.closeExitModal()">
               {{ 'topicQuiz.keepGoing' | translate }}
             </button>
-            <button type="button" class="btn btn-primary" (click)="exit()">
+            <button type="button" class="btn btn-primary" (click)="store.exit()">
               {{ 'topicQuiz.exit' | translate }}
             </button>
           </div>
@@ -99,35 +109,26 @@ import { TopicQuizStore } from './topic-quiz.store';
     </app-modal>
   `,
   styles: `
-    .topic-quiz__back {
-      min-height: 1.5rem;
-      font-size: 0.875rem;
-      font-weight: 800;
+    :host {
+      display: contents;
     }
 
     .topic-quiz__eyebrow {
+      font-size: 0.875rem;
       font-weight: 700;
     }
 
     .topic-quiz__title {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 900;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopicQuiz {
-  readonly topicId = input.required<string>();
-
   protected readonly store = inject(TopicQuizStore);
-  readonly #router = inject(Router);
 
-  constructor() {
-    this.store.loadTopic(computed(() => Number(this.topicId())));
-  }
-
-  protected exit(): void {
-    this.store.closeExitModal();
-    this.#router.navigate(['/syllabus', this.topicId()]);
+  open(topicId: number): void {
+    this.store.open(topicId);
   }
 }

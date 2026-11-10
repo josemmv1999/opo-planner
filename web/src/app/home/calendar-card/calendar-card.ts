@@ -1,7 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { addDays, eachDayOfInterval, format, formatISO, getDay, isToday, startOfWeek } from 'date-fns';
+import {
+  addDays,
+  eachDayOfInterval,
+  format,
+  formatISO,
+  getDay,
+  isToday,
+  startOfWeek,
+} from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import { Icon } from '../../../common/components/icon/icon';
 import { MockExamLog, PlannerTask } from '../../../common/models/home.model';
@@ -16,11 +24,15 @@ import { buildAgenda } from './build-agenda';
     <section class="card card--cyan h-100">
       <div class="calendar-card__body card-body card-body--home d-flex flex-column gap-3">
         <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
-          <h2 class="card-title calendar-card__title mb-0">{{ 'home.calendar.title' | translate }}</h2>
+          <h2 class="card-title calendar-card__title mb-0">
+            {{ 'home.calendar.title' | translate }}
+          </h2>
           <span class="calendar-card__meta text-body-secondary">{{ month() }}</span>
         </div>
 
-        <ol class="calendar-card__week list-unstyled mb-0" [attr.aria-label]="'home.calendar.thisWeek' | translate">
+        <ol
+          class="calendar-card__week list-unstyled mb-0"
+          [attr.aria-label]="'home.calendar.thisWeek' | translate">
           @for (day of week(); track day.date) {
             <li
               class="calendar-card__day"
@@ -30,9 +42,13 @@ import { buildAgenda } from './build-agenda';
                 {{ ('home.streak.weekdayInitials' | translate)[day.weekday] }}
               </span>
               <span class="calendar-card__number" aria-hidden="true">{{ day.number }}</span>
-              <span class="calendar-card__dot" [class.invisible]="!day.hasTasks" aria-hidden="true"></span>
+              <span
+                class="calendar-card__dot"
+                [class.invisible]="!day.hasTasks"
+                aria-hidden="true"></span>
               <span class="visually-hidden">
-                {{ day.label }}{{ day.hasTasks ? ', ' + ('home.calendar.hasTasks' | translate) : '' }}
+                {{ day.label
+                }}{{ day.hasTasks ? ', ' + ('home.calendar.hasTasks' | translate) : '' }}
               </span>
             </li>
           }
@@ -42,7 +58,9 @@ import { buildAgenda } from './build-agenda';
           <h3 class="calendar-card__subtitle mb-0">{{ 'home.calendar.today' | translate }}</h3>
           @if (tasks().length) {
             <span class="calendar-card__meta text-body-secondary">
-              {{ 'home.calendar.progress' | translate: { done: doneCount(), total: tasks().length } }}
+              {{
+                'home.calendar.progress' | translate: { done: doneCount(), total: tasks().length }
+              }}
             </span>
           }
         </div>
@@ -51,7 +69,9 @@ import { buildAgenda } from './build-agenda';
           @for (entry of agenda(); track entry.id) {
             @if (entry.kind === 'task') {
               <li>
-                <label class="calendar-card__entry" [class.calendar-card__entry--done]="entry.task.isDone">
+                <label
+                  class="calendar-card__entry"
+                  [class.calendar-card__entry--done]="entry.task.isDone">
                   <input
                     class="calendar-card__check form-check-input m-0"
                     type="checkbox"
@@ -60,7 +80,8 @@ import { buildAgenda } from './build-agenda';
                   <span class="calendar-card__entry-body">
                     <span class="calendar-card__entry-title">{{ entry.task.text }}</span>
                     <span class="calendar-card__entry-time">
-                      {{ entry.task.start | formatDate: 'HH:mm' }} – {{ entry.task.end | formatDate: 'HH:mm' }}
+                      {{ entry.task.start | formatDate: 'HH:mm' }} –
+                      {{ entry.task.end | formatDate: 'HH:mm' }}
                     </span>
                   </span>
                 </label>
@@ -71,13 +92,17 @@ import { buildAgenda } from './build-agenda';
                 <span class="calendar-card__entry-body">
                   <span class="calendar-card__entry-title">{{ entry.log.text }}</span>
                   <span class="calendar-card__entry-time">
-                    {{ entry.log.start | formatDate: 'HH:mm' }} – {{ entry.log.end | formatDate: 'HH:mm' }} ·
+                    {{ entry.log.start | formatDate: 'HH:mm' }} –
+                    {{ entry.log.end | formatDate: 'HH:mm' }} ·
                     {{ 'home.calendar.autoLog' | translate }}
                   </span>
                 </span>
-                <span class="calendar-card__score badge rounded-pill bg-info text-dark border border-dark ms-auto">
+                <span
+                  class="calendar-card__score badge rounded-pill bg-info text-dark border border-dark ms-auto">
                   {{ entry.log.correctAnswers }}/{{ entry.log.totalQuestions }}
-                  <span class="visually-hidden">{{ 'home.calendar.correctAnswers' | translate }}</span>
+                  <span class="visually-hidden">{{
+                    'home.calendar.correctAnswers' | translate
+                  }}</span>
                 </span>
               </li>
             } @else {
@@ -304,7 +329,9 @@ export class CalendarCard {
   protected readonly month = computed(() => format(this.#now(), "LLLL 'de' yyyy", { locale: es }));
   protected readonly nowTime = computed(() => format(this.#now(), 'HH:mm'));
   protected readonly doneCount = computed(() => this.tasks().filter(({ isDone }) => isDone).length);
-  protected readonly agenda = computed(() => buildAgenda(this.tasks(), this.mockExamLogs(), this.#now()));
+  protected readonly agenda = computed(() =>
+    buildAgenda(this.tasks(), this.mockExamLogs(), this.#now()),
+  );
   protected readonly week = computed(() => {
     const daysWithTasks = new Set(this.weekDaysWithTasks());
     const monday = startOfWeek(this.#now(), { weekStartsOn: 1 });

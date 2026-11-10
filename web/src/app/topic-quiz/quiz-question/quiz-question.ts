@@ -18,110 +18,108 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
   selector: 'app-quiz-question',
   imports: [TranslatePipe, Icon],
   template: `
-    <section class="card card--cyan">
-      <div class="card-body d-flex flex-column gap-4">
-        <div class="d-flex align-items-center gap-3">
-          <button
-            type="button"
-            class="btn btn-link quiz-question__exit d-flex align-items-center p-0"
-            (click)="exited.emit()">
-            <app-icon class="me-1" name="close" />
-            {{ 'topicQuiz.exit' | translate }}
-          </button>
-          <div
-            class="quiz-question__progress progress flex-grow-1"
-            role="progressbar"
-            [attr.aria-label]="'topicQuiz.progressLabel' | translate"
-            aria-valuemin="0"
-            [attr.aria-valuemax]="total()"
-            [attr.aria-valuenow]="index()">
-            <div class="progress-bar" [style.width.%]="(index() / total()) * 100"></div>
-          </div>
-          <span class="quiz-question__meta text-body-secondary text-nowrap">
-            {{ 'topicQuiz.questionOf' | translate: { current: index() + 1, total: total() } }}
-          </span>
+    <section class="d-flex flex-column gap-4">
+      <div class="d-flex align-items-center gap-3">
+        <button
+          type="button"
+          class="btn btn-link quiz-question__exit d-flex align-items-center p-0"
+          (click)="exited.emit()">
+          <app-icon class="me-1" name="close" />
+          {{ 'topicQuiz.exit' | translate }}
+        </button>
+        <div
+          class="quiz-question__progress progress flex-grow-1"
+          role="progressbar"
+          [attr.aria-label]="'topicQuiz.progressLabel' | translate"
+          aria-valuemin="0"
+          [attr.aria-valuemax]="total()"
+          [attr.aria-valuenow]="index()">
+          <div class="progress-bar" [style.width.%]="(index() / total()) * 100"></div>
         </div>
+        <span class="quiz-question__meta text-body-secondary text-nowrap">
+          {{ 'topicQuiz.questionOf' | translate: { current: index() + 1, total: total() } }}
+        </span>
+      </div>
 
-        @if (question().caseText; as caseText) {
-          <div class="quiz-question__case">
-            <h3 class="quiz-question__case-title">{{ 'topicQuiz.case' | translate }}</h3>
-            <p class="mb-0">{{ caseText }}</p>
-          </div>
-        }
+      @if (question().caseText; as caseText) {
+        <div class="quiz-question__case">
+          <h3 class="quiz-question__case-title">{{ 'topicQuiz.case' | translate }}</h3>
+          <p class="mb-0">{{ caseText }}</p>
+        </div>
+      }
 
-        <h2 #statement class="quiz-question__statement mb-0" tabindex="-1">
-          {{ question().statement }}
-        </h2>
+      <h2 #statement class="quiz-question__statement mb-0" tabindex="-1">
+        {{ question().statement }}
+      </h2>
 
-        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
-          @for (option of question().options; track $index; let i = $index) {
-            <li>
-              <button
-                type="button"
-                class="quiz-question__option d-flex align-items-center gap-3 w-100 text-start"
-                [class.quiz-question__option--right]="
-                  answer() !== null && i === question().correctOption
-                "
-                [class.quiz-question__option--wrong]="
-                  answer() === i && i !== question().correctOption
-                "
-                [class.quiz-question__option--dim]="
-                  answer() !== null && answer() !== i && i !== question().correctOption
-                "
-                [disabled]="answer() !== null"
-                (click)="answered.emit(i)">
-                <span
-                  class="quiz-question__letter d-flex align-items-center justify-content-center"
-                  >{{ letters[i] }}</span
-                >
-                <span class="flex-grow-1">{{ option }}</span>
-                @if (answer() !== null && i === question().correctOption) {
-                  <app-icon name="check" />
-                  <span class="visually-hidden">{{ 'topicQuiz.rightOption' | translate }}</span>
-                } @else if (answer() === i) {
-                  <app-icon name="close" />
-                  <span class="visually-hidden">{{ 'topicQuiz.yourOption' | translate }}</span>
-                }
-              </button>
-            </li>
-          }
-        </ul>
-
-        @if (answer() !== null) {
-          @let isRight = answer() === question().correctOption;
-          <div
-            class="quiz-question__reasoning"
-            [class.quiz-question__reasoning--right]="isRight"
-            role="status">
-            <p
-              class="d-flex align-items-center gap-2 fw-bold mb-1"
-              [class.text-success]="isRight"
-              [class.text-danger]="!isRight">
-              <app-icon [name]="isRight ? 'check' : 'close'" />
-              {{
-                isRight
-                  ? ('topicQuiz.right' | translate)
-                  : ('topicQuiz.wrong' | translate: { letter: letters[question().correctOption] })
-              }}
-            </p>
-            <p class="mb-0">{{ question().reasoning }}</p>
-          </div>
-        }
-
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <span class="quiz-question__meta text-body-secondary">
-            {{ 'topicQuiz.tally' | translate: { right: correctCount(), wrong: wrongCount() } }}
-          </span>
-          @if (answer() !== null) {
+      <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+        @for (option of question().options; track $index; let i = $index) {
+          <li>
             <button
               type="button"
-              class="btn btn-primary d-flex align-items-center"
-              (click)="nextClicked.emit()">
-              {{ (isLast() ? 'topicQuiz.seeResult' : 'topicQuiz.next') | translate }}
-              <app-icon class="ms-2" name="arrow-right" />
+              class="quiz-question__option d-flex align-items-center gap-3 w-100 text-start"
+              [class.quiz-question__option--right]="
+                answer() !== null && i === question().correctOption
+              "
+              [class.quiz-question__option--wrong]="
+                answer() === i && i !== question().correctOption
+              "
+              [class.quiz-question__option--dim]="
+                answer() !== null && answer() !== i && i !== question().correctOption
+              "
+              [disabled]="answer() !== null"
+              (click)="answered.emit(i)">
+              <span
+                class="quiz-question__letter d-flex align-items-center justify-content-center"
+                >{{ letters[i] }}</span
+              >
+              <span class="flex-grow-1">{{ option }}</span>
+              @if (answer() !== null && i === question().correctOption) {
+                <app-icon name="check" />
+                <span class="visually-hidden">{{ 'topicQuiz.rightOption' | translate }}</span>
+              } @else if (answer() === i) {
+                <app-icon name="close" />
+                <span class="visually-hidden">{{ 'topicQuiz.yourOption' | translate }}</span>
+              }
             </button>
-          }
+          </li>
+        }
+      </ul>
+
+      @if (answer() !== null) {
+        @let isRight = answer() === question().correctOption;
+        <div
+          class="quiz-question__reasoning"
+          [class.quiz-question__reasoning--right]="isRight"
+          role="status">
+          <p
+            class="d-flex align-items-center gap-2 fw-bold mb-1"
+            [class.text-success]="isRight"
+            [class.text-danger]="!isRight">
+            <app-icon [name]="isRight ? 'check' : 'close'" />
+            {{
+              isRight
+                ? ('topicQuiz.right' | translate)
+                : ('topicQuiz.wrong' | translate: { letter: letters[question().correctOption] })
+            }}
+          </p>
+          <p class="mb-0">{{ question().reasoning }}</p>
         </div>
+      }
+
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <span class="quiz-question__meta text-body-secondary">
+          {{ 'topicQuiz.tally' | translate: { right: correctCount(), wrong: wrongCount() } }}
+        </span>
+        @if (answer() !== null) {
+          <button
+            type="button"
+            class="btn btn-primary d-flex align-items-center"
+            (click)="nextClicked.emit()">
+            {{ (isLast() ? 'topicQuiz.seeResult' : 'topicQuiz.next') | translate }}
+            <app-icon class="ms-2" name="arrow-right" />
+          </button>
+        }
       </div>
     </section>
   `,

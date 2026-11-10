@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -30,7 +37,8 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
   }
 };
 
-const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChild ? deepestChild(route.firstChild) : route);
+const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
+  route.firstChild ? deepestChild(route.firstChild) : route;
 
 @Component({
   selector: 'app-layout',
@@ -78,7 +86,10 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute => (route.firstChil
           <button type="button" class="btn btn-outline-primary" (click)="store.closeAccountModal()">
             {{ 'actions.cancel' | translate }}
           </button>
-          <button type="button" class="btn btn-primary d-flex align-items-center" (click)="logout()">
+          <button
+            type="button"
+            class="btn btn-primary d-flex align-items-center"
+            (click)="logout()">
             <app-icon class="me-2" name="logout" />
             {{ 'appLayout.logout' | translate }}
           </button>

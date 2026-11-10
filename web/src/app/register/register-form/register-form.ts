@@ -47,10 +47,7 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
           {{ 'register.error' | translate }}
         </span>
       }
-      <app-button
-        type="submit"
-        [isFullWidth]="true"
-        [isLoading]="isRegistering()">
+      <app-button type="submit" [isFullWidth]="true" [isLoading]="isRegistering()">
         {{ 'register.submit' | translate }}
       </app-button>
       <span class="text-center mb-0">

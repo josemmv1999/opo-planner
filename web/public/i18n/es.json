@@ -251,7 +251,6 @@
     "eyebrow": "Simulacro",
     "loading": "Cargando el simulacro",
     "loadError": "No hemos podido cargar el simulacro.",
-    "backToTopic": "Volver al tema",
     "setup": {
       "lead": "Preguntas tipo test y casos prácticos de este tema. Al fallar verás la respuesta correcta y por qué. Sin límite de tiempo.",
       "howMany": "¿Cuántas preguntas?",
@@ -285,7 +284,7 @@
       "percentage": "{{percentage}} % de aciertos",
       "toReview": "Para repasar",
       "again": "Otra ronda",
-      "backToTopic": "Volver al tema"
+      "close": "Cerrar"
     }
   }
 }

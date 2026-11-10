@@ -14,6 +14,8 @@ export type QuestionCount = (typeof QUESTION_COUNTS)[number];
 const GREAT_SHARE = 0.75;
 const GOOD_SHARE = 0.5;
 
+const NEW_ROUND = { phase: 'setup' as const, questions: [], answers: [], index: 0 };
+
 interface TopicQuizState {
   topic: SyllabusTopicDetail | null;
   count: QuestionCount;
@@ -21,6 +23,8 @@ interface TopicQuizState {
   answers: number[];
   index: number;
   phase: QuizPhase;
+  isSetupModalOpen: boolean;
+  isQuizModalOpen: boolean;
   isExitModalOpen: boolean;
   isLoadingTopic: boolean;
   isLoadingQuestions: boolean;
@@ -35,6 +39,8 @@ export const TopicQuizStore = signalStore(
     answers: [],
     index: 0,
     phase: 'setup',
+    isSetupModalOpen: false,
+    isQuizModalOpen: false,
     isExitModalOpen: false,
     isLoadingTopic: false,
     isLoadingQuestions: false,
@@ -71,9 +77,17 @@ export const TopicQuizStore = signalStore(
   }),
   withMethods(
     (store, syllabusService = inject(SyllabusService), quizService = inject(QuizService)) => ({
-      loadTopic: rxMethod<number>(
+      open: rxMethod<number>(
         pipe(
-          tap(() => patchState(store, { isLoadingTopic: true, error: null })),
+          tap(() =>
+            patchState(store, {
+              ...NEW_ROUND,
+              topic: null,
+              isSetupModalOpen: true,
+              isLoadingTopic: true,
+              error: null,
+            }),
+          ),
           switchMap((topicId) =>
             syllabusService.getTopic(topicId).pipe(
               tapResponse({
@@ -95,9 +109,9 @@ export const TopicQuizStore = signalStore(
                 next: (questions) =>
                   patchState(store, {
                     questions,
-                    answers: [],
-                    index: 0,
                     phase: 'playing',
+                    isSetupModalOpen: false,
+                    isQuizModalOpen: true,
                     isLoadingQuestions: false,
                   }),
                 error: () => patchState(store, { isLoadingQuestions: false, error: 'loading' }),
@@ -119,11 +133,22 @@ export const TopicQuizStore = signalStore(
           store.isLastQuestion() ? { phase: 'finished' as const } : { index: index + 1 },
         );
       },
-      restart(): void {
-        patchState(store, { phase: 'setup', questions: [], answers: [], index: 0 });
+      closeSetupModal(): void {
+        patchState(store, { isSetupModalOpen: false });
       },
-      openExitModal(): void {
-        patchState(store, { isExitModalOpen: true });
+      restart(): void {
+        patchState(store, { ...NEW_ROUND, isQuizModalOpen: false, isSetupModalOpen: true });
+      },
+      requestClose(): void {
+        patchState(
+          store,
+          store.phase() === 'playing'
+            ? { isExitModalOpen: true }
+            : { ...NEW_ROUND, isQuizModalOpen: false },
+        );
+      },
+      exit(): void {
+        patchState(store, { ...NEW_ROUND, isExitModalOpen: false, isQuizModalOpen: false });
       },
       closeExitModal(): void {
         patchState(store, { isExitModalOpen: false });

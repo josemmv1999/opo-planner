@@ -43,10 +43,11 @@ describe('TopicQuizStore', () => {
       ],
     });
     store = TestBed.inject(TopicQuizStore);
-    store.loadTopic(5);
+    store.open(5);
   });
 
-  it('starts in the setup with 20 questions by default', () => {
+  it('opens the setup modal with 20 questions by default', () => {
+    expect(store.isSetupModalOpen()).toBe(true);
     expect(store.phase()).toBe('setup');
     expect(store.count()).toBe(20);
     expect(store.topic()).toEqual(TOPIC);
@@ -57,6 +58,8 @@ describe('TopicQuizStore', () => {
     store.start();
     expect(getTopicQuestions).toHaveBeenCalledWith(5, 10);
     expect(store.phase()).toBe('playing');
+    expect(store.isSetupModalOpen()).toBe(false);
+    expect(store.isQuizModalOpen()).toBe(true);
     expect(store.questions().length).toBe(10);
   });
 
@@ -94,10 +97,34 @@ describe('TopicQuizStore', () => {
     expect(store.wrongQuestions().map(({ id }) => id)).toEqual([8, 9]);
   });
 
-  it('goes back to the setup to play again', () => {
+  it('goes back to the setup modal to play again', () => {
     store.start();
     store.restart();
     expect(store.phase()).toBe('setup');
     expect(store.answers()).toEqual([]);
+    expect(store.isQuizModalOpen()).toBe(false);
+    expect(store.isSetupModalOpen()).toBe(true);
+  });
+
+  it('asks before closing a round in progress', () => {
+    store.start();
+    store.requestClose();
+    expect(store.isExitModalOpen()).toBe(true);
+    expect(store.isQuizModalOpen()).toBe(true);
+    store.exit();
+    expect(store.isExitModalOpen()).toBe(false);
+    expect(store.isQuizModalOpen()).toBe(false);
+  });
+
+  it('closes a finished round without asking', () => {
+    store.setCount(10);
+    store.start();
+    for (let i = 0; i < 10; i++) {
+      store.answer(1);
+      store.next();
+    }
+    store.requestClose();
+    expect(store.isExitModalOpen()).toBe(false);
+    expect(store.isQuizModalOpen()).toBe(false);
   });
 });
