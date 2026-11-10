@@ -198,5 +198,32 @@
       "incompleteScheduleOne": "Elige al menos un día y una franja válida.",
       "saving": "No hemos podido guardar. Inténtalo de nuevo."
     }
+  },
+  "syllabus": {
+    "loading": "Cargando el temario",
+    "loadError": "No hemos podido cargar el temario.",
+    "saveError": "No hemos podido guardar el cambio. Inténtalo de nuevo.",
+    "studiedOf": "{{studied}} de {{total}}",
+    "studiedBlocks": "bloques estudiados",
+    "averageCorrect": "de aciertos de media",
+    "totalTopics": "temas en total",
+    "filterLabel": "Filtrar bloques",
+    "filters": {
+      "all": "Todos",
+      "pending": "Pendientes",
+      "studied": "Estudiados"
+    },
+    "empty": "No hay bloques con este filtro.",
+    "studiedHint": "«Estudiado» lo marcas tú; el porcentaje solo indica qué tal lo llevas.",
+    "topicCount": "{{count}} temas",
+    "correctPercentage": "{{percentage}} % de aciertos",
+    "noData": "Sin datos todavía",
+    "studied": "Estudiado",
+    "markStudied": "Marcar como estudiado",
+    "topicName": "Tema {{number}}. {{name}}",
+    "notPractised": "Sin practicar",
+    "notesCount": "{{count}} apuntes",
+    "practice": "Practicar",
+    "practiceSoon": "Disponible muy pronto"
   }
 }
