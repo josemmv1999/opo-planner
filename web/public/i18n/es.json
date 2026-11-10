@@ -206,7 +206,8 @@
     "studiedOf": "{{studied}} de {{total}}",
     "studiedBlocks": "bloques estudiados",
     "averageCorrect": "de aciertos de media",
-    "totalTopics": "temas en total",
+    "practisedTopics": "temas practicados",
+    "notes": "apuntes",
     "filterLabel": "Filtrar bloques",
     "filters": {
       "all": "Todos",

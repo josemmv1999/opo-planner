@@ -30,6 +30,17 @@ export const SyllabusStore = signalStore(
   withComputed(({ blocks, filter }) => ({
     studiedCount: computed(() => blocks().filter(({ isStudied }) => isStudied).length),
     topicCount: computed(() => blocks().reduce((sum, { topics }) => sum + topics.length, 0)),
+    practisedTopicCount: computed(
+      () =>
+        blocks()
+          .flatMap(({ topics }) => topics)
+          .filter(({ correctPercentage }) => correctPercentage !== null).length,
+    ),
+    notesCount: computed(() =>
+      blocks()
+        .flatMap(({ topics }) => topics)
+        .reduce((sum, { notesCount }) => sum + notesCount, 0),
+    ),
     averagePercentage: computed(() =>
       average(
         blocks().flatMap(({ correctPercentage }) =>
