@@ -35,8 +35,15 @@ import { SyllabusStore } from './syllabus.store';
           <span>{{ 'syllabus.averageCorrect' | translate }}</span>
         </div>
         <div class="card card--cyan syllabus__stat">
-          <strong>{{ store.topicCount() }}</strong>
-          <span>{{ 'syllabus.totalTopics' | translate }}</span>
+          <strong>{{
+            'syllabus.studiedOf'
+              | translate: { studied: store.practisedTopicCount(), total: store.topicCount() }
+          }}</strong>
+          <span>{{ 'syllabus.practisedTopics' | translate }}</span>
+        </div>
+        <div class="card card--teal syllabus__stat">
+          <strong>{{ store.notesCount() }}</strong>
+          <span>{{ 'syllabus.notes' | translate }}</span>
         </div>
       </div>
 
@@ -85,8 +92,12 @@ import { SyllabusStore } from './syllabus.store';
   styles: `
     .syllabus__stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
+
+      @container (min-width: 48rem) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
     }
 
     .syllabus__stat {

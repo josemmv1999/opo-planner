@@ -206,7 +206,8 @@
     "studiedOf": "{{studied}} de {{total}}",
     "studiedBlocks": "bloques estudiados",
     "averageCorrect": "de aciertos de media",
-    "totalTopics": "temas en total",
+    "practisedTopics": "temas practicados",
+    "notes": "apuntes",
     "filterLabel": "Filtrar bloques",
     "filters": {
       "all": "Todos",
@@ -286,5 +287,57 @@
       "again": "Otra ronda",
       "close": "Cerrar"
     }
+  },
+  "exams": {
+    "lead": "Para medirte en condiciones reales: con tiempo y sin explicaciones hasta el final.",
+    "loading": "Cargando los exámenes",
+    "loadError": "No hemos podido cargar los exámenes.",
+    "kinds": {
+      "official": "Oficial",
+      "mixed": "Batiburrillo"
+    },
+    "official": {
+      "title": "Exámenes oficiales",
+      "text": "Convocatorias anteriores, con sus preguntas de reserva. Las anuladas no aparecen.",
+      "choose": "Elegir convocatoria",
+      "listTitle": "Convocatorias oficiales",
+      "meta": "{{questions}} preguntas · {{minutes}} min",
+      "notTaken": "Sin hacer",
+      "lastAttempt": "Último intento {{percentage}} %",
+      "take": "Hacer",
+      "retake": "Repetir"
+    },
+    "mixed": {
+      "title": "Batiburrillo",
+      "text": "Preguntas mezcladas de todo el temario, con la misma estructura que el examen real.",
+      "start": "Empezar"
+    },
+    "history": {
+      "title": "Historial",
+      "minutes": "{{minutes}} min",
+      "empty": "Aún no has hecho ningún examen."
+    },
+    "note": "Ejemplo: 60 preguntas en 60 minutos, sin penalización por fallo. La estructura y la puntuación de cada oposición están pendientes de decidir."
+  },
+  "examSession": {
+    "loading": "Cargando el examen",
+    "loadError": "No hemos podido cargar el examen.",
+    "exit": "Salir",
+    "exitTitle": "¿Salir del examen?",
+    "exitText": "Perderás las respuestas de este intento.",
+    "keepGoing": "Seguir",
+    "answered": "{{answered}} de {{total}} respondidas",
+    "timeLeft": "Tiempo restante",
+    "submit": "Entregar",
+    "submitTitle": "¿Entregar el examen?",
+    "submitText": "Te quedan {{blank}} preguntas sin responder y {{flagged}} marcadas para revisar. Después no podrás cambiar las respuestas.",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "flag": "Marcar para revisar",
+    "flagged": "Marcada para revisar",
+    "questions": "Preguntas",
+    "cellLabel": "Pregunta {{number}}, {{state}}",
+    "answeredState": "Respondida",
+    "flaggedState": "Para revisar",
+    "blank": "Sin responder"
   }
 }
