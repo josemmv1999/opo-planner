@@ -16,3 +16,15 @@ export const writeStorage = (key: string, value: string): void => {
     return;
   }
 };
+
+export const readJson = <T>(key: string): T | null => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? (JSON.parse(value) as T) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const writeJson = (key: string, value: unknown): void =>
+  writeStorage(key, JSON.stringify(value));

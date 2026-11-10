@@ -9,6 +9,7 @@ import {
   PlannerWeek,
   TaskDraft,
 } from '../../common/models/planner.model';
+import { readJson, writeJson } from './mock-storage';
 
 type MockEntry = [day: number, start: string, end: string, text: string, isDone?: boolean];
 
@@ -39,6 +40,13 @@ const RECORD_LABELS: Record<PlannerRecord['kind'], string> = {
   quiz: 'Simulacro',
 };
 const DELAY_MS = 300;
+const STORAGE_KEY = 'mockPlanner';
+const FIRST_NEW_ID = 1000;
+
+interface StoredPlanner {
+  entries: PlannerEntry[];
+  schedule: StudySchedule;
+}
 
 const at = (monday: Date, day: number, time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -65,7 +73,8 @@ const isInWeek = (iso: string, monday: Date): boolean => {
 @Injectable({ providedIn: 'root' })
 export class PlannerService {
   readonly #monday = startOfWeek(startOfToday(), { weekStartsOn: 1 });
-  #entries: PlannerEntry[] = [
+  readonly #stored = readJson<StoredPlanner>(STORAGE_KEY);
+  #entries: PlannerEntry[] = this.#stored?.entries ?? [
     ...toEntries(this.#monday, MOCK_TASKS, false, 1),
     ...toEntries(this.#monday, MOCK_RECORDS, true, 100),
   ];
@@ -75,7 +84,7 @@ export class PlannerService {
     false,
     500,
   ).map(({ id, text, start, end }) => ({ id, text, start, end, oppositionName: OTHER_OPPOSITION }));
-  #schedule: StudySchedule = {
+  #schedule: StudySchedule = this.#stored?.schedule ?? {
     days: [0, 1, 2, 3, 4],
     slots: [{ start: '17:00', end: '20:00' }],
   };
@@ -83,7 +92,7 @@ export class PlannerService {
     days: [2, 4],
     slots: [{ start: '18:30', end: '20:00' }],
   };
-  #nextId = 1000;
+  #nextId = Math.max(FIRST_NEW_ID - 1, ...this.#entries.map(({ id }) => id)) + 1;
 
   getWeek(weekStart: string): Observable<PlannerWeek> {
     const monday = parseISO(weekStart);
@@ -109,11 +118,13 @@ export class PlannerService {
     this.#entries = previous
       ? this.#entries.map((current) => (current.id === entry.id ? entry : current))
       : [...this.#entries, entry];
+    this.#save();
     return of(entry).pipe(delay(DELAY_MS));
   }
 
   saveSchedule(schedule: StudySchedule): Observable<StudySchedule> {
     this.#schedule = schedule;
+    this.#save();
     return of(schedule).pipe(delay(DELAY_MS));
   }
 
@@ -121,11 +132,13 @@ export class PlannerService {
     this.#entries = this.#entries.map((entry) =>
       entry.id === taskId ? { ...entry, isDone } : entry,
     );
+    this.#save();
     return of(taskId).pipe(delay(DELAY_MS));
   }
 
   deleteTask(taskId: number): Observable<number> {
     this.#entries = this.#entries.filter(({ id }) => id !== taskId);
+    this.#save();
     return of(taskId).pipe(delay(DELAY_MS));
   }
 
@@ -139,6 +152,11 @@ export class PlannerService {
       isRecord: true,
     };
     this.#entries = [...this.#entries, entry];
+    this.#save();
     return of(entry).pipe(delay(DELAY_MS));
+  }
+
+  #save(): void {
+    writeJson(STORAGE_KEY, { entries: this.#entries, schedule: this.#schedule });
   }
 }
