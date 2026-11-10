@@ -225,5 +225,26 @@
     "notesCount": "{{count}} apuntes",
     "practice": "Practicar",
     "practiceSoon": "Disponible muy pronto"
+  },
+  "syllabusTopic": {
+    "back": "Temario",
+    "loading": "Cargando el tema",
+    "loadError": "No hemos podido cargar este tema.",
+    "practice": "Practicar este tema",
+    "laws": "Normativa",
+    "readLaw": "Leer en el BOE",
+    "readLawLabel": "Leer {{name}} en el BOE (se abre en otra pestaña)",
+    "noLaws": "Este tema no tiene normativa asociada.",
+    "notes": "Mis apuntes",
+    "uploadPdf": "Subir PDF",
+    "newNote": "Nuevo apunte",
+    "notesSoon": "Disponible muy pronto",
+    "noteKind": {
+      "pdf": "PDF",
+      "text": "Texto"
+    },
+    "noNotes": "Todavía no tienes apuntes en este tema.",
+    "notPractised": "Aún no has practicado este tema.",
+    "score": "Llevas un {{percentage}} % de aciertos en este tema."
   }
 }

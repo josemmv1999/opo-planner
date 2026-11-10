@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { SyllabusBlock } from '../../../common/models/syllabus.model';
@@ -6,7 +7,7 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
 
 @Component({
   selector: 'app-syllabus-block-card',
-  imports: [TranslatePipe, Icon],
+  imports: [RouterLink, TranslatePipe, Icon],
   template: `
     <section
       class="card h-100"
@@ -65,9 +66,13 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
           @for (topic of block().topics; track topic.id) {
             <li class="syllabus-block-card__topic d-flex align-items-center gap-3">
               <span class="d-flex flex-column flex-grow-1 overflow-hidden">
-                <span class="fw-bold">{{
-                  'syllabus.topicName' | translate: { number: topic.number, name: topic.name }
-                }}</span>
+                <a
+                  class="syllabus-block-card__topic-link fw-bold"
+                  [routerLink]="['/syllabus', topic.id]"
+                  >{{
+                    'syllabus.topicName' | translate: { number: topic.number, name: topic.name }
+                  }}</a
+                >
                 <span class="syllabus-block-card__meta text-body-secondary">
                   {{
                     topic.correctPercentage === null
@@ -178,6 +183,14 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
         color: var(--bs-white);
         background-color: var(--bs-success);
         border-color: var(--bs-success);
+      }
+    }
+
+    .syllabus-block-card__topic-link {
+      color: var(--bs-body-color);
+
+      &:hover {
+        color: var(--bs-primary);
       }
     }
 

@@ -1,6 +1,57 @@
 import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
-import { SyllabusBlock } from '../../common/models/syllabus.model';
+import { Observable, delay, map, of } from 'rxjs';
+import { SyllabusBlock, SyllabusTopicDetail, TopicLaw } from '../../common/models/syllabus.model';
+
+const CONSTITUTION = 'BOE-A-1978-31229';
+const PROCEDURE_LAW = 'BOE-A-2015-10565';
+const PUBLIC_SECTOR_LAW = 'BOE-A-2015-10566';
+const PUBLIC_EMPLOYEE_STATUTE = 'BOE-A-2015-11719';
+
+const TOPIC_LAWS: Record<number, TopicLaw[]> = {
+  1: [
+    { name: 'Constitución Española', scope: 'Título Preliminar y Título I', boeId: CONSTITUTION },
+  ],
+  2: [{ name: 'Constitución Española', scope: 'Títulos II y III', boeId: CONSTITUTION }],
+  3: [
+    { name: 'Constitución Española', scope: 'Título IV', boeId: CONSTITUTION },
+    { name: 'Ley 50/1997, del Gobierno', scope: 'Completa', boeId: 'BOE-A-1997-25336' },
+  ],
+  4: [
+    {
+      name: 'Ley 40/2015, de Régimen Jurídico del Sector Público',
+      scope: 'Título preliminar',
+      boeId: PUBLIC_SECTOR_LAW,
+    },
+  ],
+  5: [
+    {
+      name: 'Ley 39/2015, del Procedimiento Administrativo Común',
+      scope: 'Título III',
+      boeId: PROCEDURE_LAW,
+    },
+  ],
+  6: [
+    {
+      name: 'Ley 39/2015, del Procedimiento Administrativo Común',
+      scope: 'Títulos IV y V',
+      boeId: PROCEDURE_LAW,
+    },
+  ],
+  7: [
+    {
+      name: 'Estatuto Básico del Empleado Público',
+      scope: 'Títulos I y II',
+      boeId: PUBLIC_EMPLOYEE_STATUTE,
+    },
+  ],
+  8: [
+    {
+      name: 'Estatuto Básico del Empleado Público',
+      scope: 'Título III',
+      boeId: PUBLIC_EMPLOYEE_STATUTE,
+    },
+  ],
+};
 
 @Injectable({ providedIn: 'root' })
 export class SyllabusService {
@@ -107,6 +158,37 @@ export class SyllabusService {
         ],
       },
     ]).pipe(delay(400));
+  }
+
+  getTopic(topicId: number): Observable<SyllabusTopicDetail> {
+    return this.getBlocks().pipe(
+      map((blocks) => {
+        const block = blocks.find(({ topics }) => topics.some(({ id }) => id === topicId));
+        const topic = block?.topics.find(({ id }) => id === topicId);
+        if (!block || !topic) throw new Error('Topic not found');
+        return {
+          id: topic.id,
+          number: topic.number,
+          name: topic.name,
+          blockLabel: block.label,
+          blockName: block.name,
+          correctPercentage: topic.correctPercentage,
+          laws: TOPIC_LAWS[topic.id] ?? [],
+          notes:
+            topic.id === 1
+              ? [
+                  {
+                    id: 1,
+                    title: 'Esquema de la Constitución',
+                    kind: 'pdf',
+                    updatedAt: '2026-11-03',
+                  },
+                  { id: 2, title: 'Derechos fundamentales', kind: 'text', updatedAt: '2026-10-28' },
+                ]
+              : [],
+        };
+      }),
+    );
   }
 
   setStudied(
