@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
@@ -6,7 +7,7 @@ import { ExamsStore } from './exams.store';
 
 @Component({
   selector: 'app-exams',
-  imports: [TranslatePipe, Icon, FormatDatePipe],
+  imports: [RouterLink, TranslatePipe, Icon, FormatDatePipe],
   providers: [ExamsStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -29,13 +30,12 @@ import { ExamsStore } from './exams.store';
         <span class="exams__tag bg-warning">{{ 'exams.kinds.mixed' | translate }}</span>
         <h2 class="exams__starter-title mb-0">{{ 'exams.mixed.title' | translate }}</h2>
         <p class="text-body-secondary mb-0">{{ 'exams.mixed.text' | translate }}</p>
-        <button
-          type="button"
+        <a
           class="btn btn-primary d-flex align-items-center align-self-start mt-auto"
-          disabled>
+          routerLink="/exams/mixed">
           <app-icon class="me-2" name="tests" />
           {{ 'exams.mixed.start' | translate }}
-        </button>
+        </a>
       </section>
     </div>
 
@@ -70,12 +70,12 @@ import { ExamsStore } from './exams.store';
                     }}
                   </span>
                 </span>
-                <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                <a class="btn btn-outline-primary btn-sm" [routerLink]="['/exams', exam.id]">
                   {{
                     (exam.lastPercentage === null ? 'exams.official.take' : 'exams.official.retake')
                       | translate
                   }}
-                </button>
+                </a>
               </li>
             }
           </ul>

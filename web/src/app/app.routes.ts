@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { EmptyState } from '../common/components/empty-state/empty-state';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
+import { ExamSession } from './exam-session/exam-session';
 import { Exams } from './exams/exams';
 import { Home } from './home/home';
 import { Login } from './login/login';
@@ -21,6 +22,7 @@ export const routes: Routes = [
     ],
   },
   { path: 'onboarding', component: Onboarding },
+  { path: 'exams/:examId', component: ExamSession },
   {
     path: '',
     component: AppLayout,

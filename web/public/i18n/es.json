@@ -278,5 +278,26 @@
       "empty": "Aún no has hecho ningún examen."
     },
     "note": "Ejemplo: 60 preguntas en 60 minutos, sin penalización por fallo. La estructura y la puntuación de cada oposición están pendientes de decidir."
+  },
+  "examSession": {
+    "loading": "Cargando el examen",
+    "loadError": "No hemos podido cargar el examen.",
+    "exit": "Salir",
+    "exitTitle": "¿Salir del examen?",
+    "exitText": "Perderás las respuestas de este intento.",
+    "keepGoing": "Seguir",
+    "answered": "{{answered}} de {{total}} respondidas",
+    "timeLeft": "Tiempo restante",
+    "submit": "Entregar",
+    "submitTitle": "¿Entregar el examen?",
+    "submitText": "Te quedan {{blank}} preguntas sin responder y {{flagged}} marcadas para revisar. Después no podrás cambiar las respuestas.",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "flag": "Marcar para revisar",
+    "flagged": "Marcada para revisar",
+    "questions": "Preguntas",
+    "cellLabel": "Pregunta {{number}}, {{state}}",
+    "answeredState": "Respondida",
+    "flaggedState": "Para revisar",
+    "blank": "Sin responder"
   }
 }
