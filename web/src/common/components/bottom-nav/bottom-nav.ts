@@ -45,8 +45,10 @@ import { Icon } from '../icon/icon';
       bottom: calc(1.25rem + env(safe-area-inset-bottom));
       left: 1rem;
       z-index: 1030;
+      max-width: 30rem;
       height: 4rem;
       padding: 0 0.5rem;
+      margin: 0 auto;
       border-radius: 1.375rem;
       box-shadow: 0.25rem 0.25rem 0 var(--bs-dark);
     }
