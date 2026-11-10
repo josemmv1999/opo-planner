@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   afterRenderEffect,
+  computed,
   input,
   output,
   viewChild,
@@ -23,14 +24,20 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
           <span class="exam-question__meta text-body-secondary">
             {{ 'examSession.questionOf' | translate: { current: index() + 1, total: total() } }}
           </span>
-          <button
-            type="button"
-            class="exam-question__flag d-flex align-items-center"
-            [attr.aria-pressed]="isFlagged()"
-            (click)="flagToggled.emit()">
-            <app-icon class="me-2" name="flag" />
-            {{ (isFlagged() ? 'examSession.flagged' : 'examSession.flag') | translate }}
-          </button>
+          @if (isReviewing()) {
+            <span class="exam-question__meta" [class.text-danger]="answer() !== correctOption()">
+              {{ reviewKey() | translate }}
+            </span>
+          } @else {
+            <button
+              type="button"
+              class="exam-question__flag d-flex align-items-center"
+              [attr.aria-pressed]="isFlagged()"
+              (click)="flagToggled.emit()">
+              <app-icon class="me-2" name="flag" />
+              {{ (isFlagged() ? 'examSession.flagged' : 'examSession.flag') | translate }}
+            </button>
+          }
         </div>
 
         <h1 #statement class="exam-question__statement mb-0" tabindex="-1">
@@ -43,7 +50,12 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
               <button
                 type="button"
                 class="exam-question__option d-flex align-items-center w-100 text-start"
+                [class.exam-question__option--correct]="correctOption() === $index"
+                [class.exam-question__option--wrong]="
+                  isReviewing() && answer() === $index && correctOption() !== $index
+                "
                 [attr.aria-pressed]="answer() === $index"
+                [disabled]="isReviewing()"
                 (click)="answered.emit($index)">
                 <span
                   class="exam-question__letter d-flex align-items-center justify-content-center">
@@ -124,6 +136,21 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
           background-color: var(--bs-primary);
         }
       }
+
+      &:disabled {
+        color: inherit;
+        opacity: 1;
+      }
+    }
+
+    .exam-question__option--correct {
+      background-color: rgba(var(--bs-success-rgb), 0.15);
+      border-color: var(--bs-success);
+    }
+
+    .exam-question__option--wrong {
+      background-color: rgba(var(--bs-danger-rgb), 0.12);
+      border-color: var(--bs-danger);
     }
 
     .exam-question__letter {
@@ -143,11 +170,20 @@ export class ExamQuestionCard {
   readonly total = input.required<number>();
   readonly answer = input<number | null>(null);
   readonly isFlagged = input(false);
+  readonly correctOption = input<number | null>(null);
   readonly answered = output<number>();
   readonly flagToggled = output();
   readonly moved = output<number>();
 
   protected readonly letters = LETTERS;
+  protected readonly isReviewing = computed(() => this.correctOption() !== null);
+  protected readonly reviewKey = computed(() =>
+    this.answer() === null
+      ? 'examSession.reviewBlank'
+      : this.answer() === this.correctOption()
+        ? 'examSession.reviewCorrect'
+        : 'examSession.reviewWrong',
+  );
   private readonly statement = viewChild.required<ElementRef<HTMLElement>>('statement');
 
   constructor() {

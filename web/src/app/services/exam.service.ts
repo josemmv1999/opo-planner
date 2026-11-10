@@ -12,21 +12,25 @@ const QUESTION_BANK: Omit<ExamQuestion, 'id'>[] = [
     statement: '¿Cuántos artículos tiene la Constitución Española de 1978?',
     options: ['155', '169', '176', '184'],
     correctOption: 1,
+    block: 'Constitución Española',
   },
   {
     statement: 'Si la norma no fija plazo, ¿cuál es el plazo máximo para resolver y notificar?',
     options: ['Un mes', 'Tres meses', 'Seis meses', 'Un año'],
     correctOption: 1,
+    block: 'Procedimiento administrativo',
   },
   {
     statement: '¿Quién designa al Defensor del Pueblo?',
     options: ['El Gobierno', 'El Rey', 'Las Cortes Generales', 'El Tribunal Constitucional'],
     correctOption: 2,
+    block: 'Constitución Española',
   },
   {
     statement: '¿Cuánto dura el mandato de los diputados?',
     options: ['Dos años', 'Cuatro años', 'Cinco años', 'Seis años'],
     correctOption: 1,
+    block: 'Organización del Estado',
   },
 ];
 

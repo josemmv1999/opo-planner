@@ -22,6 +22,7 @@ export interface ExamQuestion {
   statement: string;
   options: string[];
   correctOption: number;
+  block: string;
 }
 
 export interface ExamDetail {
@@ -29,4 +30,9 @@ export interface ExamDetail {
   name: string;
   minutes: number;
   questions: ExamQuestion[];
+}
+
+export interface WeakBlock {
+  name: string;
+  errorPercentage: number;
 }

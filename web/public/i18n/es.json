@@ -338,6 +338,22 @@
     "cellLabel": "Pregunta {{number}}, {{state}}",
     "answeredState": "Respondida",
     "flaggedState": "Para revisar",
-    "blank": "Sin responder"
+    "blank": "Sin responder",
+    "backToResult": "Volver al resultado",
+    "reviewCorrect": "Acertada",
+    "reviewWrong": "Fallada",
+    "reviewBlank": "Sin responder"
+  },
+  "examResult": {
+    "title": "Resultado",
+    "correct": "aciertos · {{percentage}} %",
+    "wrong": "fallos",
+    "blank": "en blanco",
+    "time": "tiempo · {{seconds}} s por pregunta",
+    "practise": "Te recomendamos practicar",
+    "error": "{{percentage}} % de error",
+    "practiseAction": "Practicar",
+    "review": "Revisar respuestas",
+    "backToExams": "Volver a exámenes"
   }
 }

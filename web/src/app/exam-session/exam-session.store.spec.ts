@@ -14,6 +14,7 @@ const EXAM: ExamDetail = {
     statement: `Question ${i + 1}`,
     options: ['A', 'B', 'C', 'D'],
     correctOption: 0,
+    block: i === 0 ? 'Constitución' : 'Procedimiento',
   })),
 };
 
@@ -73,5 +74,31 @@ describe('ExamSessionStore', () => {
     store.submit();
     expect(store.isSubmitModalOpen()).toBe(false);
     expect(store.hasSubmitted()).toBe(true);
+  });
+
+  it('scores the exam and lists the weakest blocks', () => {
+    store.runTimer();
+    vi.advanceTimersByTime(30_000);
+    store.answer(0);
+    store.goTo(1);
+    store.answer(3);
+    store.submit();
+    expect(store.correctCount()).toBe(1);
+    expect(store.wrongCount()).toBe(1);
+    expect(store.blankCount()).toBe(1);
+    expect(store.percentage()).toBe(33);
+    expect(store.secondsTaken()).toBe(30);
+    expect(store.secondsPerQuestion()).toBe(10);
+    expect(store.weakBlocks()).toEqual([{ name: 'Procedimiento', errorPercentage: 100 }]);
+  });
+
+  it('reviews the answers from the first question', () => {
+    store.goTo(2);
+    store.submit();
+    store.startReview();
+    expect(store.isReviewing()).toBe(true);
+    expect(store.index()).toBe(0);
+    store.closeReview();
+    expect(store.isReviewing()).toBe(false);
   });
 });
