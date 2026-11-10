@@ -3,12 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { WeakBlock } from '../../../common/models/home.model';
-
-const barColor = (percentage: number): string => {
-  if (percentage < 50) return 'bg-danger';
-  if (percentage < 60) return 'bg-secondary';
-  return 'bg-warning';
-};
+import { scoreBarClass } from '../../../common/utils/score-bar-class';
 
 @Component({
   selector: 'app-weak-blocks-card',
@@ -147,6 +142,6 @@ export class WeakBlocksCard {
   readonly weakBlocks = input.required<WeakBlock[]>();
 
   protected readonly weakBlocksWithColor = computed(() =>
-    this.weakBlocks().map((block) => ({ ...block, barColor: barColor(block.correctPercentage) })),
+    this.weakBlocks().map((block) => ({ ...block, barColor: scoreBarClass(block.correctPercentage) })),
   );
 }
