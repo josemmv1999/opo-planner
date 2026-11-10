@@ -26,7 +26,7 @@ import { Icon } from '../icon/icon';
         [title]="toggleLabel"
         [attr.aria-label]="toggleLabel"
         [attr.aria-expanded]="!isCollapsed()"
-        (click)="toggleCollapse.emit()">
+        (click)="toggle($event)">
         <app-icon name="sidebar" />
       </button>
     </div>
@@ -250,4 +250,9 @@ export class Sidebar {
   readonly logout = output();
 
   protected readonly navItems = NAV_ITEMS;
+
+  protected toggle(event: MouseEvent): void {
+    this.toggleCollapse.emit();
+    if (event.detail) (event.currentTarget as HTMLElement).blur();
+  }
 }
