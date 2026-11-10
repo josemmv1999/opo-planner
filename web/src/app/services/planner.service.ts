@@ -128,7 +128,7 @@ export class PlannerService {
       text: `${RECORD_LABELS[kind]} · ${name} · ${percentage} %`,
       start,
       end,
-      isDone: true,
+      isDone: false,
       isRecord: true,
     };
     this.#entries = [...this.#entries, entry];

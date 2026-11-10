@@ -42,17 +42,45 @@ export const toRowRange = (startMinutes: number, endMinutes: number): RowRange =
 export const slotRows = (slots: TimeSlot[]): RowRange[] =>
   slots.map(({ start, end }) => toRowRange(timeMinutes(start), timeMinutes(end)));
 
+interface Placement extends RowRange {
+  lane: number;
+  slot: number;
+  group: { size: number };
+}
+
 export const placeEntries = (entries: CalendarEntry[]): PlacedEntry[] => {
-  const laneEnds: number[] = [];
+  const placements: Placement[] = [];
   return [...entries]
     .sort((a, b) => a.start.localeCompare(b.start) || b.end.localeCompare(a.end))
     .map((entry) => {
-      const range = toRowRange(dateMinutes(entry.start), dateMinutes(entry.end));
-      const freeLane = laneEnds.findIndex((end) => end <= range.startRow);
-      const lane = freeLane === -1 ? laneEnds.length : freeLane;
-      laneEnds[lane] = range.endRow;
-      return { ...entry, ...range, lane, isShort: range.endRow - range.startRow <= SHORT_ROWS };
-    });
+      const { startRow, endRow } = toRowRange(dateMinutes(entry.start), dateMinutes(entry.end));
+      const range = { startRow, endRow: Math.max(endRow, startRow + SHORT_ROWS) };
+      const overlapping = placements.filter(
+        (other) => other.startRow < range.endRow && range.startRow < other.endRow,
+      );
+      const sibling = overlapping.find(
+        (other) => Math.abs(other.startRow - range.startRow) < SHORT_ROWS,
+      );
+      const placement: Placement = sibling
+        ? { ...range, lane: sibling.lane, slot: sibling.group.size++, group: sibling.group }
+        : {
+            ...range,
+            lane: Math.max(-1, ...overlapping.map(({ lane }) => lane)) + 1,
+            slot: 0,
+            group: { size: 1 },
+          };
+      placements.push(placement);
+      return { entry, placement };
+    })
+    .map(({ entry, placement: { startRow, endRow, lane, slot, group } }) => ({
+      ...entry,
+      startRow,
+      endRow,
+      lane,
+      slot,
+      slots: group.size,
+      isShort: endRow - startRow <= SHORT_ROWS,
+    }));
 };
 
 const toTime = (minutes: number): string =>
