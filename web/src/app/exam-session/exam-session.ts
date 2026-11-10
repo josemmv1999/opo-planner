@@ -139,7 +139,7 @@ const FLAG_KEY = 'm';
   `,
   styles: `
     :host {
-      max-width: 75rem;
+      max-width: 90rem;
       min-height: 100vh;
       padding: 1rem;
       container-type: inline-size;
@@ -162,7 +162,13 @@ const FLAG_KEY = 'm';
       align-items: start;
 
       @container (min-width: 52rem) {
+        flex-grow: 1;
         grid-template-columns: minmax(0, 1fr) 18rem;
+        align-items: stretch;
+      }
+
+      @container (min-width: 80rem) {
+        grid-template-columns: minmax(0, 1fr) 22rem;
       }
     }
   `,

@@ -5,7 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-exam-navigator',
   imports: [TranslatePipe],
   template: `
-    <aside class="card card--flat" [attr.aria-label]="'examSession.questions' | translate">
+    <aside class="card card--flat h-100" [attr.aria-label]="'examSession.questions' | translate">
       <div class="card-body d-flex flex-column gap-3">
         <h2 class="exam-navigator__title mb-0">{{ 'examSession.questions' | translate }}</h2>
         <div class="exam-navigator__grid">
@@ -45,10 +45,10 @@ import { TranslatePipe } from '@ngx-translate/core';
             {{ 'examSession.blank' | translate }}
           </span>
         </div>
+        <p class="exam-navigator__shortcuts text-body-secondary mt-auto mb-0">
+          {{ 'examSession.shortcuts' | translate }}
+        </p>
       </div>
-      <p class="exam-navigator__shortcuts text-body-secondary mb-0">
-        {{ 'examSession.shortcuts' | translate }}
-      </p>
     </aside>
   `,
   styles: `
