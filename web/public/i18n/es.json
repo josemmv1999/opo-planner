@@ -355,5 +355,21 @@
     "practiseAction": "Practicar",
     "review": "Revisar respuestas",
     "backToExams": "Volver a exámenes"
+  },
+  "planner": {
+    "loadError": "No hemos podido cargar el planner.",
+    "examDate": "Examen previsto",
+    "daysLeft": "Faltan {{days}} días",
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "today": "Hoy",
+    "days": "Días de la semana",
+    "done": "Hecha: {{text}}",
+    "record": "Registro automático: no se puede mover ni borrar",
+    "legend": {
+      "study": "Tu horario de estudio",
+      "task": "Tarea",
+      "record": "Examen o simulacro (registro)"
+    }
   }
 }
