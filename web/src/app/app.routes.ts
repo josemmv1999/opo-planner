@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { EmptyState } from '../common/components/empty-state/empty-state';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
 import { ExamSession } from './exam-session/exam-session';
@@ -7,6 +6,7 @@ import { Exams } from './exams/exams';
 import { Home } from './home/home';
 import { Login } from './login/login';
 import { Onboarding } from './onboarding/onboarding';
+import { Planner } from './planner/planner';
 import { Register } from './register/register';
 import { Syllabus } from './syllabus/syllabus';
 import { SyllabusTopic } from './syllabus-topic/syllabus-topic';
@@ -31,7 +31,7 @@ export const routes: Routes = [
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
       { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
       { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
-      { path: 'planner', component: EmptyState, data: { titleKey: 'nav.planner', icon: 'planner' } },
+      { path: 'planner', component: Planner, data: { titleKey: 'nav.planner' } },
     ],
   },
 ];
