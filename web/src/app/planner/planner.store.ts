@@ -16,13 +16,25 @@ import {
   startOfWeek,
 } from 'date-fns';
 import { concatMap, filter, map, pipe, switchMap, tap } from 'rxjs';
-import { StudySchedule } from '../../common/models/onboarding.model';
+import { StudySchedule, TimeSlot } from '../../common/models/onboarding.model';
 import {
+  CalendarEntry,
   OtherPlannerEntry,
+  OtherSchedule,
   PlannerDay,
   PlannerEntry,
   TaskDraft,
 } from '../../common/models/planner.model';
+import {
+  addScheduleSlot,
+  findClash,
+  isScheduleComplete,
+  removeScheduleSlot,
+  slotIssue,
+  toggleScheduleDay,
+  updateScheduleSlot,
+  weeklyMinutes,
+} from '../onboarding/schedule';
 import { PlannerService } from '../services/planner.service';
 import { placeEntries, slotRows } from './planner-layout';
 
@@ -31,6 +43,11 @@ interface PlannerState {
   selectedDay: number;
   examDate: string | null;
   schedule: StudySchedule;
+  otherSchedules: OtherSchedule[];
+  isFullCalendar: boolean;
+  scheduleDraft: StudySchedule | null;
+  isScheduleModalOpen: boolean;
+  isSavingSchedule: boolean;
   entries: PlannerEntry[];
   otherEntries: OtherPlannerEntry[];
   taskDraft: TaskDraft | null;
@@ -39,7 +56,7 @@ interface PlannerState {
   isLoading: boolean;
   isSaving: boolean;
   isDeleting: boolean;
-  error: 'loading' | 'saving' | 'deleting' | 'moving' | null;
+  error: 'loading' | 'saving' | 'deleting' | 'moving' | 'savingSchedule' | null;
 }
 
 export interface TaskSlot {
@@ -70,6 +87,11 @@ export const PlannerStore = signalStore(
     selectedDay: todayIndex(),
     examDate: null,
     schedule: { days: [], slots: [] },
+    otherSchedules: [],
+    isFullCalendar: false,
+    scheduleDraft: null,
+    isScheduleModalOpen: false,
+    isSavingSchedule: false,
     entries: [],
     otherEntries: [],
     taskDraft: null,
@@ -80,30 +102,75 @@ export const PlannerStore = signalStore(
     isDeleting: false,
     error: null,
   }),
-  withComputed(({ weekStart, examDate, schedule, entries, error }) => ({
-    days: computed<PlannerDay[]>(() => {
-      const studyRows = slotRows(schedule().slots);
-      return Array.from({ length: 7 }, (_, i) => addDays(parseISO(weekStart()), i)).map(
-        (date, i) => ({
-          date: toIsoDate(date),
-          isToday: isToday(date),
-          entries: placeEntries(
-            entries().filter((entry) => isSameDay(parseISO(entry.start), date)),
-          ),
-          studyRows: schedule().days.includes(i) ? studyRows : [],
-        }),
+  withComputed(
+    ({
+      weekStart,
+      examDate,
+      schedule,
+      entries,
+      otherEntries,
+      isFullCalendar,
+      scheduleDraft,
+      otherSchedules,
+      error,
+    }) => {
+      const calendarEntries = computed<CalendarEntry[]>(() => [
+        ...entries().map((entry) => ({ ...entry, oppositionName: null })),
+        ...(isFullCalendar()
+          ? otherEntries().map(({ oppositionName, ...entry }) => ({
+              ...entry,
+              oppositionName,
+              isDone: false,
+              isRecord: false,
+            }))
+          : []),
+      ]);
+      const scheduleIssues = computed(
+        () => scheduleDraft()?.slots.map((_, i, slots) => slotIssue(slots, i)) ?? [],
       );
-    }),
-    taskError: computed(() => {
-      const currentError = error();
-      return currentError === 'saving' || currentError === 'deleting' ? currentError : null;
-    }),
-    weekEnd: computed(() => toIsoDate(addDays(parseISO(weekStart()), 6))),
-    daysToExam: computed(() => {
-      const date = examDate();
-      return date ? differenceInCalendarDays(parseISO(date), startOfToday()) : null;
-    }),
-  })),
+      return {
+        days: computed<PlannerDay[]>(() => {
+          const studyRows = slotRows(schedule().slots);
+          return Array.from({ length: 7 }, (_, i) => addDays(parseISO(weekStart()), i)).map(
+            (date, i) => ({
+              date: toIsoDate(date),
+              isToday: isToday(date),
+              entries: placeEntries(
+                calendarEntries().filter((entry) => isSameDay(parseISO(entry.start), date)),
+              ),
+              studyRows: schedule().days.includes(i) ? studyRows : [],
+            }),
+          );
+        }),
+        scheduleIssues,
+        scheduleClashes: computed(() => {
+          const draft = scheduleDraft();
+          return (
+            draft?.slots.map((slot, i) =>
+              scheduleIssues()[i] ? null : findClash(slot, draft.days, otherSchedules()),
+            ) ?? []
+          );
+        }),
+        scheduleWeeklyHours: computed(() => {
+          const draft = scheduleDraft();
+          return draft ? weeklyMinutes(draft) / 60 : 0;
+        }),
+        canSaveSchedule: computed(() => {
+          const draft = scheduleDraft();
+          return draft !== null && isScheduleComplete(draft);
+        }),
+        taskError: computed(() => {
+          const currentError = error();
+          return currentError === 'saving' || currentError === 'deleting' ? currentError : null;
+        }),
+        weekEnd: computed(() => toIsoDate(addDays(parseISO(weekStart()), 6))),
+        daysToExam: computed(() => {
+          const date = examDate();
+          return date ? differenceInCalendarDays(parseISO(date), startOfToday()) : null;
+        }),
+      };
+    },
+  ),
   withMethods((store, plannerService = inject(PlannerService)) => {
     const updateTaskModalOpening = (
       taskDraft: TaskDraft | null,
@@ -115,6 +182,11 @@ export const PlannerStore = signalStore(
         isTaskModalOpen: taskDraft !== null,
         error: null,
       });
+
+    const updateScheduleDraft = (update: (draft: StudySchedule) => StudySchedule): void =>
+      patchState(store, ({ scheduleDraft }) => ({
+        scheduleDraft: scheduleDraft && update(scheduleDraft),
+      }));
 
     const moveWeeks = (weeks: number): void =>
       patchState(store, ({ weekStart }) => ({
@@ -128,10 +200,11 @@ export const PlannerStore = signalStore(
           switchMap((weekStart) =>
             plannerService.getWeek(weekStart).pipe(
               tapResponse({
-                next: ({ examDate, schedule, entries, otherEntries }) =>
+                next: ({ examDate, schedule, otherSchedules, entries, otherEntries }) =>
                   patchState(store, {
                     examDate,
                     schedule,
+                    otherSchedules,
                     entries,
                     otherEntries,
                     isLoading: false,
@@ -251,6 +324,53 @@ export const PlannerStore = signalStore(
                     entries: replaceEntry(entries, previous),
                     error: 'moving' as const,
                   })),
+              }),
+            ),
+          ),
+        ),
+      ),
+      showFullCalendar(isFullCalendar: boolean): void {
+        patchState(store, { isFullCalendar });
+      },
+      openScheduleModal(): void {
+        patchState(store, {
+          scheduleDraft: store.schedule(),
+          isScheduleModalOpen: true,
+          error: null,
+        });
+      },
+      closeScheduleModal(): void {
+        patchState(store, { scheduleDraft: null, isScheduleModalOpen: false });
+      },
+      toggleScheduleDay(day: number): void {
+        updateScheduleDraft((draft) => toggleScheduleDay(draft, day));
+      },
+      addScheduleSlot(): void {
+        updateScheduleDraft((draft) => addScheduleSlot(draft, DEFAULT_SLOT_START));
+      },
+      removeScheduleSlot(index: number): void {
+        updateScheduleDraft((draft) => removeScheduleSlot(draft, index));
+      },
+      updateScheduleSlot(index: number, part: keyof TimeSlot, value: string): void {
+        updateScheduleDraft((draft) => updateScheduleSlot(draft, index, part, value));
+      },
+      saveSchedule: rxMethod<void>(
+        pipe(
+          map(() => store.scheduleDraft()),
+          filter((draft): draft is StudySchedule => draft !== null && isScheduleComplete(draft)),
+          tap(() => patchState(store, { isSavingSchedule: true, error: null })),
+          switchMap((draft) =>
+            plannerService.saveSchedule(draft).pipe(
+              tapResponse({
+                next: (schedule) =>
+                  patchState(store, {
+                    schedule,
+                    scheduleDraft: null,
+                    isScheduleModalOpen: false,
+                    isSavingSchedule: false,
+                  }),
+                error: () =>
+                  patchState(store, { isSavingSchedule: false, error: 'savingSchedule' }),
               }),
             ),
           ),

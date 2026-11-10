@@ -11,10 +11,13 @@ import {
 } from '../../common/models/onboarding.model';
 import { OnboardingService } from '../services/onboarding.service';
 import {
-  addMinutesToTime,
+  addScheduleSlot,
   findClash,
   isScheduleComplete,
+  removeScheduleSlot,
   slotIssue,
+  toggleScheduleDay,
+  updateScheduleSlot,
   weeklyMinutes,
 } from './schedule';
 
@@ -25,7 +28,6 @@ const DEFAULT_SLOTS: TimeSlot[] = [
   { start: '09:00', end: '11:00' },
   { start: '17:00', end: '18:30' },
 ];
-const NEW_SLOT_MINUTES = 120;
 
 interface OnboardingState {
   oppositions: OppositionOption[];
@@ -195,33 +197,16 @@ export const OnboardingStore = signalStore(
         patchState(store, { activeScheduleId });
       },
       toggleDay(day: number): void {
-        updateActiveSchedule((schedule) => ({
-          ...schedule,
-          days: schedule.days.includes(day)
-            ? schedule.days.filter((selected) => selected !== day)
-            : [...schedule.days, day].sort((a, b) => a - b),
-        }));
+        updateActiveSchedule((schedule) => toggleScheduleDay(schedule, day));
       },
       addSlot(): void {
-        updateActiveSchedule((schedule) => {
-          const start = schedule.slots.at(-1)?.end ?? DEFAULT_SLOTS[0].start;
-          return {
-            ...schedule,
-            slots: [...schedule.slots, { start, end: addMinutesToTime(start, NEW_SLOT_MINUTES) }],
-          };
-        });
+        updateActiveSchedule((schedule) => addScheduleSlot(schedule, DEFAULT_SLOTS[0].start));
       },
       removeSlot(index: number): void {
-        updateActiveSchedule((schedule) => ({
-          ...schedule,
-          slots: schedule.slots.filter((_, i) => i !== index),
-        }));
+        updateActiveSchedule((schedule) => removeScheduleSlot(schedule, index));
       },
       updateSlot(index: number, part: keyof TimeSlot, value: string): void {
-        updateActiveSchedule((schedule) => ({
-          ...schedule,
-          slots: schedule.slots.map((slot, i) => (i === index ? { ...slot, [part]: value } : slot)),
-        }));
+        updateActiveSchedule((schedule) => updateScheduleSlot(schedule, index, part, value));
       },
       setInterfaceMode(interfaceMode: InterfaceMode): void {
         patchState(store, { interfaceMode });

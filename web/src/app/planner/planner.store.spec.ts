@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { StudySchedule } from '../../common/models/onboarding.model';
 import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
 import { PlannerStore } from './planner.store';
@@ -8,7 +9,21 @@ import { PlannerStore } from './planner.store';
 const WEEK: PlannerWeek = {
   examDate: '2099-01-01',
   schedule: { days: [0], slots: [{ start: '17:00', end: '20:00' }] },
-  otherEntries: [],
+  otherSchedules: [
+    {
+      oppositionName: 'Seguridad Social',
+      schedule: { days: [0], slots: [{ start: '18:00', end: '19:00' }] },
+    },
+  ],
+  otherEntries: [
+    {
+      id: 50,
+      text: 'Otra',
+      start: '2026-11-09T10:00:00',
+      end: '2026-11-09T11:00:00',
+      oppositionName: 'Seguridad Social',
+    },
+  ],
   entries: [
     {
       id: 1,
@@ -55,6 +70,7 @@ describe('PlannerStore', () => {
                 isRecord: false,
               }),
             deleteTask: (taskId: number) => of(taskId),
+            saveSchedule: (schedule: StudySchedule) => of(schedule),
           },
         },
       ],
@@ -151,5 +167,37 @@ describe('PlannerStore', () => {
     store.moveTask({ id: 1, date: '2026-11-10', start: '09:00', end: '11:00' });
     expect(store.entries()[0]).toEqual(original);
     expect(store.error()).toBe('moving');
+  });
+
+  it('adds the other oppositions to the full calendar', () => {
+    store.load('2026-11-09');
+    expect(store.days()[0].entries.map(({ id }) => id)).toEqual([1, 2]);
+    store.showFullCalendar(true);
+    expect(
+      store.days()[0].entries.map(({ id, oppositionName }) => ({ id, oppositionName })),
+    ).toEqual([
+      { id: 50, oppositionName: 'Seguridad Social' },
+      { id: 1, oppositionName: null },
+      { id: 2, oppositionName: null },
+    ]);
+  });
+
+  it('edits the study schedule in a draft and saves it', () => {
+    store.load('2026-11-09');
+    store.openScheduleModal();
+    store.toggleScheduleDay(1);
+    store.addScheduleSlot();
+    expect(store.scheduleDraft()).toEqual({
+      days: [0, 1],
+      slots: [
+        { start: '17:00', end: '20:00' },
+        { start: '20:00', end: '22:00' },
+      ],
+    });
+    expect(store.scheduleClashes()[0]?.oppositionName).toBe('Seguridad Social');
+    expect(store.schedule().days).toEqual([0]);
+    store.saveSchedule();
+    expect(store.schedule().days).toEqual([0, 1]);
+    expect(store.isScheduleModalOpen()).toBe(false);
   });
 });

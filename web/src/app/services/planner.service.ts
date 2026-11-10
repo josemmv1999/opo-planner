@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { addDays, addMinutes, parseISO, startOfToday, startOfWeek } from 'date-fns';
 import { Observable, delay, of } from 'rxjs';
+import { StudySchedule } from '../../common/models/onboarding.model';
 import {
   OtherPlannerEntry,
   PlannerEntry,
@@ -74,13 +75,22 @@ export class PlannerService {
     false,
     500,
   ).map(({ id, text, start, end }) => ({ id, text, start, end, oppositionName: OTHER_OPPOSITION }));
+  #schedule: StudySchedule = {
+    days: [0, 1, 2, 3, 4],
+    slots: [{ start: '17:00', end: '20:00' }],
+  };
+  readonly #otherSchedule: StudySchedule = {
+    days: [2, 4],
+    slots: [{ start: '18:30', end: '20:00' }],
+  };
   #nextId = 1000;
 
   getWeek(weekStart: string): Observable<PlannerWeek> {
     const monday = parseISO(weekStart);
     return of<PlannerWeek>({
       examDate: '2027-06-12',
-      schedule: { days: [0, 1, 2, 3, 4], slots: [{ start: '17:00', end: '20:00' }] },
+      schedule: this.#schedule,
+      otherSchedules: [{ oppositionName: OTHER_OPPOSITION, schedule: this.#otherSchedule }],
       entries: this.#entries.filter(({ start }) => isInWeek(start, monday)),
       otherEntries: this.#otherEntries.filter(({ start }) => isInWeek(start, monday)),
     }).pipe(delay(DELAY_MS));
@@ -100,6 +110,11 @@ export class PlannerService {
       ? this.#entries.map((current) => (current.id === entry.id ? entry : current))
       : [...this.#entries, entry];
     return of(entry).pipe(delay(DELAY_MS));
+  }
+
+  saveSchedule(schedule: StudySchedule): Observable<StudySchedule> {
+    this.#schedule = schedule;
+    return of(schedule).pipe(delay(DELAY_MS));
   }
 
   deleteTask(taskId: number): Observable<number> {
