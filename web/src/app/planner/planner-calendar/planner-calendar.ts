@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { PlannerDay } from '../../../common/models/planner.model';
+import { TaskSlot } from '../planner.store';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
-import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR } from '../planner-layout';
+import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-layout';
 
 @Component({
   selector: 'app-planner-calendar',
@@ -53,7 +54,11 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR } from '../planner-layout';
               {{ day.date | formatDate: 'EEE' }}
               <strong>{{ day.date | formatDate: 'd' }}</strong>
             </div>
-            <div class="planner-calendar__rows planner-calendar__rows--lined">
+            <!-- Clicking an empty slot is a mouse shortcut; the "New task" button covers the keyboard. -->
+            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+            <div
+              class="planner-calendar__rows planner-calendar__rows--lined"
+              (click)="selectSlot($event, day.date)">
               @for (range of day.studyRows; track range.startRow) {
                 <div
                   class="planner-calendar__study"
@@ -90,7 +95,16 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR } from '../planner-layout';
                       {{ entry.end | formatDate: 'HH:mm' }}
                     </span>
                   </span>
-                  <span class="planner-calendar__text">{{ entry.text }}</span>
+                  @if (entry.isRecord) {
+                    <span class="planner-calendar__text">{{ entry.text }}</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="planner-calendar__text planner-calendar__open stretched-link text-start"
+                      (click)="entryOpened.emit(entry.id)">
+                      {{ entry.text }}
+                    </button>
+                  }
                 </div>
               }
             </div>
@@ -195,6 +209,7 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR } from '../planner-layout';
     }
 
     .planner-calendar__study {
+      pointer-events: none;
       background: repeating-linear-gradient(
         135deg,
         rgba(var(--bs-info-rgb), 0.12) 0 0.5rem,
@@ -203,7 +218,30 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR } from '../planner-layout';
       border-left: 3px solid var(--bs-info);
     }
 
+    .planner-calendar__rows--lined {
+      cursor: copy;
+    }
+
+    .planner-calendar__entry:not(.planner-calendar__entry--record) {
+      cursor: pointer;
+    }
+
+    .planner-calendar__open {
+      min-width: 0;
+      padding: 0;
+      color: inherit;
+      background: none;
+      border: 0;
+    }
+
     .planner-calendar__entry {
+      position: relative;
+      cursor: default;
+
+      input {
+        position: relative;
+        z-index: 2;
+      }
       z-index: calc(1 + var(--lane));
       flex-direction: column;
       gap: 0.125rem;
@@ -367,10 +405,18 @@ export class PlannerCalendar {
   readonly selectedDay = input.required<number>();
   readonly daySelected = output<number>();
   readonly doneToggled = output<number>();
+  readonly entryOpened = output<number>();
+  readonly slotSelected = output<TaskSlot>();
 
   protected readonly hourLabels = HOUR_LABELS;
   protected readonly rowCount = ROW_COUNT;
   protected readonly rowsPerHour = ROWS_PER_HOUR;
+
+  protected selectSlot(event: MouseEvent, date: string): void {
+    const rows = event.currentTarget as HTMLElement;
+    if (event.target !== rows) return;
+    this.slotSelected.emit({ date, start: slotStartAt(event.offsetY / rows.clientHeight) });
+  }
 
   protected hourRow(index: number): string {
     return `${index * ROWS_PER_HOUR + 1} / span ${ROWS_PER_HOUR}`;

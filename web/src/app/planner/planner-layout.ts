@@ -12,6 +12,7 @@ export const HOUR_LABELS = Array.from(
 );
 
 const SHORT_ROWS = 2;
+const SLOT_MINUTES = 30;
 
 const toRow = (minutes: number, round: (value: number) => number): number =>
   Math.min(Math.max(round((minutes - FIRST_HOUR * 60) / ROW_MINUTES), 0), ROW_COUNT) + 1;
@@ -45,4 +46,11 @@ export const placeEntries = (entries: PlannerEntry[]): PlacedEntry[] => {
       laneEnds[lane] = range.endRow;
       return { ...entry, ...range, lane, isShort: range.endRow - range.startRow <= SHORT_ROWS };
     });
+};
+
+export const slotStartAt = (fraction: number): string => {
+  const slots = ((LAST_HOUR - FIRST_HOUR) * 60) / SLOT_MINUTES;
+  const minutes =
+    FIRST_HOUR * 60 + Math.min(Math.floor(fraction * slots), slots - 1) * SLOT_MINUTES;
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 };

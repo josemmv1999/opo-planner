@@ -4,7 +4,8 @@
     "confirm": "Confirmar",
     "back": "Atrás",
     "next": "Siguiente",
-    "start": "Empezar"
+    "start": "Empezar",
+    "save": "Guardar"
   },
   "appLayout": {
     "logoAlt": "opo-planner",
@@ -139,7 +140,9 @@
   "validation": {
     "required": "Este campo es obligatorio",
     "email": "Introduce un email válido",
-    "password": "Mínimo 8 caracteres, con una mayúscula, una minúscula y un número"
+    "password": "Mínimo 8 caracteres, con una mayúscula, una minúscula y un número",
+    "maxlength": "Es demasiado largo",
+    "timeRange": "La hora de fin tiene que ser posterior a la de inicio."
   },
   "onboarding": {
     "logoAlt": "opo-planner",
@@ -370,6 +373,21 @@
       "study": "Tu horario de estudio",
       "task": "Tarea",
       "record": "Examen o simulacro (registro)"
+    },
+    "task": {
+      "new": "Nueva tarea",
+      "newTitle": "Nueva tarea",
+      "editTitle": "Editar tarea",
+      "text": "Tarea",
+      "textPlaceholder": "Por ejemplo: repasar el tema 3",
+      "date": "Día",
+      "start": "Inicio",
+      "end": "Fin",
+      "delete": "Borrar",
+      "errors": {
+        "saving": "No hemos podido guardar la tarea. Inténtalo de nuevo.",
+        "deleting": "No hemos podido borrar la tarea. Inténtalo de nuevo."
+      }
     }
   }
 }

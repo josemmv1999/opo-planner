@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
+import { Modal } from '../../common/components/modal/modal';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { PlannerCalendar } from './planner-calendar/planner-calendar';
+import { PlannerTaskForm } from './planner-task-form/planner-task-form';
 import { PlannerStore } from './planner.store';
 
 @Component({
   selector: 'app-planner',
-  imports: [TranslatePipe, Icon, FormatDatePipe, PlannerCalendar],
+  imports: [TranslatePipe, Icon, Modal, FormatDatePipe, PlannerCalendar, PlannerTaskForm],
   providers: [PlannerStore],
   host: { class: 'd-flex flex-column gap-3' },
   template: `
@@ -48,9 +50,16 @@ import { PlannerStore } from './planner.store';
         {{ store.weekStart() | formatDate: 'd MMM' }} –
         {{ store.weekEnd() | formatDate: 'd MMM yyyy' }}
       </h2>
+      <button
+        type="button"
+        class="btn btn-primary d-flex align-items-center ms-auto"
+        (click)="store.openNewTask(null)">
+        <app-icon class="me-2" name="add" />
+        {{ 'planner.task.new' | translate }}
+      </button>
     </div>
 
-    @if (store.error()) {
+    @if (store.error() === 'loading') {
       <div class="alert alert-danger mb-0" role="alert">{{ 'planner.loadError' | translate }}</div>
     } @else {
       <app-planner-calendar
@@ -59,8 +68,32 @@ import { PlannerStore } from './planner.store';
         [days]="store.days()"
         [selectedDay]="store.selectedDay()"
         (daySelected)="store.selectDay($event)"
-        (doneToggled)="store.toggleDone($event)" />
+        (doneToggled)="store.toggleDone($event)"
+        (entryOpened)="store.openTask($event)"
+        (slotSelected)="store.openNewTask($event)" />
     }
+
+    <app-modal
+      [isOpen]="store.isTaskModalOpen()"
+      [label]="
+        (store.editingTaskId() === null ? 'planner.task.newTitle' : 'planner.task.editTitle')
+          | translate
+      "
+      (closed)="store.closeTaskModal()">
+      <ng-template>
+        @if (store.taskDraft(); as draft) {
+          <app-planner-task-form
+            [draft]="draft"
+            [isEditing]="store.editingTaskId() !== null"
+            [isSaving]="store.isSaving()"
+            [isDeleting]="store.isDeleting()"
+            [error]="store.taskError()"
+            (submitted)="store.saveTask($event)"
+            (deleted)="store.deleteTask()"
+            (cancelled)="store.closeTaskModal()" />
+        }
+      </ng-template>
+    </app-modal>
   `,
   styles: `
     .planner__exam {
