@@ -155,8 +155,19 @@ import { Icon } from '../icon/icon';
         transition: opacity 0.15s ease;
       }
 
-      .sidebar__head:hover,
       .sidebar__head:has(.sidebar__toggle:focus-visible) {
+        .sidebar__brand {
+          opacity: 0;
+        }
+
+        .sidebar__toggle {
+          opacity: 1;
+        }
+      }
+    }
+
+    @media (hover: hover) {
+      :host(.sidebar--collapsed) .sidebar__head:hover {
         .sidebar__brand {
           opacity: 0;
         }
