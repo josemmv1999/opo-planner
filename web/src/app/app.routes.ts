@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { EmptyState } from '../common/components/empty-state/empty-state';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
+import { Exams } from './exams/exams';
 import { Home } from './home/home';
 import { Login } from './login/login';
 import { Onboarding } from './onboarding/onboarding';
@@ -27,7 +28,7 @@ export const routes: Routes = [
       { path: 'home', component: Home },
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
       { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
-      { path: 'exams', component: EmptyState, data: { titleKey: 'nav.exams', icon: 'timer' } },
+      { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
       { path: 'planner', component: EmptyState, data: { titleKey: 'nav.planner', icon: 'planner' } },
     ],
   },
