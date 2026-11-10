@@ -16,3 +16,27 @@ export interface SyllabusBlock {
 }
 
 export type SyllabusFilter = 'all' | 'pending' | 'studied';
+
+export interface TopicLaw {
+  name: string;
+  scope: string;
+  boeId: string;
+}
+
+export interface TopicNote {
+  id: number;
+  title: string;
+  kind: 'pdf' | 'text';
+  updatedAt: string;
+}
+
+export interface SyllabusTopicDetail {
+  id: number;
+  number: number;
+  name: string;
+  blockLabel: string;
+  blockName: string;
+  correctPercentage: number | null;
+  laws: TopicLaw[];
+  notes: TopicNote[];
+}
