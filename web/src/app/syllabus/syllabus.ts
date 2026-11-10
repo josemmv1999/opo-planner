@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SyllabusFilter } from '../../common/models/syllabus.model';
+import { TopicQuiz } from '../topic-quiz/topic-quiz';
 import { SyllabusBlockCard } from './syllabus-block-card/syllabus-block-card';
 import { SyllabusStore } from './syllabus.store';
 
 @Component({
   selector: 'app-syllabus',
-  imports: [TranslatePipe, SyllabusBlockCard],
+  imports: [TranslatePipe, SyllabusBlockCard, TopicQuiz],
   providers: [SyllabusStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -74,7 +75,8 @@ import { SyllabusStore } from './syllabus.store';
             [isExpanded]="store.expandedBlockIds().includes(block.id)"
             [isUpdating]="store.updatingBlockIds().includes(block.id)"
             (toggled)="store.toggleExpanded(block.id)"
-            (studiedToggled)="store.toggleStudied(block.id)" />
+            (studiedToggled)="store.toggleStudied(block.id)"
+            (practised)="quiz.open($event)" />
         } @empty {
           <p class="text-body-secondary mb-0">{{ 'syllabus.empty' | translate }}</p>
         }
@@ -84,6 +86,8 @@ import { SyllabusStore } from './syllabus.store';
         {{ 'syllabus.studiedHint' | translate }}
       </p>
     }
+
+    <app-topic-quiz #quiz />
   `,
   styles: `
     .syllabus__stats {

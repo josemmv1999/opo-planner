@@ -3,13 +3,14 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
+import { TopicQuiz } from '../topic-quiz/topic-quiz';
 import { SyllabusTopicStore } from './syllabus-topic.store';
 
 const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
 
 @Component({
   selector: 'app-syllabus-topic',
-  imports: [RouterLink, TranslatePipe, Icon, FormatDatePipe],
+  imports: [RouterLink, TranslatePipe, Icon, FormatDatePipe, TopicQuiz],
   providers: [SyllabusTopicStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -39,8 +40,7 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
         <button
           type="button"
           class="btn btn-primary d-flex align-items-center"
-          disabled
-          [title]="'syllabus.practiceSoon' | translate">
+          (click)="quiz.open(topic.id)">
           <app-icon class="me-2" name="tests" />
           {{ 'syllabusTopic.practice' | translate }}
         </button>
@@ -126,6 +126,8 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
         {{ 'syllabusTopic.loadError' | translate }}
       </div>
     }
+
+    <app-topic-quiz #quiz />
   `,
   styles: `
     :host {

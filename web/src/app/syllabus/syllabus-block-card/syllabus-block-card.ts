@@ -86,8 +86,8 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
               <button
                 type="button"
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                disabled
-                [title]="'syllabus.practiceSoon' | translate">
+                (click)="practised.emit(topic.id)"
+                [attr.aria-label]="'syllabus.practiceTopic' | translate: { number: topic.number }">
                 <app-icon class="me-2" name="tests" />
                 {{ 'syllabus.practice' | translate }}
               </button>
@@ -237,6 +237,7 @@ export class SyllabusBlockCard {
   readonly isUpdating = input(false);
   readonly toggled = output();
   readonly studiedToggled = output();
+  readonly practised = output<number>();
 
   protected readonly barClass = computed(() => scoreBarClass(this.block().correctPercentage ?? 0));
 }

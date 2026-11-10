@@ -7,7 +7,8 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [RouterOutlet, TranslatePipe],
   host: { class: 'auth-page' },
   template: `
-    <main class="container d-flex flex-column justify-content-center align-items-center gap-4 min-vh-100 py-5">
+    <main
+      class="container d-flex flex-column justify-content-center align-items-center gap-4 min-vh-100 py-5">
       <img class="auth-page__logo" src="/brand/logo.svg" [alt]="'authLayout.logoAlt' | translate" />
       <div class="card auth-page__card w-100">
         <div class="card-body">

@@ -25,7 +25,11 @@ export const AppLayoutStore = signalStore(
     error: null,
   }),
   withMethods(
-    (store, accountService = inject(AccountService), oppositionService = inject(OppositionService)) => ({
+    (
+      store,
+      accountService = inject(AccountService),
+      oppositionService = inject(OppositionService),
+    ) => ({
       loadLayoutData: rxMethod<void>(
         pipe(
           tap(() => patchState(store, { isLoadingLayoutData: true, error: null })),

@@ -30,10 +30,7 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
           {{ 'login.error' | translate }}
         </span>
       }
-      <app-button
-        type="submit"
-        [isFullWidth]="true"
-        [isLoading]="isLoggingIn()">
+      <app-button type="submit" [isFullWidth]="true" [isLoading]="isLoggingIn()">
         {{ 'login.submit' | translate }}
       </app-button>
       <span class="text-center mb-0">

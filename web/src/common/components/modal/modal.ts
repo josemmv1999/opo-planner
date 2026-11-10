@@ -17,8 +17,10 @@ import {
   template: `
     <dialog
       #dialog
+      [class.modal--lg]="size() === 'lg'"
       [attr.aria-label]="label()"
-      (close)="isOpen() && closed.emit()"
+      (cancel)="onCancel($event)"
+      (close)="onClose()"
       (mousedown)="onMouseDown($event)"
       (mouseup)="onMouseUp($event)">
       @if (isOpen()) {
@@ -40,6 +42,24 @@ import {
       border: 0;
     }
 
+    .modal--lg {
+      max-width: 48rem;
+
+      @media (max-width: 36rem) {
+        width: 100%;
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
+        margin: 0;
+
+        .card {
+          height: 100%;
+          max-height: none;
+          border-radius: 0;
+        }
+      }
+    }
+
     dialog::backdrop {
       background-color: rgba(var(--bs-dark-rgb), 0.4);
     }
@@ -53,6 +73,7 @@ import {
 export class Modal {
   readonly isOpen = input.required<boolean>();
   readonly label = input.required<string>();
+  readonly size = input<'md' | 'lg'>('md');
   readonly closed = output();
 
   protected readonly content = contentChild.required(TemplateRef);
@@ -67,12 +88,23 @@ export class Modal {
     });
   }
 
+  protected onCancel(event: Event): void {
+    event.preventDefault();
+    this.closed.emit();
+  }
+
+  protected onClose(): void {
+    if (!this.isOpen()) return;
+    this.closed.emit();
+    if (this.isOpen()) this.dialog().nativeElement.showModal();
+  }
+
   protected onMouseDown(event: MouseEvent): void {
     this.isPressedOnBackdrop = event.target === this.dialog().nativeElement;
   }
 
   protected onMouseUp(event: MouseEvent): void {
-    const dialog = this.dialog().nativeElement;
-    if (this.isPressedOnBackdrop && event.target === dialog) dialog.close();
+    if (this.isPressedOnBackdrop && event.target === this.dialog().nativeElement)
+      this.closed.emit();
   }
 }

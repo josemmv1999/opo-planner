@@ -6,10 +6,20 @@ export type AgendaEntry =
   | { kind: 'log'; id: string; log: MockExamLog }
   | { kind: 'now'; id: string };
 
-export const buildAgenda = (tasks: PlannerTask[], logs: MockExamLog[], now: Date): AgendaEntry[] => {
+export const buildAgenda = (
+  tasks: PlannerTask[],
+  logs: MockExamLog[],
+  now: Date,
+): AgendaEntry[] => {
   const entries = [
-    ...tasks.map((task) => ({ start: parseISO(task.start), entry: { kind: 'task', id: `task-${task.id}`, task } as const })),
-    ...logs.map((log) => ({ start: parseISO(log.start), entry: { kind: 'log', id: `log-${log.id}`, log } as const })),
+    ...tasks.map((task) => ({
+      start: parseISO(task.start),
+      entry: { kind: 'task', id: `task-${task.id}`, task } as const,
+    })),
+    ...logs.map((log) => ({
+      start: parseISO(log.start),
+      entry: { kind: 'log', id: `log-${log.id}`, log } as const,
+    })),
   ].sort((a, b) => compareAsc(a.start, b.start));
   const nowIndex = entries.findIndex(({ start }) => isAfter(start, now));
   const agenda: AgendaEntry[] = entries.map(({ entry }) => entry);

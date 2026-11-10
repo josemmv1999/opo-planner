@@ -225,7 +225,7 @@
     "notPractised": "Sin practicar",
     "notesCount": "{{count}} apuntes",
     "practice": "Practicar",
-    "practiceSoon": "Disponible muy pronto"
+    "practiceTopic": "Practicar el tema {{number}}"
   },
   "syllabusTopic": {
     "back": "Temario",
@@ -247,6 +247,46 @@
     "noNotes": "Todavía no tienes apuntes en este tema.",
     "notPractised": "Aún no has practicado este tema.",
     "score": "Llevas un {{percentage}} % de aciertos en este tema."
+  },
+  "topicQuiz": {
+    "eyebrow": "Simulacro",
+    "loading": "Cargando el simulacro",
+    "loadError": "No hemos podido cargar el simulacro.",
+    "setup": {
+      "lead": "Preguntas tipo test y casos prácticos de este tema. Al fallar verás la respuesta correcta y por qué. Sin límite de tiempo.",
+      "howMany": "¿Cuántas preguntas?",
+      "counts": {
+        "10": "Repaso rápido",
+        "20": "Recomendado",
+        "30": "A fondo"
+      },
+      "start": "Empezar"
+    },
+    "exit": "Salir",
+    "exitTitle": "¿Salir del simulacro?",
+    "exitText": "Perderás las respuestas de esta ronda.",
+    "keepGoing": "Seguir",
+    "progressLabel": "Progreso del simulacro",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "case": "Caso práctico",
+    "rightOption": "(respuesta correcta)",
+    "yourOption": "(tu respuesta)",
+    "right": "¡Correcto!",
+    "wrong": "No es así. La correcta es la {{letter}}.",
+    "tally": "{{right}} aciertos · {{wrong}} fallos",
+    "next": "Siguiente",
+    "seeResult": "Ver resultado",
+    "verdict": {
+      "great": "¡Muy bien!",
+      "good": "Vas por buen camino.",
+      "review": "Toca repasar este tema."
+    },
+    "result": {
+      "percentage": "{{percentage}} % de aciertos",
+      "toReview": "Para repasar",
+      "again": "Otra ronda",
+      "close": "Cerrar"
+    }
   },
   "exams": {
     "lead": "Para medirte en condiciones reales: con tiempo y sin explicaciones hasta el final.",

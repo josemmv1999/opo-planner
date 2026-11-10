@@ -13,7 +13,9 @@ type DayState = 'studied' | 'notStudied' | 'pending';
   template: `
     <section class="card card--yellow h-100">
       <div class="card-body card-body--home d-flex flex-column gap-2">
-        <h2 class="streak-card__label card-label text-body-secondary">{{ 'home.streak.title' | translate }}</h2>
+        <h2 class="streak-card__label card-label text-body-secondary">
+          {{ 'home.streak.title' | translate }}
+        </h2>
         <p class="streak-card__count d-flex flex-wrap align-items-center mb-0">
           <app-icon class="streak-card__flame text-secondary" name="flame" />
           <span class="streak-card__number">{{ days() }}</span>
@@ -150,8 +152,14 @@ export class StreakCard {
     this.lastSevenDays().map(({ date, hasStudied }) => ({
       date,
       weekday: getDay(parseISO(date)),
-      state: (hasStudied ? 'studied' : isToday(parseISO(date)) ? 'pending' : 'notStudied') satisfies DayState,
+      state: (hasStudied
+        ? 'studied'
+        : isToday(parseISO(date))
+          ? 'pending'
+          : 'notStudied') satisfies DayState,
     })),
   );
-  protected readonly isTodayPending = computed(() => this.week().some(({ state }) => state === 'pending'));
+  protected readonly isTodayPending = computed(() =>
+    this.week().some(({ state }) => state === 'pending'),
+  );
 }
