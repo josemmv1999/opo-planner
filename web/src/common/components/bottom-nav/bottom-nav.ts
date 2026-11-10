@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NAV_ITEMS } from '../../constants/nav-items';
+import { User } from '../../models/user.model';
+import { InitialsPipe } from '../../pipes/initials.pipe';
 import { Icon } from '../icon/icon';
 
 @Component({
   selector: 'app-bottom-nav',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, Icon],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, Icon, InitialsPipe],
   host: { class: 'bg-white border border-2 border-dark' },
   template: `
     <nav class="d-flex align-items-center justify-content-between h-100" [attr.aria-label]="'appLayout.navLabel' | translate">
@@ -20,6 +22,16 @@ import { Icon } from '../icon/icon';
           [attr.aria-label]="item.labelKey | translate">
           <app-icon [name]="item.icon" />
         </a>
+      }
+      @if (user(); as user) {
+        <button
+          type="button"
+          class="bottom-nav__link d-flex align-items-center justify-content-center border-0 bg-transparent"
+          [title]="'appLayout.profile' | translate"
+          [attr.aria-label]="'appLayout.profile' | translate"
+          (click)="openAccount.emit()">
+          <span class="app-avatar">{{ user | initials }}</span>
+        </button>
       }
     </nav>
   `,
@@ -56,5 +68,8 @@ import { Icon } from '../icon/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BottomNav {
+  readonly user = input<User | null>(null);
+  readonly openAccount = output();
+
   protected readonly navItems = NAV_ITEMS;
 }
