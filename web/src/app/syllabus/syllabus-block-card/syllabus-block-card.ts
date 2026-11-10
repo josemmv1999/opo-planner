@@ -83,14 +83,13 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
                   · {{ 'syllabus.notesCount' | translate: { count: topic.notesCount } }}
                 </span>
               </span>
-              <button
-                type="button"
+              <a
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                disabled
-                [title]="'syllabus.practiceSoon' | translate">
+                [routerLink]="['/syllabus', topic.id, 'quiz']"
+                [attr.aria-label]="'syllabus.practiceTopic' | translate: { number: topic.number }">
                 <app-icon class="me-2" name="tests" />
                 {{ 'syllabus.practice' | translate }}
-              </button>
+              </a>
             </li>
           }
         </ul>

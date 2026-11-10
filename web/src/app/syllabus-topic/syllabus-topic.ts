@@ -36,14 +36,12 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
             {{ 'syllabus.topicName' | translate: { number: topic.number, name: topic.name } }}
           </h2>
         </div>
-        <button
-          type="button"
+        <a
           class="btn btn-primary d-flex align-items-center"
-          disabled
-          [title]="'syllabus.practiceSoon' | translate">
+          [routerLink]="['/syllabus', topic.id, 'quiz']">
           <app-icon class="me-2" name="tests" />
           {{ 'syllabusTopic.practice' | translate }}
-        </button>
+        </a>
       </div>
 
       <section class="card card--teal">

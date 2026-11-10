@@ -8,6 +8,7 @@ import { Onboarding } from './onboarding/onboarding';
 import { Register } from './register/register';
 import { Syllabus } from './syllabus/syllabus';
 import { SyllabusTopic } from './syllabus-topic/syllabus-topic';
+import { TopicQuiz } from './topic-quiz/topic-quiz';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,7 @@ export const routes: Routes = [
       { path: 'home', component: Home },
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
       { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
+      { path: 'syllabus/:topicId/quiz', component: TopicQuiz, data: { titleKey: 'nav.syllabus' } },
       { path: 'exams', component: EmptyState, data: { titleKey: 'nav.exams', icon: 'timer' } },
       { path: 'planner', component: EmptyState, data: { titleKey: 'nav.planner', icon: 'planner' } },
     ],
