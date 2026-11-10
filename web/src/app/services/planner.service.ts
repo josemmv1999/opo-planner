@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { addDays, addMinutes, formatISO, parseISO, startOfToday, startOfWeek } from 'date-fns';
 import { Observable, delay, of } from 'rxjs';
-import { PlannerEntry, PlannerWeek } from '../../common/models/planner.model';
+import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
 
 type MockEntry = [day: number, start: string, end: string, text: string, isDone?: boolean];
 
@@ -36,8 +36,27 @@ const toEntries = (monday: Date, entries: MockEntry[], isRecord: boolean, firstI
     isRecord,
   }));
 
+const toIso = (date: string, time: string): string => parseISO(`${date}T${time}`).toISOString();
+
+let nextTaskId = 1000;
+
 @Injectable({ providedIn: 'root' })
 export class PlannerService {
+  saveTask(taskId: number | null, { text, date, start, end }: TaskDraft): Observable<PlannerEntry> {
+    return of<PlannerEntry>({
+      id: taskId ?? nextTaskId++,
+      text,
+      start: toIso(date, start),
+      end: toIso(date, end),
+      isDone: false,
+      isRecord: false,
+    }).pipe(delay(400));
+  }
+
+  deleteTask(taskId: number): Observable<number> {
+    return of(taskId).pipe(delay(400));
+  }
+
   getWeek(weekStart: string): Observable<PlannerWeek> {
     const monday = parseISO(weekStart);
     const isCurrentWeek =

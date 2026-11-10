@@ -50,7 +50,9 @@ export class InputField implements ControlValueAccessor {
   readonly messageId = `${this.id}-msg`;
 
   readonly label = input('');
-  readonly type = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel' | 'url'>('text');
+  readonly type = input<
+    'text' | 'email' | 'password' | 'number' | 'search' | 'tel' | 'url' | 'date' | 'time'
+  >('text');
   readonly placeholder = input('');
   readonly autocomplete = input<string | null>(null);
   readonly readonly = input(false);

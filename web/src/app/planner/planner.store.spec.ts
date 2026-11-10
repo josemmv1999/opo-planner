@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PlannerWeek } from '../../common/models/planner.model';
+import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
 import { PlannerStore } from './planner.store';
 
@@ -44,6 +44,16 @@ describe('PlannerStore', () => {
               requestedWeeks.push(weekStart);
               return of(WEEK);
             },
+            saveTask: (taskId: number | null, { text, date, start, end }: TaskDraft) =>
+              of<PlannerEntry>({
+                id: taskId ?? 99,
+                text,
+                start: `${date}T${start}:00`,
+                end: `${date}T${end}:00`,
+                isDone: false,
+                isRecord: false,
+              }),
+            deleteTask: (taskId: number) => of(taskId),
           },
         },
       ],
@@ -83,5 +93,42 @@ describe('PlannerStore', () => {
     store.load('2026-11-09');
     store.toggleDone(1);
     expect(store.entries()[0].isDone).toBe(true);
+  });
+
+  it('opens a new task at the chosen slot and saves it', () => {
+    store.load('2026-11-09');
+    store.openNewTask({ date: '2026-11-10', start: '09:30' });
+    expect(store.isTaskModalOpen()).toBe(true);
+    expect(store.taskDraft()).toEqual({
+      text: '',
+      date: '2026-11-10',
+      start: '09:30',
+      end: '10:30',
+    });
+    store.saveTask({ text: 'Nueva', date: '2026-11-10', start: '09:30', end: '10:30' });
+    expect(store.entries().map(({ id }) => id)).toEqual([1, 2, 99]);
+    expect(store.isTaskModalOpen()).toBe(false);
+  });
+
+  it('edits a task keeping it done', () => {
+    store.load('2026-11-09');
+    store.toggleDone(1);
+    store.openTask(1);
+    expect(store.taskDraft()).toEqual({
+      text: 'Repasar',
+      date: '2026-11-09',
+      start: '17:00',
+      end: '18:30',
+    });
+    store.saveTask({ text: 'Repasar más', date: '2026-11-09', start: '17:00', end: '19:00' });
+    expect(store.entries()[0]).toMatchObject({ text: 'Repasar más', isDone: true });
+  });
+
+  it('deletes the task being edited', () => {
+    store.load('2026-11-09');
+    store.openTask(2);
+    store.deleteTask();
+    expect(store.entries().map(({ id }) => id)).toEqual([1]);
+    expect(store.isTaskModalOpen()).toBe(false);
   });
 });

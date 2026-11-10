@@ -4,6 +4,8 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import {
   addDays,
+  addHours,
+  format,
   addWeeks,
   differenceInCalendarDays,
   formatISO,
@@ -13,9 +15,9 @@ import {
   startOfToday,
   startOfWeek,
 } from 'date-fns';
-import { pipe, switchMap, tap } from 'rxjs';
+import { filter, map, pipe, switchMap, tap } from 'rxjs';
 import { StudySchedule } from '../../common/models/onboarding.model';
-import { PlannerDay, PlannerEntry } from '../../common/models/planner.model';
+import { PlannerDay, PlannerEntry, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
 import { placeEntries, slotRows } from './planner-layout';
 
@@ -25,9 +27,21 @@ interface PlannerState {
   examDate: string | null;
   schedule: StudySchedule;
   entries: PlannerEntry[];
+  taskDraft: TaskDraft | null;
+  editingTaskId: number | null;
+  isTaskModalOpen: boolean;
   isLoading: boolean;
-  error: 'loading' | null;
+  isSaving: boolean;
+  isDeleting: boolean;
+  error: 'loading' | 'saving' | 'deleting' | null;
 }
+
+export interface TaskSlot {
+  date: string;
+  start: string;
+}
+
+const DEFAULT_SLOT_START = '17:00';
 
 const toIsoDate = (date: Date): string => formatISO(date, { representation: 'date' });
 const currentWeekStart = (): string => toIsoDate(startOfWeek(startOfToday(), { weekStartsOn: 1 }));
@@ -40,10 +54,15 @@ export const PlannerStore = signalStore(
     examDate: null,
     schedule: { days: [], slots: [] },
     entries: [],
+    taskDraft: null,
+    editingTaskId: null,
+    isTaskModalOpen: false,
     isLoading: false,
+    isSaving: false,
+    isDeleting: false,
     error: null,
   }),
-  withComputed(({ weekStart, examDate, schedule, entries }) => ({
+  withComputed(({ weekStart, examDate, schedule, entries, error }) => ({
     days: computed<PlannerDay[]>(() => {
       const studyRows = slotRows(schedule().slots);
       return Array.from({ length: 7 }, (_, i) => addDays(parseISO(weekStart()), i)).map(
@@ -57,6 +76,10 @@ export const PlannerStore = signalStore(
         }),
       );
     }),
+    taskError: computed(() => {
+      const currentError = error();
+      return currentError === 'loading' ? null : currentError;
+    }),
     weekEnd: computed(() => toIsoDate(addDays(parseISO(weekStart()), 6))),
     daysToExam: computed(() => {
       const date = examDate();
@@ -64,6 +87,17 @@ export const PlannerStore = signalStore(
     }),
   })),
   withMethods((store, plannerService = inject(PlannerService)) => {
+    const updateTaskModalOpening = (
+      taskDraft: TaskDraft | null,
+      editingTaskId: number | null = null,
+    ): void =>
+      patchState(store, {
+        taskDraft,
+        editingTaskId,
+        isTaskModalOpen: taskDraft !== null,
+        error: null,
+      });
+
     const moveWeeks = (weeks: number): void =>
       patchState(store, ({ weekStart }) => ({
         weekStart: toIsoDate(addWeeks(parseISO(weekStart), weeks)),
@@ -92,6 +126,81 @@ export const PlannerStore = signalStore(
       selectDay(selectedDay: number): void {
         patchState(store, { selectedDay });
       },
+      openNewTask(slot: TaskSlot | null): void {
+        const { date, start } = slot ?? {
+          date: toIsoDate(startOfToday()),
+          start: DEFAULT_SLOT_START,
+        };
+        updateTaskModalOpening({
+          text: '',
+          date,
+          start,
+          end: format(addHours(parseISO(`${date}T${start}`), 1), 'HH:mm'),
+        });
+      },
+      openTask(taskId: number): void {
+        const entry = store.entries().find(({ id }) => id === taskId);
+        if (!entry || entry.isRecord) return;
+        const [start, end] = [parseISO(entry.start), parseISO(entry.end)];
+        updateTaskModalOpening(
+          {
+            text: entry.text,
+            date: toIsoDate(start),
+            start: format(start, 'HH:mm'),
+            end: format(end, 'HH:mm'),
+          },
+          taskId,
+        );
+      },
+      closeTaskModal(): void {
+        updateTaskModalOpening(null);
+      },
+      saveTask: rxMethod<TaskDraft>(
+        pipe(
+          tap(() => patchState(store, { isSaving: true, error: null })),
+          switchMap((draft) =>
+            plannerService.saveTask(store.editingTaskId(), draft).pipe(
+              tapResponse({
+                next: (saved) => {
+                  patchState(store, ({ entries }) => {
+                    const previous = entries.find(({ id }) => id === saved.id);
+                    const entry = { ...saved, isDone: previous?.isDone ?? false };
+                    return {
+                      entries: previous
+                        ? entries.map((current) => (current.id === saved.id ? entry : current))
+                        : [...entries, entry],
+                      isSaving: false,
+                    };
+                  });
+                  updateTaskModalOpening(null);
+                },
+                error: () => patchState(store, { isSaving: false, error: 'saving' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      deleteTask: rxMethod<void>(
+        pipe(
+          map(() => store.editingTaskId()),
+          filter((taskId): taskId is number => taskId !== null),
+          tap(() => patchState(store, { isDeleting: true, error: null })),
+          switchMap((taskId) =>
+            plannerService.deleteTask(taskId).pipe(
+              tapResponse({
+                next: (deletedId) => {
+                  patchState(store, ({ entries }) => ({
+                    entries: entries.filter(({ id }) => id !== deletedId),
+                    isDeleting: false,
+                  }));
+                  updateTaskModalOpening(null);
+                },
+                error: () => patchState(store, { isDeleting: false, error: 'deleting' }),
+              }),
+            ),
+          ),
+        ),
+      ),
       toggleDone(entryId: number): void {
         patchState(store, ({ entries }) => ({
           entries: entries.map((entry) =>

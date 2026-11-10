@@ -33,3 +33,10 @@ export interface PlannerDay {
   entries: PlacedEntry[];
   studyRows: RowRange[];
 }
+
+export interface TaskDraft {
+  text: string;
+  date: string;
+  start: string;
+  end: string;
+}
