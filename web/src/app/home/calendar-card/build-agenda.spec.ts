@@ -16,8 +16,6 @@ const log = (id: number, start: string): MockExamLog => ({
   text: `Log ${id}`,
   start,
   end: start,
-  correctAnswers: 8,
-  totalQuestions: 10,
 });
 
 describe('buildAgenda', () => {
