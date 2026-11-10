@@ -20,8 +20,8 @@ const block = (
     id: id * 10 + i,
     number: i + 1,
     name: `Topic ${i}`,
-    correctPercentage: null,
-    notesCount: 0,
+    correctPercentage: i === 0 ? correctPercentage : null,
+    notesCount: i,
   })),
 });
 
@@ -58,6 +58,11 @@ describe('SyllabusStore', () => {
     expect(store.studiedCount()).toBe(1);
     expect(store.topicCount()).toBe(7);
     expect(store.averagePercentage()).toBe(60);
+  });
+
+  it('counts practised topics and notes', () => {
+    expect(store.practisedTopicCount()).toBe(2);
+    expect(store.notesCount()).toBe(5);
   });
 
   it('filters pending and studied blocks', () => {
