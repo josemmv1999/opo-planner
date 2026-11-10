@@ -8,6 +8,7 @@ import {
   input,
   output,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   NonNullableFormBuilder,
@@ -17,8 +18,11 @@ import {
 } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputField } from '../../../common/components/input/input';
-import { TaskDraft } from '../../../common/models/planner.model';
+import { OtherPlannerEntry, TaskDraft } from '../../../common/models/planner.model';
+import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
+import { map } from 'rxjs';
 import { validationErrorKey } from '../../../common/utils/validation-error-key';
+import { findClash } from '../planner-layout';
 
 const TEXT_MAX_LENGTH = 80;
 
@@ -29,7 +33,7 @@ const endAfterStart = (group: AbstractControl): ValidationErrors | null => {
 
 @Component({
   selector: 'app-planner-task-form',
-  imports: [ReactiveFormsModule, TranslatePipe, InputField],
+  imports: [ReactiveFormsModule, TranslatePipe, InputField, FormatDatePipe],
   template: `
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <h2 class="h5 mb-0">
@@ -65,6 +69,20 @@ const endAfterStart = (group: AbstractControl): ValidationErrors | null => {
       @if (hasTimeRangeError()) {
         <p class="text-danger small fw-bold mb-0" role="alert">
           {{ 'validation.timeRange' | translate }}
+        </p>
+      }
+      @if (clash(); as clash) {
+        <p class="alert alert-warning small fw-bold mb-0" role="status">
+          {{
+            'planner.task.clash'
+              | translate
+                : {
+                    text: clash.text,
+                    start: clash.start | formatDate: 'HH:mm',
+                    end: clash.end | formatDate: 'HH:mm',
+                    opposition: clash.oppositionName,
+                  }
+          }}
         </p>
       }
       @if (error()) {
@@ -121,6 +139,7 @@ export class PlannerTaskForm implements OnInit {
   readonly isSaving = input(false);
   readonly isDeleting = input(false);
   readonly error = input<'saving' | 'deleting' | null>(null);
+  readonly otherEntries = input<OtherPlannerEntry[]>([]);
   readonly submitted = output<TaskDraft>();
   readonly deleted = output();
   readonly cancelled = output();
@@ -136,6 +155,10 @@ export class PlannerTaskForm implements OnInit {
     },
     { validators: endAfterStart },
   );
+  readonly #value = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())), {
+    initialValue: this.form.getRawValue(),
+  });
+  protected readonly clash = computed(() => findClash(this.#value(), this.otherEntries()));
 
   constructor() {
     effect(() => (this.isBusy() ? this.form.disable() : this.form.enable()));

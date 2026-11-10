@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExamDetail } from '../../common/models/exam.model';
 import { ExamService } from '../services/exam.service';
+import { PlannerService } from '../services/planner.service';
 import { ExamSessionStore } from './exam-session.store';
 
 const EXAM: ExamDetail = {
@@ -20,13 +21,16 @@ const EXAM: ExamDetail = {
 
 describe('ExamSessionStore', () => {
   let store: InstanceType<typeof ExamSessionStore>;
+  const logRecord = vi.fn(() => of(null));
 
   beforeEach(() => {
     vi.useFakeTimers();
+    logRecord.mockClear();
     TestBed.configureTestingModule({
       providers: [
         ExamSessionStore,
         { provide: ExamService, useValue: { getExam: () => of(EXAM) } },
+        { provide: PlannerService, useValue: { logRecord } },
       ],
     });
     store = TestBed.inject(ExamSessionStore);
@@ -100,5 +104,17 @@ describe('ExamSessionStore', () => {
     expect(store.index()).toBe(0);
     store.closeReview();
     expect(store.isReviewing()).toBe(false);
+  });
+
+  it('logs the attempt in the planner once it is submitted', () => {
+    store.runTimer();
+    vi.advanceTimersByTime(30_000);
+    store.answer(0);
+    store.submit();
+    TestBed.tick();
+    expect(logRecord).toHaveBeenCalledOnce();
+    expect(logRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'exam', name: 'Batiburrillo', percentage: 33 }),
+    );
   });
 });

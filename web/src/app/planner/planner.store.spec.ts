@@ -8,6 +8,7 @@ import { PlannerStore } from './planner.store';
 const WEEK: PlannerWeek = {
   examDate: '2099-01-01',
   schedule: { days: [0], slots: [{ start: '17:00', end: '20:00' }] },
+  otherEntries: [],
   entries: [
     {
       id: 1,

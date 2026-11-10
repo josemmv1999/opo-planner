@@ -9,10 +9,27 @@ export interface PlannerEntry {
   isRecord: boolean;
 }
 
+export interface OtherPlannerEntry {
+  id: number;
+  text: string;
+  start: string;
+  end: string;
+  oppositionName: string;
+}
+
 export interface PlannerWeek {
   examDate: string;
   schedule: StudySchedule;
   entries: PlannerEntry[];
+  otherEntries: OtherPlannerEntry[];
+}
+
+export interface PlannerRecord {
+  kind: 'exam' | 'quiz';
+  name: string;
+  percentage: number;
+  start: string;
+  end: string;
 }
 
 export interface PlacedEntry extends PlannerEntry {

@@ -93,6 +93,7 @@ import { PlannerStore } from './planner.store';
             [isSaving]="store.isSaving()"
             [isDeleting]="store.isDeleting()"
             [error]="store.taskError()"
+            [otherEntries]="store.otherEntries()"
             (submitted)="store.saveTask($event)"
             (deleted)="store.deleteTask()"
             (cancelled)="store.closeTaskModal()" />

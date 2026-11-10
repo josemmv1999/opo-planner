@@ -1,10 +1,19 @@
 import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withComputed,
+  withHooks,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { filter, interval, pipe, switchMap, tap } from 'rxjs';
+import { subSeconds } from 'date-fns';
+import { filter, interval, map, pipe, switchMap, tap } from 'rxjs';
 import { ExamDetail, WeakBlock } from '../../common/models/exam.model';
 import { ExamService } from '../services/exam.service';
+import { PlannerService } from '../services/planner.service';
 
 const LOW_TIME_SECONDS = 5 * 60;
 const WEAK_BLOCKS_SHOWN = 3;
@@ -150,6 +159,29 @@ export const ExamSessionStore = signalStore(
     },
     closeExitModal(): void {
       patchState(store, { isExitModalOpen: false });
+    },
+  })),
+  withHooks((store, plannerService = inject(PlannerService)) => ({
+    onInit(): void {
+      rxMethod<boolean>(
+        pipe(
+          filter(Boolean),
+          map(() => store.exam()),
+          filter((exam): exam is ExamDetail => exam !== null),
+          switchMap(({ name }) => {
+            const end = new Date();
+            return plannerService
+              .logRecord({
+                kind: 'exam',
+                name,
+                percentage: store.percentage(),
+                start: subSeconds(end, store.secondsTaken()).toISOString(),
+                end: end.toISOString(),
+              })
+              .pipe(tapResponse({ next: () => undefined, error: () => undefined }));
+          }),
+        ),
+      )(store.hasSubmitted);
     },
   })),
 );
