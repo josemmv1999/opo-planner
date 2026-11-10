@@ -444,11 +444,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       }
 
       .true-false-game__recap {
-        width: 100%;
-        padding-top: 0.75rem;
-        padding-left: 0;
-        border-top: 2px dashed rgba(var(--bs-dark-rgb), 0.14);
-        border-left: 0;
+        display: none !important;
       }
     }
   `,
