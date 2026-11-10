@@ -1,10 +1,46 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
-import { PlannerDay } from '../../../common/models/planner.model';
-import { TaskSlot } from '../planner.store';
+import { PlacedEntry, PlannerDay } from '../../../common/models/planner.model';
+import { TaskMove, TaskSlot } from '../planner.store';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
-import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-layout';
+import {
+  HOUR_LABELS,
+  ROW_COUNT,
+  ROWS_PER_HOUR,
+  ROWS_PER_SLOT,
+  rowTime,
+  slotStartAt,
+} from '../planner-layout';
+
+const DRAG_THRESHOLD_PX = 5;
+const LAST_DAY = 6;
+
+interface DragState {
+  id: number;
+  dayIndex: number;
+  isResize: boolean;
+  x: number;
+  y: number;
+  rowHeight: number;
+  columnWidth: number;
+  startRow: number;
+  endRow: number;
+  rowDelta: number;
+  dayDelta: number;
+  hasMoved: boolean;
+}
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(Math.max(value, min), max);
 
 @Component({
   selector: 'app-planner-calendar',
@@ -16,6 +52,7 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
   template: `
     <section class="card card--teal overflow-hidden">
       <div
+        #strip
         class="planner-calendar__strip"
         role="group"
         [attr.aria-label]="'planner.days' | translate">
@@ -45,7 +82,7 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
           </div>
         </div>
 
-        @for (day of days(); track day.date) {
+        @for (day of days(); track day.date; let dayIndex = $index) {
           <div
             class="planner-calendar__day flex-grow-1"
             [class.planner-calendar__day--selected]="$index === selectedDay()"
@@ -70,7 +107,13 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
                   [class.planner-calendar__entry--short]="entry.isShort"
                   [class.planner-calendar__entry--done]="entry.isDone"
                   [class.planner-calendar__entry--record]="entry.isRecord"
-                  [style.grid-row]="entry.startRow + ' / ' + entry.endRow"
+                  [class.planner-calendar__entry--dragging]="drag()?.id === entry.id"
+                  [style.grid-row]="rowsOf(entry)"
+                  [style.transform]="shiftOf(entry)"
+                  (pointerdown)="startDrag($event, entry, dayIndex)"
+                  (pointermove)="moveDrag($event)"
+                  (pointerup)="endDrag()"
+                  (pointercancel)="drag.set(null)"
                   [style.--lane]="entry.lane"
                   [title]="
                     entry.isRecord
@@ -101,9 +144,10 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
                     <button
                       type="button"
                       class="planner-calendar__text planner-calendar__open stretched-link text-start"
-                      (click)="entryOpened.emit(entry.id)">
+                      (click)="openEntry(entry.id)">
                       {{ entry.text }}
                     </button>
+                    <span class="planner-calendar__resize" aria-hidden="true"></span>
                   }
                 </div>
               }
@@ -223,7 +267,34 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
     }
 
     .planner-calendar__entry:not(.planner-calendar__entry--record) {
-      cursor: pointer;
+      cursor: grab;
+    }
+
+    .planner-calendar__entry--dragging {
+      z-index: 10;
+      cursor: grabbing;
+      opacity: 0.9;
+      box-shadow: 4px 4px 0 var(--bs-primary);
+    }
+
+    .planner-calendar__resize {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 2;
+      height: 0.5rem;
+      cursor: ns-resize;
+
+      &::after {
+        display: block;
+        width: 1.25rem;
+        height: 0.1875rem;
+        margin: 0.1875rem auto 0;
+        content: '';
+        background-color: rgba(var(--bs-dark-rgb), 0.2);
+        border-radius: var(--bs-border-radius-pill);
+      }
     }
 
     .planner-calendar__open {
@@ -237,6 +308,8 @@ import { HOUR_LABELS, ROW_COUNT, ROWS_PER_HOUR, slotStartAt } from '../planner-l
     .planner-calendar__entry {
       position: relative;
       cursor: default;
+      user-select: none;
+      touch-action: none;
 
       input {
         position: relative;
@@ -407,14 +480,100 @@ export class PlannerCalendar {
   readonly doneToggled = output<number>();
   readonly entryOpened = output<number>();
   readonly slotSelected = output<TaskSlot>();
+  readonly entryMoved = output<TaskMove>();
+
+  protected readonly drag = signal<DragState | null>(null);
+  private readonly strip = viewChild.required<ElementRef<HTMLElement>>('strip');
+  #isClickSuppressed = false;
 
   protected readonly hourLabels = HOUR_LABELS;
   protected readonly rowCount = ROW_COUNT;
   protected readonly rowsPerHour = ROWS_PER_HOUR;
 
+  protected openEntry(entryId: number): void {
+    if (!this.#isClickSuppressed) this.entryOpened.emit(entryId);
+  }
+
+  protected rowsOf({ id, startRow, endRow }: PlacedEntry): string {
+    const drag = this.drag();
+    if (drag?.id !== id) return `${startRow} / ${endRow}`;
+    return `${startRow + (drag.isResize ? 0 : drag.rowDelta)} / ${endRow + drag.rowDelta}`;
+  }
+
+  protected shiftOf({ id }: PlacedEntry): string | null {
+    const drag = this.drag();
+    return drag?.id === id && drag.dayDelta
+      ? `translateX(${drag.dayDelta * drag.columnWidth}px)`
+      : null;
+  }
+
+  protected startDrag(event: PointerEvent, entry: PlacedEntry, dayIndex: number): void {
+    const target = event.target as HTMLElement;
+    if (entry.isRecord || event.button !== 0 || target.matches('input')) return;
+    const element = event.currentTarget as HTMLElement;
+    const rows = element.parentElement;
+    if (!rows) return;
+    event.preventDefault();
+    element.setPointerCapture(event.pointerId);
+    const isSingleDay = getComputedStyle(this.strip().nativeElement).display !== 'none';
+    this.drag.set({
+      id: entry.id,
+      dayIndex,
+      isResize: target.classList.contains('planner-calendar__resize'),
+      x: event.clientX,
+      y: event.clientY,
+      rowHeight: rows.clientHeight / ROW_COUNT,
+      columnWidth: isSingleDay ? 0 : rows.clientWidth,
+      startRow: entry.startRow,
+      endRow: entry.endRow,
+      rowDelta: 0,
+      dayDelta: 0,
+      hasMoved: false,
+    });
+  }
+
+  protected moveDrag(event: PointerEvent): void {
+    const drag = this.drag();
+    if (!drag) return;
+    const [dx, dy] = [event.clientX - drag.x, event.clientY - drag.y];
+    if (!drag.hasMoved && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+    const steps = Math.round(dy / (drag.rowHeight * ROWS_PER_SLOT)) * ROWS_PER_SLOT;
+    const lastRow = ROW_COUNT + 1;
+    this.drag.set({
+      ...drag,
+      hasMoved: true,
+      rowDelta: drag.isResize
+        ? clamp(steps, drag.startRow + ROWS_PER_SLOT - drag.endRow, lastRow - drag.endRow)
+        : clamp(steps, 1 - drag.startRow, lastRow - drag.endRow),
+      dayDelta:
+        drag.isResize || !drag.columnWidth
+          ? 0
+          : clamp(Math.round(dx / drag.columnWidth), -drag.dayIndex, LAST_DAY - drag.dayIndex),
+    });
+  }
+
+  protected endDrag(): void {
+    const drag = this.drag();
+    this.drag.set(null);
+    if (!drag) return;
+    if (!drag.hasMoved) {
+      this.entryOpened.emit(drag.id);
+      return;
+    }
+    this.#isClickSuppressed = true;
+    setTimeout(() => (this.#isClickSuppressed = false));
+    if (!drag.rowDelta && !drag.dayDelta) return;
+    this.entryMoved.emit({
+      id: drag.id,
+      date: this.days()[drag.dayIndex + drag.dayDelta].date,
+      start: rowTime(drag.startRow + (drag.isResize ? 0 : drag.rowDelta)),
+      end: rowTime(drag.endRow + drag.rowDelta),
+    });
+  }
+
   protected selectSlot(event: MouseEvent, date: string): void {
     const rows = event.currentTarget as HTMLElement;
-    if (event.target !== rows) return;
+    if (event.target !== rows || this.#isClickSuppressed) return;
     this.slotSelected.emit({ date, start: slotStartAt(event.offsetY / rows.clientHeight) });
   }
 

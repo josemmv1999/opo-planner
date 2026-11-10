@@ -59,6 +59,10 @@ import { PlannerStore } from './planner.store';
       </button>
     </div>
 
+    @if (store.error() === 'moving') {
+      <div class="alert alert-danger mb-0" role="alert">{{ 'planner.moveError' | translate }}</div>
+    }
+
     @if (store.error() === 'loading') {
       <div class="alert alert-danger mb-0" role="alert">{{ 'planner.loadError' | translate }}</div>
     } @else {
@@ -70,7 +74,8 @@ import { PlannerStore } from './planner.store';
         (daySelected)="store.selectDay($event)"
         (doneToggled)="store.toggleDone($event)"
         (entryOpened)="store.openTask($event)"
-        (slotSelected)="store.openNewTask($event)" />
+        (slotSelected)="store.openNewTask($event)"
+        (entryMoved)="store.moveTask($event)" />
     }
 
     <app-modal

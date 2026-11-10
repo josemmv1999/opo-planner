@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { of, throwError } from 'rxjs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
 import { PlannerStore } from './planner.store';
@@ -130,5 +130,25 @@ describe('PlannerStore', () => {
     store.deleteTask();
     expect(store.entries().map(({ id }) => id)).toEqual([1]);
     expect(store.isTaskModalOpen()).toBe(false);
+  });
+
+  it('moves a task to another day and time', () => {
+    store.load('2026-11-09');
+    store.moveTask({ id: 1, date: '2026-11-10', start: '09:00', end: '11:00' });
+    const tuesday = store.days()[1].entries;
+    expect(tuesday.map(({ id }) => id)).toEqual([1]);
+    expect(tuesday[0]).toMatchObject({ startRow: 9, endRow: 17 });
+    expect(store.days()[0].entries.map(({ id }) => id)).toEqual([2]);
+  });
+
+  it('puts a task back when the move fails', () => {
+    store.load('2026-11-09');
+    const original = store.entries()[0];
+    vi.spyOn(TestBed.inject(PlannerService), 'saveTask').mockReturnValue(
+      throwError(() => new Error('down')),
+    );
+    store.moveTask({ id: 1, date: '2026-11-10', start: '09:00', end: '11:00' });
+    expect(store.entries()[0]).toEqual(original);
+    expect(store.error()).toBe('moving');
   });
 });
