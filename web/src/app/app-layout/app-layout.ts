@@ -60,13 +60,14 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
           [isHome]="!pageTitleKey()"
           [greeting]="greeting ? (greeting.key | translate: { name: greeting.name }) : ''"
           [title]="pageTitleKey() ? (pageTitleKey() | translate) : ''"
-          [opposition]="store.activeOpposition()"
-          [user]="store.currentUser()"
-          (openAccount)="store.openAccountModal()" />
+          [opposition]="store.activeOpposition()" />
         <router-outlet />
       </div>
     </main>
-    <app-bottom-nav class="d-block d-lg-none" />
+    <app-bottom-nav
+      class="d-block d-lg-none"
+      [user]="store.currentUser()"
+      (openAccount)="store.openAccountModal()" />
 
     <app-modal
       [isOpen]="store.isAccountModalOpen()"

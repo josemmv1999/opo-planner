@@ -1,14 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Opposition } from '../../models/opposition.model';
-import { User } from '../../models/user.model';
-import { InitialsPipe } from '../../pipes/initials.pipe';
 import { Icon } from '../icon/icon';
 
 @Component({
   selector: 'app-page-header',
-  imports: [NgTemplateOutlet, TranslatePipe, InitialsPipe, Icon],
+  imports: [NgTemplateOutlet, TranslatePipe, Icon],
   host: { class: 'd-flex align-items-start justify-content-between gap-3' },
   template: `
     <ng-template #selector>
@@ -31,17 +29,6 @@ import { Icon } from '../icon/icon';
         <h1 class="page-header__title">{{ title() }}</h1>
       }
     </div>
-
-    @if (user(); as user) {
-      <button
-        type="button"
-        class="app-avatar app-avatar--lg d-lg-none"
-        [title]="'appLayout.profile' | translate"
-        [attr.aria-label]="'appLayout.profile' | translate"
-        (click)="openAccount.emit()">
-        {{ user | initials }}
-      </button>
-    }
   `,
   styles: `
     .page-header__eyebrow {
@@ -90,8 +77,6 @@ export class PageHeader {
   readonly greeting = input('');
   readonly title = input('');
   readonly opposition = input.required<Opposition | null>();
-  readonly user = input.required<User | null>();
-  readonly openAccount = output();
 
   protected readonly oppositionNameParts = computed(() => {
     const name = this.opposition()?.name;
