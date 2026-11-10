@@ -4,6 +4,11 @@ export interface ProfileData {
   email: string;
 }
 
+export interface PasswordChange {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface User {
   name: string;
   surname: string;

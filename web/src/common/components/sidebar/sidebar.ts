@@ -35,7 +35,8 @@ import { Icon } from '../icon/icon';
       <button
         type="button"
         class="sidebar__selector btn btn-light d-flex align-items-center gap-2 text-start"
-        [title]="'appLayout.changeOpposition' | translate">
+        [title]="'appLayout.changeOpposition' | translate"
+        (click)="changeOpposition.emit()">
         <span class="app-opposition-badge">{{ opposition.abbreviation }}</span>
         <span class="sidebar__opposition-name sidebar__fade">{{ opposition.name }}</span>
         <app-icon class="sidebar__fade" name="chevron-down" />
@@ -248,6 +249,7 @@ export class Sidebar {
   readonly opposition = input.required<Opposition | null>();
   readonly toggleCollapse = output();
   readonly logout = output();
+  readonly changeOpposition = output();
 
   protected readonly navItems = NAV_ITEMS;
 }
