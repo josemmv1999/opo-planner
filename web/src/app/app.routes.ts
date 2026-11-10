@@ -5,6 +5,7 @@ import { ExamSession } from './exam-session/exam-session';
 import { Exams } from './exams/exams';
 import { Home } from './home/home';
 import { Login } from './login/login';
+import { Note } from './note/note';
 import { Onboarding } from './onboarding/onboarding';
 import { Planner } from './planner/planner';
 import { Profile } from './profile/profile';
@@ -31,6 +32,11 @@ export const routes: Routes = [
       { path: 'home', component: Home },
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
       { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
+      {
+        path: 'syllabus/:topicId/notes/:noteId',
+        component: Note,
+        data: { titleKey: 'nav.syllabus' },
+      },
       { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
       { path: 'planner', component: Planner, data: { titleKey: 'nav.planner' } },
       { path: 'profile', component: Profile, data: { titleKey: 'nav.profile' } },

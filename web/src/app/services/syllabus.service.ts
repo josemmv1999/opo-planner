@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, map, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, delay, map, of, switchMap } from 'rxjs';
 import { SyllabusBlock, SyllabusTopicDetail, TopicLaw } from '../../common/models/syllabus.model';
+import { NotesService } from './notes.service';
 
 const CONSTITUTION = 'BOE-A-1978-31229';
 const PROCEDURE_LAW = 'BOE-A-2015-10565';
@@ -55,6 +56,8 @@ const TOPIC_LAWS: Record<number, TopicLaw[]> = {
 
 @Injectable({ providedIn: 'root' })
 export class SyllabusService {
+  readonly #notesService = inject(NotesService);
+
   getBlocks(): Observable<SyllabusBlock[]> {
     return of<SyllabusBlock[]>([
       {
@@ -162,32 +165,25 @@ export class SyllabusService {
 
   getTopic(topicId: number): Observable<SyllabusTopicDetail> {
     return this.getBlocks().pipe(
-      map((blocks) => {
-        const block = blocks.find(({ topics }) => topics.some(({ id }) => id === topicId));
-        const topic = block?.topics.find(({ id }) => id === topicId);
-        if (!block || !topic) throw new Error('Topic not found');
-        return {
-          id: topic.id,
-          number: topic.number,
-          name: topic.name,
-          blockLabel: block.label,
-          blockName: block.name,
-          correctPercentage: topic.correctPercentage,
-          laws: TOPIC_LAWS[topic.id] ?? [],
-          notes:
-            topic.id === 1
-              ? [
-                  {
-                    id: 1,
-                    title: 'Esquema de la Constitución',
-                    kind: 'pdf',
-                    updatedAt: '2026-11-03',
-                  },
-                  { id: 2, title: 'Derechos fundamentales', kind: 'text', updatedAt: '2026-10-28' },
-                ]
-              : [],
-        };
-      }),
+      switchMap((blocks) =>
+        this.#notesService.getTopicNotes(topicId).pipe(
+          map((notes) => {
+            const block = blocks.find(({ topics }) => topics.some(({ id }) => id === topicId));
+            const topic = block?.topics.find(({ id }) => id === topicId);
+            if (!block || !topic) throw new Error('Topic not found');
+            return {
+              id: topic.id,
+              number: topic.number,
+              name: topic.name,
+              blockLabel: block.label,
+              blockName: block.name,
+              correctPercentage: topic.correctPercentage,
+              laws: TOPIC_LAWS[topic.id] ?? [],
+              notes,
+            };
+          }),
+        ),
+      ),
     );
   }
 

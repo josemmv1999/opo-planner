@@ -30,6 +30,17 @@ export interface TopicNote {
   updatedAt: string;
 }
 
+export interface NoteDetail extends TopicNote {
+  topicId: number;
+  content: string | null;
+  fileUrl: string | null;
+}
+
+export interface NoteDraft {
+  title: string;
+  content: string;
+}
+
 export interface SyllabusTopicDetail {
   id: number;
   number: number;
