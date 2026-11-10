@@ -1,0 +1,30 @@
+{
+  "name": "OpoPlanner",
+  "short_name": "OpoPlanner",
+  "lang": "es",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "theme_color": "#fdf6e7",
+  "background_color": "#fdf6e7",
+  "icons": [
+    {
+      "src": "brand/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "brand/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "brand/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -21,6 +21,7 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@angular/service-worker": "^22.2.4",
     "@ngrx/operators": "^22.0.1",
     "@ngrx/signals": "^22.0.1",
     "@ngx-translate/core": "^18.1.0",
