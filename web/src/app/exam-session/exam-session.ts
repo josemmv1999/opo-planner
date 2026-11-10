@@ -1,46 +1,76 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
+import { Icon } from '../../common/components/icon/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../common/components/modal/modal';
 import { ExamBar } from './exam-bar/exam-bar';
 import { ExamNavigator } from './exam-navigator/exam-navigator';
 import { ExamQuestionCard } from './exam-question/exam-question';
+import { ExamResult } from './exam-result/exam-result';
 import { ExamSessionStore } from './exam-session.store';
 
 @Component({
   selector: 'app-exam-session',
-  imports: [TranslatePipe, Modal, ExamBar, ExamQuestionCard, ExamNavigator],
+  imports: [TranslatePipe, Icon, Modal, ExamBar, ExamQuestionCard, ExamNavigator, ExamResult],
   providers: [ExamSessionStore],
   host: { class: 'exam-session d-flex flex-column gap-3 mx-auto' },
   template: `
     @if (store.exam(); as exam) {
-      <app-exam-bar
-        [name]="exam.name"
-        [answered]="store.answeredCount()"
-        [total]="store.total()"
-        [secondsLeft]="store.secondsLeft()"
-        [isTimeLow]="store.isTimeLow()"
-        (submitted)="store.openSubmitModal()"
-        (exited)="store.openExitModal()" />
+      @if (!store.hasSubmitted()) {
+        <app-exam-bar
+          [name]="exam.name"
+          [answered]="store.answeredCount()"
+          [total]="store.total()"
+          [secondsLeft]="store.secondsLeft()"
+          [isTimeLow]="store.isTimeLow()"
+          (submitted)="store.openSubmitModal()"
+          (exited)="store.openExitModal()" />
+      } @else if (store.isReviewing()) {
+        <div class="card card--flat exam-session__review d-flex flex-row align-items-center">
+          <button
+            type="button"
+            class="btn btn-link exam-session__back d-flex align-items-center p-0"
+            (click)="store.closeReview()">
+            <app-icon class="me-1" name="chevron-left" />
+            {{ 'examSession.backToResult' | translate }}
+          </button>
+          <strong class="text-truncate">{{ exam.name }}</strong>
+        </div>
+      } @else {
+        <app-exam-result
+          [name]="exam.name"
+          [correct]="store.correctCount()"
+          [total]="store.total()"
+          [percentage]="store.percentage()"
+          [wrong]="store.wrongCount()"
+          [blank]="store.blankCount()"
+          [secondsTaken]="store.secondsTaken()"
+          [secondsPerQuestion]="store.secondsPerQuestion()"
+          [weakBlocks]="store.weakBlocks()"
+          (reviewed)="store.startReview()" />
+      }
 
-      <div class="exam-session__body">
-        @if (store.currentQuestion(); as question) {
-          <app-exam-question
-            [question]="question"
+      @if (!store.hasSubmitted() || store.isReviewing()) {
+        <div class="exam-session__body">
+          @if (store.currentQuestion(); as question) {
+            <app-exam-question
+              [question]="question"
+              [index]="store.index()"
+              [total]="store.total()"
+              [answer]="store.currentAnswer()"
+              [isFlagged]="store.isCurrentFlagged()"
+              [correctOption]="store.isReviewing() ? question.correctOption : null"
+              (answered)="store.answer($event)"
+              (flagToggled)="store.toggleFlag()"
+              (moved)="store.goTo($event)" />
+          }
+          <app-exam-navigator
+            [answers]="store.answers()"
+            [flagged]="store.flaggedSet()"
             [index]="store.index()"
-            [total]="store.total()"
-            [answer]="store.currentAnswer()"
-            [isFlagged]="store.isCurrentFlagged()"
-            (answered)="store.answer($event)"
-            (flagToggled)="store.toggleFlag()"
-            (moved)="store.goTo($event)" />
-        }
-        <app-exam-navigator
-          [answers]="store.answers()"
-          [flagged]="store.flaggedSet()"
-          [index]="store.index()"
-          (jumped)="store.goTo($event)" />
-      </div>
+            (jumped)="store.goTo($event)" />
+        </div>
+      }
     } @else if (store.error()) {
       <div class="alert alert-danger mb-0" role="alert">
         {{ 'examSession.loadError' | translate }}
@@ -109,6 +139,17 @@ import { ExamSessionStore } from './exam-session.store';
       container-type: inline-size;
     }
 
+    .exam-session__review {
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .exam-session__back {
+      font-size: 0.875rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
     .exam-session__body {
       display: grid;
       gap: 1rem;
@@ -130,9 +171,6 @@ export class ExamSession {
   constructor() {
     this.store.load(this.examId);
     this.store.runTimer();
-    effect(() => {
-      if (this.store.hasSubmitted()) this.#router.navigate(['/exams']);
-    });
   }
 
   protected exit(): void {

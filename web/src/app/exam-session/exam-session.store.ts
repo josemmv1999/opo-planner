@@ -3,10 +3,11 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { filter, interval, pipe, switchMap, tap } from 'rxjs';
-import { ExamDetail } from '../../common/models/exam.model';
+import { ExamDetail, WeakBlock } from '../../common/models/exam.model';
 import { ExamService } from '../services/exam.service';
 
 const LOW_TIME_SECONDS = 5 * 60;
+const WEAK_BLOCKS_SHOWN = 3;
 
 interface ExamSessionState {
   exam: ExamDetail | null;
@@ -15,6 +16,7 @@ interface ExamSessionState {
   index: number;
   secondsLeft: number;
   hasSubmitted: boolean;
+  isReviewing: boolean;
   isSubmitModalOpen: boolean;
   isExitModalOpen: boolean;
   isLoading: boolean;
@@ -29,6 +31,7 @@ export const ExamSessionStore = signalStore(
     index: 0,
     secondsLeft: 0,
     hasSubmitted: false,
+    isReviewing: false,
     isSubmitModalOpen: false,
     isExitModalOpen: false,
     isLoading: false,
@@ -36,8 +39,12 @@ export const ExamSessionStore = signalStore(
   }),
   withComputed(({ exam, answers, flaggedIndexes, index, secondsLeft }) => {
     const answeredCount = computed(() => answers().filter((answer) => answer !== null).length);
+    const total = computed(() => exam()?.questions.length ?? 0);
+    const isCorrect = (i: number): boolean => answers()[i] === exam()?.questions[i].correctOption;
+    const correctCount = computed(() => answers().filter((_, i) => isCorrect(i)).length);
+    const secondsTaken = computed(() => (exam()?.minutes ?? 0) * 60 - secondsLeft());
     return {
-      total: computed(() => exam()?.questions.length ?? 0),
+      total,
       currentQuestion: computed(() => exam()?.questions[index()] ?? null),
       currentAnswer: computed(() => answers()[index()] ?? null),
       isCurrentFlagged: computed(() => flaggedIndexes().includes(index())),
@@ -45,6 +52,29 @@ export const ExamSessionStore = signalStore(
       answeredCount,
       blankCount: computed(() => answers().length - answeredCount()),
       isTimeLow: computed(() => secondsLeft() < LOW_TIME_SECONDS),
+      correctCount,
+      wrongCount: computed(() => answeredCount() - correctCount()),
+      percentage: computed(() => (total() ? Math.round((correctCount() / total()) * 100) : 0)),
+      secondsTaken,
+      secondsPerQuestion: computed(() => (total() ? Math.round(secondsTaken() / total()) : 0)),
+      weakBlocks: computed<WeakBlock[]>(() => {
+        const blocks = new Map<string, { questions: number; misses: number }>();
+        exam()?.questions.forEach(({ block }, i) => {
+          const stats = blocks.get(block) ?? { questions: 0, misses: 0 };
+          blocks.set(block, {
+            questions: stats.questions + 1,
+            misses: stats.misses + (isCorrect(i) ? 0 : 1),
+          });
+        });
+        return [...blocks]
+          .map(([name, { questions, misses }]) => ({
+            name,
+            errorPercentage: Math.round((misses / questions) * 100),
+          }))
+          .filter(({ errorPercentage }) => errorPercentage > 0)
+          .sort((a, b) => b.errorPercentage - a.errorPercentage)
+          .slice(0, WEAK_BLOCKS_SHOWN);
+      }),
     };
   }),
   withMethods((store, examService = inject(ExamService)) => ({
@@ -62,6 +92,7 @@ export const ExamSessionStore = signalStore(
                   index: 0,
                   secondsLeft: exam.minutes * 60,
                   hasSubmitted: false,
+                  isReviewing: false,
                   isLoading: false,
                 }),
               error: () => patchState(store, { isLoading: false, error: 'loading' }),
@@ -107,6 +138,12 @@ export const ExamSessionStore = signalStore(
     },
     submit(): void {
       patchState(store, { hasSubmitted: true, isSubmitModalOpen: false });
+    },
+    startReview(): void {
+      patchState(store, { isReviewing: true, index: 0 });
+    },
+    closeReview(): void {
+      patchState(store, { isReviewing: false });
     },
     openExitModal(): void {
       patchState(store, { isExitModalOpen: true });
