@@ -46,6 +46,9 @@ import { TranslatePipe } from '@ngx-translate/core';
           </span>
         </div>
       </div>
+      <p class="exam-navigator__shortcuts text-body-secondary mb-0">
+        {{ 'examSession.shortcuts' | translate }}
+      </p>
     </aside>
   `,
   styles: `
@@ -83,6 +86,16 @@ import { TranslatePipe } from '@ngx-translate/core';
     .exam-navigator__cell--flagged {
       color: var(--bs-dark);
       background-color: var(--bs-warning);
+    }
+
+    .exam-navigator__shortcuts {
+      display: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+
+      @media (hover: hover) and (pointer: fine) {
+        display: block;
+      }
     }
 
     .exam-navigator__legend {
