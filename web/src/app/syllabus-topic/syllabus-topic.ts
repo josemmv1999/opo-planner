@@ -78,29 +78,46 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h3 class="syllabus-topic__section mb-0">{{ 'syllabusTopic.notes' | translate }}</h3>
             <div class="d-flex flex-wrap gap-2">
+              <input
+                #pdfInput
+                type="file"
+                class="d-none"
+                accept="application/pdf"
+                (change)="uploadPdf(pdfInput)" />
               <button
                 type="button"
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                disabled
-                [title]="'syllabusTopic.notesSoon' | translate">
+                [class.is-loading]="store.isUploading()"
+                [disabled]="store.isUploading()"
+                (click)="pdfInput.click()">
                 <app-icon class="me-2" name="upload" />
                 {{ 'syllabusTopic.uploadPdf' | translate }}
               </button>
-              <button
-                type="button"
+              <a
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
-                disabled
-                [title]="'syllabusTopic.notesSoon' | translate">
+                [routerLink]="['/syllabus', topic.id, 'notes', 'new']">
                 <app-icon class="me-2" name="add" />
                 {{ 'syllabusTopic.newNote' | translate }}
-              </button>
+              </a>
             </div>
           </div>
+          @if (store.error() === 'uploading') {
+            <p class="text-danger small fw-bold mb-0" role="alert">
+              {{ 'syllabusTopic.uploadError' | translate }}
+            </p>
+          }
           <ul class="list-unstyled mb-0">
             @for (note of topic.notes; track note.id) {
               <li class="syllabus-topic__row d-flex align-items-center gap-3">
+                <app-icon
+                  class="text-primary"
+                  [name]="note.kind === 'pdf' ? 'upload' : 'notes'" />
                 <span class="d-flex flex-column flex-grow-1 overflow-hidden">
-                  <span class="fw-bold">{{ note.title }}</span>
+                  <a
+                    class="syllabus-topic__note fw-bold text-truncate"
+                    [routerLink]="['/syllabus', topic.id, 'notes', note.id]"
+                    >{{ note.title }}</a
+                  >
                   <span class="syllabus-topic__meta text-body-secondary">
                     {{ 'syllabusTopic.noteKind.' + note.kind | translate }} ·
                     {{ note.updatedAt | formatDate: 'd MMM' }}
@@ -132,6 +149,15 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
   styles: `
     :host {
       container-type: inline-size;
+    }
+
+    .syllabus-topic__note {
+      color: var(--bs-body-color);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .syllabus-topic__back {
@@ -191,5 +217,11 @@ export class SyllabusTopic {
 
   constructor() {
     this.store.load(computed(() => Number(this.topicId())));
+  }
+
+  protected uploadPdf(fileInput: HTMLInputElement): void {
+    const file = fileInput.files?.[0];
+    if (file) this.store.uploadPdf(file);
+    fileInput.value = '';
   }
 }
