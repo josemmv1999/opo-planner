@@ -44,6 +44,8 @@ export interface CalendarEntry extends PlannerEntry {
 
 export interface PlacedEntry extends CalendarEntry {
   lane: number;
+  slot: number;
+  slots: number;
   startRow: number;
   endRow: number;
   isShort: boolean;

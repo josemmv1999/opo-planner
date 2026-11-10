@@ -116,6 +116,8 @@ const clamp = (value: number, min: number, max: number): number =>
                   (pointerup)="endDrag()"
                   (pointercancel)="drag.set(null)"
                   [style.--lane]="entry.lane"
+                  [style.--slot]="entry.slot"
+                  [style.--slots]="entry.slots"
                   [title]="
                     entry.isRecord
                       ? ('planner.record' | translate)
@@ -330,7 +332,13 @@ const clamp = (value: number, min: number, max: number): number =>
       flex-direction: column;
       gap: 0.125rem;
       min-width: 0;
-      margin: 1px 3px 1px calc(3px + var(--lane) * 2.5rem);
+      --indent: min(calc(var(--lane) * 2.5rem), calc(var(--lane) * 20%));
+
+      width: calc((100% - 6px - var(--indent)) / var(--slots));
+      margin: 1px 0;
+      margin-left: calc(
+        3px + var(--indent) + (100% - 6px - var(--indent)) * var(--slot) / var(--slots)
+      );
       padding: 0.25rem 0.375rem;
       overflow: hidden;
       font-size: 0.8125rem;
