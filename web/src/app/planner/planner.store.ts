@@ -17,7 +17,12 @@ import {
 } from 'date-fns';
 import { concatMap, filter, map, pipe, switchMap, tap } from 'rxjs';
 import { StudySchedule } from '../../common/models/onboarding.model';
-import { PlannerDay, PlannerEntry, TaskDraft } from '../../common/models/planner.model';
+import {
+  OtherPlannerEntry,
+  PlannerDay,
+  PlannerEntry,
+  TaskDraft,
+} from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
 import { placeEntries, slotRows } from './planner-layout';
 
@@ -27,6 +32,7 @@ interface PlannerState {
   examDate: string | null;
   schedule: StudySchedule;
   entries: PlannerEntry[];
+  otherEntries: OtherPlannerEntry[];
   taskDraft: TaskDraft | null;
   editingTaskId: number | null;
   isTaskModalOpen: boolean;
@@ -65,6 +71,7 @@ export const PlannerStore = signalStore(
     examDate: null,
     schedule: { days: [], slots: [] },
     entries: [],
+    otherEntries: [],
     taskDraft: null,
     editingTaskId: null,
     isTaskModalOpen: false,
@@ -121,8 +128,14 @@ export const PlannerStore = signalStore(
           switchMap((weekStart) =>
             plannerService.getWeek(weekStart).pipe(
               tapResponse({
-                next: ({ examDate, schedule, entries }) =>
-                  patchState(store, { examDate, schedule, entries, isLoading: false }),
+                next: ({ examDate, schedule, entries, otherEntries }) =>
+                  patchState(store, {
+                    examDate,
+                    schedule,
+                    entries,
+                    otherEntries,
+                    isLoading: false,
+                  }),
                 error: () => patchState(store, { isLoading: false, error: 'loading' }),
               }),
             ),

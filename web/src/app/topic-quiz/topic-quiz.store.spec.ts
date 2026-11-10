@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuizQuestion } from '../../common/models/quiz.model';
 import { SyllabusTopicDetail } from '../../common/models/syllabus.model';
+import { PlannerService } from '../services/planner.service';
 import { QuizService } from '../services/quiz.service';
 import { SyllabusService } from '../services/syllabus.service';
 import { TopicQuizStore } from './topic-quiz.store';
@@ -33,13 +34,17 @@ describe('TopicQuizStore', () => {
     of(Array.from({ length: count }, (__, i) => question(i))),
   );
 
+  const logRecord = vi.fn(() => of(null));
+
   beforeEach(() => {
     getTopicQuestions.mockClear();
+    logRecord.mockClear();
     TestBed.configureTestingModule({
       providers: [
         TopicQuizStore,
         { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
         { provide: QuizService, useValue: { getTopicQuestions } },
+        { provide: PlannerService, useValue: { logRecord } },
       ],
     });
     store = TestBed.inject(TopicQuizStore);
@@ -126,5 +131,19 @@ describe('TopicQuizStore', () => {
     store.requestClose();
     expect(store.isExitModalOpen()).toBe(false);
     expect(store.isQuizModalOpen()).toBe(false);
+  });
+
+  it('logs the finished round in the planner', () => {
+    store.setCount(10);
+    store.start();
+    for (let i = 0; i < 10; i++) {
+      store.answer(i < 8 ? 1 : 0);
+      store.next();
+    }
+    TestBed.tick();
+    expect(logRecord).toHaveBeenCalledOnce();
+    expect(logRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'quiz', name: 'Tema 5', percentage: 80 }),
+    );
   });
 });

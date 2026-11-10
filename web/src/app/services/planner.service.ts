@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
-import { addDays, addMinutes, formatISO, parseISO, startOfToday, startOfWeek } from 'date-fns';
+import { addDays, addMinutes, parseISO, startOfToday, startOfWeek } from 'date-fns';
 import { Observable, delay, of } from 'rxjs';
-import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
+import {
+  OtherPlannerEntry,
+  PlannerEntry,
+  PlannerRecord,
+  PlannerWeek,
+  TaskDraft,
+} from '../../common/models/planner.model';
 
 type MockEntry = [day: number, start: string, end: string, text: string, isDone?: boolean];
 
@@ -21,6 +27,18 @@ const MOCK_RECORDS: MockEntry[] = [
   [5, '10:00', '11:00', 'Examen · Batiburrillo · 68 %'],
 ];
 
+const MOCK_OTHER_TASKS: MockEntry[] = [
+  [2, '18:30', '20:00', 'Tema 4: la Seguridad Social'],
+  [4, '10:00', '11:30', 'Repasar prestaciones'],
+];
+
+const OTHER_OPPOSITION = 'Auxiliar Administrativo de la Seguridad Social';
+const RECORD_LABELS: Record<PlannerRecord['kind'], string> = {
+  exam: 'Examen',
+  quiz: 'Simulacro',
+};
+const DELAY_MS = 300;
+
 const at = (monday: Date, day: number, time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
   return addMinutes(addDays(monday, day), hours * 60 + minutes).toISOString();
@@ -38,39 +56,67 @@ const toEntries = (monday: Date, entries: MockEntry[], isRecord: boolean, firstI
 
 const toIso = (date: string, time: string): string => parseISO(`${date}T${time}`).toISOString();
 
-let nextTaskId = 1000;
+const isInWeek = (iso: string, monday: Date): boolean => {
+  const date = parseISO(iso);
+  return date >= monday && date < addDays(monday, 7);
+};
 
 @Injectable({ providedIn: 'root' })
 export class PlannerService {
-  saveTask(taskId: number | null, { text, date, start, end }: TaskDraft): Observable<PlannerEntry> {
-    return of<PlannerEntry>({
-      id: taskId ?? nextTaskId++,
-      text,
-      start: toIso(date, start),
-      end: toIso(date, end),
-      isDone: false,
-      isRecord: false,
-    }).pipe(delay(400));
-  }
-
-  deleteTask(taskId: number): Observable<number> {
-    return of(taskId).pipe(delay(400));
-  }
+  readonly #monday = startOfWeek(startOfToday(), { weekStartsOn: 1 });
+  #entries: PlannerEntry[] = [
+    ...toEntries(this.#monday, MOCK_TASKS, false, 1),
+    ...toEntries(this.#monday, MOCK_RECORDS, true, 100),
+  ];
+  readonly #otherEntries: OtherPlannerEntry[] = toEntries(
+    this.#monday,
+    MOCK_OTHER_TASKS,
+    false,
+    500,
+  ).map(({ id, text, start, end }) => ({ id, text, start, end, oppositionName: OTHER_OPPOSITION }));
+  #nextId = 1000;
 
   getWeek(weekStart: string): Observable<PlannerWeek> {
     const monday = parseISO(weekStart);
-    const isCurrentWeek =
-      weekStart ===
-      formatISO(startOfWeek(startOfToday(), { weekStartsOn: 1 }), { representation: 'date' });
     return of<PlannerWeek>({
       examDate: '2027-06-12',
       schedule: { days: [0, 1, 2, 3, 4], slots: [{ start: '17:00', end: '20:00' }] },
-      entries: isCurrentWeek
-        ? [
-            ...toEntries(monday, MOCK_TASKS, false, 1),
-            ...toEntries(monday, MOCK_RECORDS, true, 100),
-          ]
-        : [],
-    }).pipe(delay(300));
+      entries: this.#entries.filter(({ start }) => isInWeek(start, monday)),
+      otherEntries: this.#otherEntries.filter(({ start }) => isInWeek(start, monday)),
+    }).pipe(delay(DELAY_MS));
+  }
+
+  saveTask(taskId: number | null, { text, date, start, end }: TaskDraft): Observable<PlannerEntry> {
+    const previous = this.#entries.find(({ id }) => id === taskId);
+    const entry: PlannerEntry = {
+      id: taskId ?? this.#nextId++,
+      text,
+      start: toIso(date, start),
+      end: toIso(date, end),
+      isDone: previous?.isDone ?? false,
+      isRecord: false,
+    };
+    this.#entries = previous
+      ? this.#entries.map((current) => (current.id === entry.id ? entry : current))
+      : [...this.#entries, entry];
+    return of(entry).pipe(delay(DELAY_MS));
+  }
+
+  deleteTask(taskId: number): Observable<number> {
+    this.#entries = this.#entries.filter(({ id }) => id !== taskId);
+    return of(taskId).pipe(delay(DELAY_MS));
+  }
+
+  logRecord({ kind, name, percentage, start, end }: PlannerRecord): Observable<PlannerEntry> {
+    const entry: PlannerEntry = {
+      id: this.#nextId++,
+      text: `${RECORD_LABELS[kind]} · ${name} · ${percentage} %`,
+      start,
+      end,
+      isDone: true,
+      isRecord: true,
+    };
+    this.#entries = [...this.#entries, entry];
+    return of(entry).pipe(delay(DELAY_MS));
   }
 }

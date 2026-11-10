@@ -1,10 +1,18 @@
 import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withComputed,
+  withHooks,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { filter, map, pipe, switchMap, tap } from 'rxjs';
 import { QuizPhase, QuizQuestion } from '../../common/models/quiz.model';
 import { SyllabusTopicDetail } from '../../common/models/syllabus.model';
+import { PlannerService } from '../services/planner.service';
 import { QuizService } from '../services/quiz.service';
 import { SyllabusService } from '../services/syllabus.service';
 
@@ -28,6 +36,7 @@ interface TopicQuizState {
   isExitModalOpen: boolean;
   isLoadingTopic: boolean;
   isLoadingQuestions: boolean;
+  startedAt: string | null;
   error: 'loading' | null;
 }
 
@@ -44,6 +53,7 @@ export const TopicQuizStore = signalStore(
     isExitModalOpen: false,
     isLoadingTopic: false,
     isLoadingQuestions: false,
+    startedAt: null,
     error: null,
   }),
   withComputed(({ questions, answers, index }) => {
@@ -110,6 +120,7 @@ export const TopicQuizStore = signalStore(
                   patchState(store, {
                     questions,
                     phase: 'playing',
+                    startedAt: new Date().toISOString(),
                     isSetupModalOpen: false,
                     isQuizModalOpen: true,
                     isLoadingQuestions: false,
@@ -155,4 +166,29 @@ export const TopicQuizStore = signalStore(
       },
     }),
   ),
+  withHooks((store, plannerService = inject(PlannerService)) => ({
+    onInit(): void {
+      rxMethod<QuizPhase>(
+        pipe(
+          filter((phase) => phase === 'finished'),
+          map(() => ({ topic: store.topic(), start: store.startedAt() })),
+          filter(
+            (round): round is { topic: SyllabusTopicDetail; start: string } =>
+              round.topic !== null && round.start !== null,
+          ),
+          switchMap(({ topic, start }) =>
+            plannerService
+              .logRecord({
+                kind: 'quiz',
+                name: `Tema ${topic.number}`,
+                percentage: store.percentage(),
+                start,
+                end: new Date().toISOString(),
+              })
+              .pipe(tapResponse({ next: () => undefined, error: () => undefined })),
+          ),
+        ),
+      )(store.phase);
+    },
+  })),
 );

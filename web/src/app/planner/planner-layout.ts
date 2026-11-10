@@ -1,5 +1,11 @@
 import { TimeSlot } from '../../common/models/onboarding.model';
-import { PlacedEntry, PlannerEntry, RowRange } from '../../common/models/planner.model';
+import {
+  OtherPlannerEntry,
+  PlacedEntry,
+  PlannerEntry,
+  RowRange,
+  TaskDraft,
+} from '../../common/models/planner.model';
 
 export const FIRST_HOUR = 7;
 export const LAST_HOUR = 23;
@@ -58,3 +64,12 @@ export const slotStartAt = (fraction: number): string => {
 };
 
 export const rowTime = (row: number): string => toTime(FIRST_HOUR * 60 + (row - 1) * ROW_MINUTES);
+
+export const findClash = (
+  { date, start, end }: TaskDraft,
+  entries: OtherPlannerEntry[],
+): OtherPlannerEntry | null => {
+  if (!date || !start || !end || end <= start) return null;
+  const [from, to] = [new Date(`${date}T${start}`), new Date(`${date}T${end}`)];
+  return entries.find((entry) => new Date(entry.start) < to && from < new Date(entry.end)) ?? null;
+};
