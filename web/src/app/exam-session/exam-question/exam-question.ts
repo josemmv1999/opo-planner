@@ -18,7 +18,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
   selector: 'app-exam-question',
   imports: [TranslatePipe, Icon],
   template: `
-    <section class="card card--cyan">
+    <section class="card card--cyan h-100">
       <div class="card-body d-flex flex-column gap-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
           <span class="exam-question__meta text-body-secondary">
@@ -67,7 +67,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
           }
         </ul>
 
-        <div class="d-flex justify-content-between gap-2">
+        <div class="d-flex justify-content-between gap-2 mt-auto">
           <button
             type="button"
             class="btn btn-outline-primary d-flex align-items-center"
@@ -89,6 +89,10 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
     </section>
   `,
   styles: `
+    :host {
+      display: block;
+    }
+
     .exam-question__meta {
       font-size: 0.875rem;
       font-weight: 800;
@@ -160,6 +164,17 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
       font-weight: 900;
       border: 2px solid var(--bs-dark);
       border-radius: 50%;
+    }
+
+    @container (min-width: 70rem) {
+      .exam-question__statement {
+        font-size: 1.625rem;
+      }
+
+      .exam-question__option {
+        min-height: 3.75rem;
+        font-size: 1.125rem;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

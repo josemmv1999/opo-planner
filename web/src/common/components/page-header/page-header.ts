@@ -15,7 +15,7 @@ import { Icon } from '../icon/icon';
           type="button"
           class="page-header__selector text-start p-0 border-0 bg-transparent"
           [title]="'appLayout.changeOpposition' | translate">
-          {{ name.start }}<span class="text-nowrap">{{ name.lastWord }}<app-icon class="page-header__arrow text-primary ms-1 d-lg-none" name="chevron-down" /></span>
+          {{ name.start }}<span class="text-nowrap">{{ name.lastWord }}@if (isTouchLayout()) {<app-icon class="page-header__arrow text-primary ms-1" name="chevron-down" />}</span>
         </button>
       }
     </ng-template>
@@ -74,6 +74,7 @@ import { Icon } from '../icon/icon';
 })
 export class PageHeader {
   readonly isHome = input(false);
+  readonly isTouchLayout = input(false);
   readonly greeting = input('');
   readonly title = input('');
   readonly opposition = input.required<Opposition | null>();

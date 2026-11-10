@@ -58,14 +58,17 @@ import { Icon } from '../icon/icon';
 
     <div class="d-flex flex-column gap-2 mt-auto">
       @if (user(); as user) {
-        <div
-          class="sidebar__user d-flex align-items-center gap-2"
-          [title]="user.name + ' ' + user.surname">
+        <a
+          class="sidebar__user d-flex align-items-center gap-2 text-reset text-decoration-none"
+          routerLink="/profile"
+          routerLinkActive="sidebar__user--active"
+          ariaCurrentWhenActive="page"
+          [title]="'appLayout.profile' | translate">
           <span class="app-avatar">{{ user | initials }}</span>
           <span class="sidebar__user-name sidebar__fade text-truncate"
             >{{ user.name }} {{ user.surname }}</span
           >
-        </div>
+        </a>
       }
       <button
         type="button"
@@ -155,8 +158,19 @@ import { Icon } from '../icon/icon';
         transition: opacity 0.15s ease;
       }
 
-      .sidebar__head:hover,
       .sidebar__head:has(.sidebar__toggle:focus-visible) {
+        .sidebar__brand {
+          opacity: 0;
+        }
+
+        .sidebar__toggle {
+          opacity: 1;
+        }
+      }
+    }
+
+    @media (hover: hover) {
+      :host(.sidebar--collapsed) .sidebar__head:hover {
         .sidebar__brand {
           opacity: 0;
         }
@@ -195,7 +209,13 @@ import { Icon } from '../icon/icon';
     }
 
     .sidebar__user {
-      padding-left: 0.625rem;
+      padding: 0.25rem 0 0.25rem 0.625rem;
+      border-radius: var(--bs-border-radius);
+
+      &:hover,
+      &.sidebar__user--active {
+        background-color: rgba(var(--bs-primary-rgb), 0.08);
+      }
     }
 
     .sidebar__user-name {

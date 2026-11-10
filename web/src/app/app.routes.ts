@@ -8,6 +8,7 @@ import { Login } from './login/login';
 import { Note } from './note/note';
 import { Onboarding } from './onboarding/onboarding';
 import { Planner } from './planner/planner';
+import { Profile } from './profile/profile';
 import { Register } from './register/register';
 import { Syllabus } from './syllabus/syllabus';
 import { SyllabusTopic } from './syllabus-topic/syllabus-topic';
@@ -38,6 +39,7 @@ export const routes: Routes = [
       },
       { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
       { path: 'planner', component: Planner, data: { titleKey: 'nav.planner' } },
+      { path: 'profile', component: Profile, data: { titleKey: 'nav.profile' } },
     ],
   },
 ];

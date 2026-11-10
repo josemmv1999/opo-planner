@@ -9,11 +9,17 @@ import { ExamQuestionCard } from './exam-question/exam-question';
 import { ExamResult } from './exam-result/exam-result';
 import { ExamSessionStore } from './exam-session.store';
 
+const OPTION_KEYS = ['a', 'b', 'c', 'd', 'e'];
+const FLAG_KEY = 'm';
+
 @Component({
   selector: 'app-exam-session',
   imports: [TranslatePipe, Icon, Modal, ExamBar, ExamQuestionCard, ExamNavigator, ExamResult],
   providers: [ExamSessionStore],
-  host: { class: 'exam-session d-flex flex-column gap-3 mx-auto' },
+  host: {
+    class: 'exam-session d-flex flex-column gap-3 mx-auto',
+    '(document:keydown)': 'onKeydown($event)',
+  },
   template: `
     @if (store.exam(); as exam) {
       @if (!store.hasSubmitted()) {
@@ -133,7 +139,7 @@ import { ExamSessionStore } from './exam-session.store';
   `,
   styles: `
     :host {
-      max-width: 75rem;
+      max-width: 90rem;
       min-height: 100vh;
       padding: 1rem;
       container-type: inline-size;
@@ -156,7 +162,13 @@ import { ExamSessionStore } from './exam-session.store';
       align-items: start;
 
       @container (min-width: 52rem) {
+        flex-grow: 1;
         grid-template-columns: minmax(0, 1fr) 18rem;
+        align-items: stretch;
+      }
+
+      @container (min-width: 80rem) {
+        grid-template-columns: minmax(0, 1fr) 22rem;
       }
     }
   `,
@@ -171,6 +183,28 @@ export class ExamSession {
   constructor() {
     this.store.load(this.examId);
     this.store.runTimer();
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    const isAnswering = !this.store.hasSubmitted();
+    const isBlocked =
+      (!isAnswering && !this.store.isReviewing()) ||
+      this.store.isSubmitModalOpen() ||
+      this.store.isExitModalOpen() ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      (event.target as HTMLElement).matches('input, textarea, select');
+    if (isBlocked) return;
+    const key = event.key.toLowerCase();
+    const option = OPTION_KEYS.indexOf(key);
+    const optionCount = this.store.currentQuestion()?.options.length ?? 0;
+    if (key === 'arrowright') this.store.goTo(this.store.index() + 1);
+    else if (key === 'arrowleft') this.store.goTo(this.store.index() - 1);
+    else if (isAnswering && option >= 0 && option < optionCount) this.store.answer(option);
+    else if (isAnswering && key === FLAG_KEY) this.store.toggleFlag();
+    else return;
+    event.preventDefault();
   }
 
   protected exit(): void {
