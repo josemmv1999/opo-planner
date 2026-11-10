@@ -11,11 +11,10 @@
     "logoAlt": "opo-planner",
     "navLabel": "Navegación principal",
     "logout": "Cerrar sesión",
-    "account": "Tu cuenta",
     "collapse": "Plegar menú",
     "expand": "Desplegar menú",
     "changeOpposition": "Cambiar de oposición",
-    "profile": "Perfil y cerrar sesión"
+    "profile": "Tu perfil"
   },
   "authLayout": {
     "logoAlt": "opo-planner"
@@ -89,7 +88,8 @@
     "home": "Inicio",
     "syllabus": "Temario",
     "exams": "Exámenes",
-    "planner": "Planner"
+    "planner": "Planner",
+    "profile": "Perfil"
   },
   "notifications": {
     "close": "Cerrar"
@@ -403,5 +403,18 @@
       "lead": "Es tu horario por defecto para esta oposición. Sale sombreado en el planner para que veas cuándo te toca estudiar.",
       "saveError": "No hemos podido guardar el horario. Inténtalo de nuevo."
     }
+  },
+  "profile": {
+    "loading": "Cargando tu perfil",
+    "loadError": "No hemos podido cargar tu perfil.",
+    "data": "Tus datos",
+    "name": "Nombre",
+    "surname": "Apellidos",
+    "email": "Email",
+    "saved": "Hemos guardado tus datos.",
+    "saveError": "No hemos podido guardar tus datos. Inténtalo de nuevo.",
+    "opposition": "Tu oposición",
+    "session": "Sesión",
+    "sessionText": "Cierra la sesión si usas un dispositivo compartido."
   }
 }
