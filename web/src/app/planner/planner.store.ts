@@ -15,7 +15,7 @@ import {
   startOfToday,
   startOfWeek,
 } from 'date-fns';
-import { filter, map, pipe, switchMap, tap } from 'rxjs';
+import { concatMap, filter, map, pipe, switchMap, tap } from 'rxjs';
 import { StudySchedule } from '../../common/models/onboarding.model';
 import { PlannerDay, PlannerEntry, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
@@ -33,13 +33,24 @@ interface PlannerState {
   isLoading: boolean;
   isSaving: boolean;
   isDeleting: boolean;
-  error: 'loading' | 'saving' | 'deleting' | null;
+  error: 'loading' | 'saving' | 'deleting' | 'moving' | null;
 }
 
 export interface TaskSlot {
   date: string;
   start: string;
 }
+
+export interface TaskMove extends TaskSlot {
+  id: number;
+  end: string;
+}
+
+const toIsoDateTime = (date: string, time: string): string =>
+  parseISO(`${date}T${time}`).toISOString();
+
+const replaceEntry = (entries: PlannerEntry[], entry: PlannerEntry): PlannerEntry[] =>
+  entries.map((current) => (current.id === entry.id ? entry : current));
 
 const DEFAULT_SLOT_START = '17:00';
 
@@ -78,7 +89,7 @@ export const PlannerStore = signalStore(
     }),
     taskError: computed(() => {
       const currentError = error();
-      return currentError === 'loading' ? null : currentError;
+      return currentError === 'saving' || currentError === 'deleting' ? currentError : null;
     }),
     weekEnd: computed(() => toIsoDate(addDays(parseISO(weekStart()), 6))),
     daysToExam: computed(() => {
@@ -196,6 +207,37 @@ export const PlannerStore = signalStore(
                   updateTaskModalOpening(null);
                 },
                 error: () => patchState(store, { isDeleting: false, error: 'deleting' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      moveTask: rxMethod<TaskMove>(
+        pipe(
+          map((move) => ({ move, previous: store.entries().find(({ id }) => id === move.id) })),
+          filter(
+            (change): change is { move: TaskMove; previous: PlannerEntry } =>
+              change.previous !== undefined,
+          ),
+          tap(({ move: { date, start, end }, previous }) =>
+            patchState(store, ({ entries }) => ({
+              entries: replaceEntry(entries, {
+                ...previous,
+                start: toIsoDateTime(date, start),
+                end: toIsoDateTime(date, end),
+              }),
+              error: null,
+            })),
+          ),
+          concatMap(({ move: { id, date, start, end }, previous }) =>
+            plannerService.saveTask(id, { text: previous.text, date, start, end }).pipe(
+              tapResponse({
+                next: () => undefined,
+                error: () =>
+                  patchState(store, ({ entries }) => ({
+                    entries: replaceEntry(entries, previous),
+                    error: 'moving' as const,
+                  })),
               }),
             ),
           ),

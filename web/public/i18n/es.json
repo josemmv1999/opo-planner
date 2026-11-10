@@ -388,6 +388,7 @@
         "saving": "No hemos podido guardar la tarea. Inténtalo de nuevo.",
         "deleting": "No hemos podido borrar la tarea. Inténtalo de nuevo."
       }
-    }
+    },
+    "moveError": "No hemos podido mover la tarea. La hemos dejado donde estaba."
   }
 }
