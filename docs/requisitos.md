@@ -91,7 +91,9 @@ Cada oposición es independiente. Temario, preguntas, exámenes, calendario y es
 
 ## 3. Estudio
 
-**Navegación principal** (por oposición activa): Inicio · Temario oficial · Apuntes · Exámenes · Simulacros por tema. El planner se abre desde el calendario del inicio.
+**Navegación principal** (por oposición activa): Inicio · Temario · Exámenes · Planner.
+
+**Temario** junta en un solo sitio el índice oficial, la normativa, los apuntes y los simulacros. Se organiza por bloque → tema, y cada tema muestra su normativa (enlaces al BOE), los apuntes del usuario y el botón para practicarlo. No se guarda el texto de las leyes: se enlaza a la versión consolidada del BOE.
 
 ### CU-06 · Ver la home
 
@@ -127,7 +129,7 @@ La racha cuenta los días seguidos que el usuario entra y hace algo en las pesta
 
 **Actor:** usuario. Sirve para **repasar** los temas conforme los estudia, o uno concreto cuando quiera.
 
-1.  Elige un tema.
+1.  Desde el Temario, elige un tema y pulsa «Practicar».
 2.  La app mezcla preguntas de ese tema. También puede plantear **casos prácticos**, siempre tipo test.
 3.  Al fallar una pregunta, ve **la respuesta correcta y su razonamiento** en ese momento.
 
@@ -184,8 +186,8 @@ El razonamiento va guardado con cada pregunta en la base de datos.
 **Actor:** usuario. Sirven para leer su propio material desde la app.
 
 1.  Crea un apunte subiendo un **PDF** o escribiendo en un **editor de texto tipo Word**.
-2.  Lo asocia siempre a un **bloque** de la oposición.
-3.  Puede organizarlos en **carpetas**.
+2.  Lo asocia siempre a un **tema**, o al apartado **General** de un bloque.
+3.  Los consulta desde el tema en el Temario; no hay carpetas.
 
 **Reglas**
 
@@ -199,7 +201,7 @@ El razonamiento va guardado con cada pregunta en la base de datos.
 
 **Actor:** administrador, desde el **modo administrador**.
 
-1.  Añade y edita el temario de cada oposición.
+1.  Añade y edita el temario de cada oposición: bloques y temas de la convocatoria, y en cada tema su **normativa** como enlaces al BOE (por ejemplo, «Ley 39/2015, arts. 21–25»).
 2.  Añade preguntas tipo test, cada una con su **razonamiento** de la respuesta correcta.
 3.  Crea **casos prácticos**, siempre tipo test.
 4.  Marca qué preguntas son **aptas para verdadero/falso**.
@@ -240,14 +242,14 @@ No es un modelo cerrado: recoge lo que piden los casos de uso. Los nombres, camp
 | Oposición               | Nombre, fecha prevista del examen, color                                                           | CU-10, CU-15               |
 | Inscripción             | Qué oposiciones prepara cada usuario                                                               | CU-03                      |
 | Preferencia de interfaz | Por usuario y tipo de dispositivo (ordenador o tablet/móvil)                                       | CU-05                      |
-| Bloque y tema           | Temario de cada oposición; si el usuario ha marcado el bloque como estudiado                       | CU-08, CU-09, CU-13        |
+| Bloque y tema           | Temario de cada oposición, normativa del tema (enlaces al BOE); si el usuario ha marcado el bloque como estudiado | CU-08, CU-09, CU-13        |
 | Pregunta y opciones     | Enunciado, opciones, respuesta correcta, razonamiento, apta para verdadero/falso, si es de reserva | CU-08, CU-11, CU-13, CU-14 |
 | Caso práctico           | Supuesto con sus preguntas tipo test                                                               | CU-08, CU-13               |
 | Examen                  | Oficial o batiburrillo, sus preguntas                                                              | CU-07, CU-14               |
 | Intento                 | Usuario, respuestas, aciertos y fallos, tiempo total, inicio y fin                                 | CU-07, CU-08               |
 | Tarea del planner       | Texto, inicio, fin, hecha, oposición, si es un registro automático                                 | CU-10                      |
 | Horario por defecto     | Por usuario y oposición                                                                            | CU-03, CU-10               |
-| Apunte y carpeta        | PDF o texto enriquecido, bloque, carpeta, propietario                                              | CU-12                      |
+| Apunte                  | PDF o texto enriquecido, tema o bloque, propietario                                                | CU-12                      |
 | Actividad diaria        | Días con actividad de estudio, para la racha                                                       | CU-06                      |
 
 **En el navegador (caché del dispositivo):** la preferencia de interfaz de ese dispositivo y el «no volver a mostrar» de la burbuja.

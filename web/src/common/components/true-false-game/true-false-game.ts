@@ -439,7 +439,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 
       .true-false-game__result {
         flex-direction: column;
-        align-items: flex-start !important;
+        align-items: center !important;
         gap: 0.75rem;
       }
 
