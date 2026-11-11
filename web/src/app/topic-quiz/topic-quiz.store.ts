@@ -9,11 +9,12 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { filter, map, pipe, switchMap, tap } from 'rxjs';
+import { filter, forkJoin, map, pipe, switchMap, tap } from 'rxjs';
 import { QuizPhase, QuizQuestion } from '../../common/models/quiz.model';
-import { SyllabusTopicDetail } from '../../common/models/syllabus.model';
+import { ReviewQuestion, SyllabusTopicDetail } from '../../common/models/syllabus.model';
 import { PlannerService } from '../services/planner.service';
 import { QuizService } from '../services/quiz.service';
+import { TopicResultsService } from '../services/topic-results.service';
 import { SyllabusService } from '../services/syllabus.service';
 
 export const QUESTION_COUNTS = [10, 20, 30] as const;
@@ -166,29 +167,58 @@ export const TopicQuizStore = signalStore(
       },
     }),
   ),
-  withHooks((store, plannerService = inject(PlannerService)) => ({
-    onInit(): void {
-      rxMethod<QuizPhase>(
-        pipe(
-          filter((phase) => phase === 'finished'),
-          map(() => ({ topic: store.topic(), start: store.startedAt() })),
-          filter(
-            (round): round is { topic: SyllabusTopicDetail; start: string } =>
-              round.topic !== null && round.start !== null,
+  withHooks(
+    (
+      store,
+      plannerService = inject(PlannerService),
+      topicResultsService = inject(TopicResultsService),
+    ) => ({
+      onInit(): void {
+        rxMethod<QuizPhase>(
+          pipe(
+            filter((phase) => phase === 'finished'),
+            map(() => ({ topic: store.topic(), start: store.startedAt() })),
+            filter(
+              (round): round is { topic: SyllabusTopicDetail; start: string } =>
+                round.topic !== null && round.start !== null,
+            ),
+            switchMap(({ topic, start }) => {
+              const end = new Date().toISOString();
+              const mistakes = store
+                .questions()
+                .map<ReviewQuestion | null>((question, i) => {
+                  const chosenOption = store.answers()[i];
+                  return chosenOption === question.correctOption
+                    ? null
+                    : {
+                        questionId: question.id,
+                        statement: question.statement,
+                        options: question.options,
+                        chosenOption,
+                        correctOption: question.correctOption,
+                        reasoning: question.reasoning,
+                      };
+                })
+                .filter((mistake): mistake is ReviewQuestion => mistake !== null);
+              return forkJoin([
+                plannerService.logRecord({
+                  kind: 'quiz',
+                  name: `Tema ${topic.number}`,
+                  percentage: store.percentage(),
+                  start,
+                  end,
+                }),
+                topicResultsService.saveResult({
+                  topicId: topic.id,
+                  date: end,
+                  percentage: store.percentage(),
+                  mistakes,
+                }),
+              ]).pipe(tapResponse({ next: () => undefined, error: () => undefined }));
+            }),
           ),
-          switchMap(({ topic, start }) =>
-            plannerService
-              .logRecord({
-                kind: 'quiz',
-                name: `Tema ${topic.number}`,
-                percentage: store.percentage(),
-                start,
-                end: new Date().toISOString(),
-              })
-              .pipe(tapResponse({ next: () => undefined, error: () => undefined })),
-          ),
-        ),
-      )(store.phase);
-    },
-  })),
+        )(store.phase);
+      },
+    }),
+  ),
 );

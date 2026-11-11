@@ -5,6 +5,7 @@ import { QuizQuestion } from '../../common/models/quiz.model';
 import { SyllabusTopicDetail } from '../../common/models/syllabus.model';
 import { PlannerService } from '../services/planner.service';
 import { QuizService } from '../services/quiz.service';
+import { TopicResultsService } from '../services/topic-results.service';
 import { SyllabusService } from '../services/syllabus.service';
 import { TopicQuizStore } from './topic-quiz.store';
 
@@ -17,6 +18,8 @@ const TOPIC: SyllabusTopicDetail = {
   correctPercentage: null,
   laws: [],
   notes: [],
+  previousTopic: null,
+  nextTopic: null,
 };
 
 const question = (id: number): QuizQuestion => ({
@@ -35,6 +38,7 @@ describe('TopicQuizStore', () => {
   );
 
   const logRecord = vi.fn(() => of(null));
+  const saveResult = vi.fn(() => of(null));
 
   beforeEach(() => {
     getTopicQuestions.mockClear();
@@ -45,6 +49,7 @@ describe('TopicQuizStore', () => {
         { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
         { provide: QuizService, useValue: { getTopicQuestions } },
         { provide: PlannerService, useValue: { logRecord } },
+        { provide: TopicResultsService, useValue: { saveResult } },
       ],
     });
     store = TestBed.inject(TopicQuizStore);
@@ -145,5 +150,14 @@ describe('TopicQuizStore', () => {
     expect(logRecord).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'quiz', name: 'Tema 5', percentage: 80 }),
     );
+    expect(saveResult).toHaveBeenCalledWith(
+      expect.objectContaining({ topicId: 5, percentage: 80 }),
+    );
+    expect((saveResult.mock.calls[0] as unknown[])[0]).toMatchObject({
+      mistakes: [
+        expect.objectContaining({ chosenOption: 0, correctOption: 1 }),
+        expect.objectContaining({ chosenOption: 0, correctOption: 1 }),
+      ],
+    });
   });
 });

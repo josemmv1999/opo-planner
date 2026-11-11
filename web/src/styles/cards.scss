@@ -5,7 +5,8 @@
   --op-card-shadow-color: #{$op-orange};
   --op-card-shadow-offset: 0.375rem;
 
-  box-shadow: var(--op-card-shadow-offset) var(--op-card-shadow-offset) 0 var(--op-card-shadow-color);
+  box-shadow: var(--op-card-shadow-offset) var(--op-card-shadow-offset) 0
+    var(--op-card-shadow-color);
 }
 
 @include media-breakpoint-down(lg) {
@@ -46,6 +47,10 @@
 
 .card--green {
   --op-card-shadow-color: #{$op-green};
+}
+
+.card--orange {
+  --op-card-shadow-color: #{$op-orange};
 }
 
 .card--flat {
