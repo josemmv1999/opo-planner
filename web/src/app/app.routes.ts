@@ -25,6 +25,7 @@ export const routes: Routes = [
   },
   { path: 'onboarding', component: Onboarding },
   { path: 'exams/:examId', component: ExamSession },
+  { path: 'syllabus/:topicId/notes/:noteId', component: Note },
   {
     path: '',
     component: AppLayout,
@@ -32,11 +33,6 @@ export const routes: Routes = [
       { path: 'home', component: Home },
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
       { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
-      {
-        path: 'syllabus/:topicId/notes/:noteId',
-        component: Note,
-        data: { titleKey: 'nav.syllabus' },
-      },
       { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
       { path: 'planner', component: Planner, data: { titleKey: 'nav.planner' } },
       { path: 'profile', component: Profile, data: { titleKey: 'nav.profile' } },

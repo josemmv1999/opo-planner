@@ -46,8 +46,15 @@ const TITLE_MAX_LENGTH = 80;
           </button>
         }
         <button
+          type="button"
+          class="btn btn-outline-primary ms-auto"
+          [disabled]="isBusy()"
+          (click)="cancelled.emit()">
+          {{ 'actions.cancel' | translate }}
+        </button>
+        <button
           type="submit"
-          class="btn btn-primary ms-auto"
+          class="btn btn-primary"
           [class.is-loading]="isSaving()"
           [disabled]="isBusy()">
           {{ 'actions.save' | translate }}
@@ -67,6 +74,7 @@ export class NoteForm implements OnInit {
   readonly error = input<'saving' | 'deleting' | null>(null);
   readonly submitted = output<NoteDraft>();
   readonly deleted = output();
+  readonly cancelled = output();
 
   protected readonly errorKey = validationErrorKey;
   protected readonly isBusy = computed(() => this.isSaving() || this.isDeleting());

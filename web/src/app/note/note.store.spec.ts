@@ -32,7 +32,14 @@ describe('NoteStore', () => {
         NoteStore,
         {
           provide: NotesService,
-          useValue: { getNote, saveTextNote, deleteNote: (id: number) => of(id) },
+          useValue: {
+            getNote,
+            saveTextNote,
+            deleteNote: (id: number) => of(id),
+            getTopicNotes: () => of([]),
+            getLastPage: () => 3,
+            setLastPage: vi.fn(),
+          },
         },
         { provide: NotificationService, useValue: { success: vi.fn() } },
       ],
@@ -40,16 +47,25 @@ describe('NoteStore', () => {
     store = TestBed.inject(NoteStore);
   });
 
-  it('starts a new note without loading anything', () => {
+  it('starts a new note in edit mode', () => {
     store.load({ topicId: 1, noteId: null });
     expect(store.note()).toBeNull();
+    expect(store.isEditing()).toBe(true);
     expect(store.isLoading()).toBe(false);
+  });
+
+  it('opens an existing note to read it from the last page', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    expect(store.isEditing()).toBe(false);
+    expect(store.initialPage()).toBe(3);
   });
 
   it('creates a note and keeps editing the same one', () => {
     store.load({ topicId: 1, noteId: null });
     store.save({ title: 'Nuevo', content: '<p>Texto</p>' });
     expect(store.note()).toMatchObject({ id: 8, topicId: 1, title: 'Nuevo' });
+    expect(store.isEditing()).toBe(false);
+    expect(store.siblings().map(({ id }) => id)).toEqual([8]);
     store.save({ title: 'Nuevo 2', content: '' });
     expect(saveTextNote).toHaveBeenLastCalledWith(1, 8, { title: 'Nuevo 2', content: '' });
   });

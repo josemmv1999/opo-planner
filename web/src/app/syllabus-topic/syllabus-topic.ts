@@ -82,8 +82,8 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
                 #pdfInput
                 type="file"
                 class="d-none"
-                accept="application/pdf"
-                (change)="uploadPdf(pdfInput)" />
+                accept="application/pdf,image/png,image/jpeg"
+                (change)="uploadFile(pdfInput)" />
               <button
                 type="button"
                 class="btn btn-outline-primary btn-sm d-flex align-items-center"
@@ -109,9 +109,7 @@ const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
           <ul class="list-unstyled mb-0">
             @for (note of topic.notes; track note.id) {
               <li class="syllabus-topic__row d-flex align-items-center gap-3">
-                <app-icon
-                  class="text-primary"
-                  [name]="note.kind === 'pdf' ? 'upload' : 'notes'" />
+                <app-icon class="text-primary" [name]="note.kind === 'text' ? 'notes' : 'upload'" />
                 <span class="d-flex flex-column flex-grow-1 overflow-hidden">
                   <a
                     class="syllabus-topic__note fw-bold text-truncate"
@@ -219,9 +217,9 @@ export class SyllabusTopic {
     this.store.load(computed(() => Number(this.topicId())));
   }
 
-  protected uploadPdf(fileInput: HTMLInputElement): void {
+  protected uploadFile(fileInput: HTMLInputElement): void {
     const file = fileInput.files?.[0];
-    if (file) this.store.uploadPdf(file);
+    if (file) this.store.uploadFile(file);
     fileInput.value = '';
   }
 }
