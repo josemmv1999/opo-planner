@@ -24,7 +24,7 @@ const BASE_WIDTH_REM = 52;
 const toBytes = (dataUrl: string): Uint8Array =>
   Uint8Array.from(atob(dataUrl.split(',')[1] ?? ''), (char) => char.charCodeAt(0));
 
-const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingTask> => {
+export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingTask> => {
   const pdfjs = await import('pdfjs-dist');
   pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC;
   return pdfjs.getDocument({ data: toBytes(dataUrl) });

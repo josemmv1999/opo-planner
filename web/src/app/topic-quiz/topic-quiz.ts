@@ -1,5 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { outputFromObservable, toObservable } from '@angular/core/rxjs-interop';
+import { filter, map, pairwise } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../common/components/modal/modal';
 import { QuizQuestionCard } from './quiz-question/quiz-question';
@@ -127,6 +129,13 @@ import { TopicQuizStore } from './topic-quiz.store';
 })
 export class TopicQuiz {
   protected readonly store = inject(TopicQuizStore);
+  readonly closed = outputFromObservable(
+    toObservable(this.store.isQuizModalOpen).pipe(
+      pairwise(),
+      filter(([wasOpen, isOpen]) => wasOpen && !isOpen),
+      map(() => undefined),
+    ),
+  );
 
   open(topicId: number): void {
     this.store.open(topicId);

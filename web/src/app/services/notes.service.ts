@@ -23,11 +23,20 @@ const SEED_NOTES: NoteDetail[] = [
 
 const today = (): string => formatISO(new Date(), { representation: 'date' });
 
-const toSummary = ({ id, title, kind, updatedAt }: NoteDetail): TopicNote => ({
+const PREVIEW_LENGTH = 220;
+
+const textPreview = (html: string | null): string =>
+  (
+    new DOMParser().parseFromString((html ?? '').replace(/<\/(h\d|p|li)>/g, '$& '), 'text/html')
+      .body.textContent ?? ''
+  ).slice(0, PREVIEW_LENGTH);
+
+const toSummary = ({ id, title, kind, updatedAt, content, fileUrl }: NoteDetail): TopicNote => ({
   id,
   title,
   kind,
   updatedAt,
+  preview: kind === 'text' ? textPreview(content) : fileUrl,
 });
 
 const readAsDataUrl = (file: File): Promise<string> =>
@@ -45,6 +54,13 @@ export class NotesService {
 
   getTopicNotes(topicId: number): Observable<TopicNote[]> {
     return of(this.#notes.filter((note) => note.topicId === topicId).map(toSummary));
+  }
+
+  countByTopic(): Record<number, number> {
+    return this.#notes.reduce<Record<number, number>>(
+      (counts, { topicId }) => ({ ...counts, [topicId]: (counts[topicId] ?? 0) + 1 }),
+      {},
+    );
   }
 
   getNote(noteId: number): Observable<NoteDetail> {

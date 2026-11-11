@@ -1,52 +1,101 @@
-import { inject } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { filter, map, pipe, switchMap, tap } from 'rxjs';
-import { SyllabusTopicDetail } from '../../common/models/syllabus.model';
+import { concatMap, filter, forkJoin, from, map, pipe, switchMap, tap } from 'rxjs';
+import {
+  ReviewQuestion,
+  SyllabusTopicDetail,
+  TopicResult,
+} from '../../common/models/syllabus.model';
 import { NotesService } from '../services/notes.service';
 import { SyllabusService } from '../services/syllabus.service';
+import { TopicResultsService } from '../services/topic-results.service';
+
+const TREND_LENGTH = 5;
+const REVIEW_LENGTH = 3;
 
 interface SyllabusTopicState {
   topic: SyllabusTopicDetail | null;
+  results: TopicResult[];
   isLoading: boolean;
   isUploading: boolean;
   error: 'loading' | 'uploading' | null;
 }
 
 export const SyllabusTopicStore = signalStore(
-  withState<SyllabusTopicState>({ topic: null, isLoading: false, isUploading: false, error: null }),
+  withState<SyllabusTopicState>({
+    topic: null,
+    results: [],
+    isLoading: false,
+    isUploading: false,
+    error: null,
+  }),
+  withComputed(({ results }) => {
+    const sortedResults = computed(() =>
+      [...results()].sort((a, b) => a.date.localeCompare(b.date)),
+    );
+    const pendingReview = computed(() => {
+      const seen = new Set<number>();
+      return [...sortedResults()]
+        .reverse()
+        .flatMap(({ mistakes }) => mistakes)
+        .filter(({ questionId }) => !seen.has(questionId) && seen.add(questionId));
+    });
+    return {
+      trend: computed(() => sortedResults().slice(-TREND_LENGTH)),
+      improvement: computed(() => {
+        const sorted = sortedResults();
+        return sorted.length > 1
+          ? sorted[sorted.length - 1].percentage - sorted[0].percentage
+          : null;
+      }),
+      reviewQuestions: computed<ReviewQuestion[]>(() => pendingReview().slice(0, REVIEW_LENGTH)),
+      reviewCount: computed(() => pendingReview().length),
+    };
+  }),
   withMethods(
-    (store, syllabusService = inject(SyllabusService), notesService = inject(NotesService)) => ({
+    (
+      store,
+      syllabusService = inject(SyllabusService),
+      notesService = inject(NotesService),
+      topicResultsService = inject(TopicResultsService),
+    ) => ({
       load: rxMethod<number>(
         pipe(
           tap(() => patchState(store, { isLoading: true, error: null })),
           switchMap((topicId) =>
-            syllabusService.getTopic(topicId).pipe(
+            forkJoin({
+              topic: syllabusService.getTopic(topicId),
+              results: topicResultsService.getTopicResults(topicId),
+            }).pipe(
               tapResponse({
-                next: (topic) => patchState(store, { topic, isLoading: false }),
+                next: ({ topic, results }) =>
+                  patchState(store, { topic, results, isLoading: false }),
                 error: () => patchState(store, { topic: null, isLoading: false, error: 'loading' }),
               }),
             ),
           ),
         ),
       ),
-      uploadFile: rxMethod<File>(
+      uploadFiles: rxMethod<File[]>(
         pipe(
-          map((file) => ({ file, topicId: store.topic()?.id })),
+          map((files) => ({ files, topicId: store.topic()?.id })),
           filter(
-            (upload): upload is { file: File; topicId: number } => upload.topicId !== undefined,
+            (upload): upload is { files: File[]; topicId: number } =>
+              upload.topicId !== undefined && upload.files.length > 0,
           ),
           tap(() => patchState(store, { isUploading: true, error: null })),
-          switchMap(({ file, topicId }) =>
-            notesService.uploadFile(topicId, file).pipe(
+          switchMap(({ files, topicId }) =>
+            from(files).pipe(
+              concatMap((file) => notesService.uploadFile(topicId, file)),
               tapResponse({
                 next: (note) =>
                   patchState(store, ({ topic }) => ({
                     topic: topic && { ...topic, notes: [...topic.notes, note] },
-                    isUploading: false,
                   })),
                 error: () => patchState(store, { isUploading: false, error: 'uploading' }),
+                finalize: () => patchState(store, { isUploading: false }),
               }),
             ),
           ),

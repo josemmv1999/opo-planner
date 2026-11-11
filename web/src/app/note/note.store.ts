@@ -94,7 +94,7 @@ export const NoteStore = signalStore(
                       ? siblings.map((sibling) =>
                           sibling.id === note.id ? { ...sibling, title: note.title } : sibling,
                         )
-                      : [...siblings, note],
+                      : [...siblings, { ...note, preview: null }],
                     isEditing: false,
                     isSaving: false,
                   }));

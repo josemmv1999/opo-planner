@@ -64,33 +64,50 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
           class="syllabus-block-card__topics list-unstyled mb-0"
           [id]="'block-topics-' + block().id">
           @for (topic of block().topics; track topic.id) {
-            <li class="syllabus-block-card__topic d-flex align-items-center gap-3">
+            <li class="syllabus-block-card__topic d-flex align-items-center">
+              <span class="syllabus-block-card__number">{{ topic.number }}</span>
               <span class="d-flex flex-column flex-grow-1 overflow-hidden">
                 <a
-                  class="syllabus-block-card__topic-link fw-bold"
+                  class="syllabus-block-card__topic-link stretched-link fw-bold"
                   [routerLink]="['/syllabus', topic.id]"
-                  >{{
-                    'syllabus.topicName' | translate: { number: topic.number, name: topic.name }
-                  }}</a
+                  >{{ topic.name }}</a
                 >
-                <span class="syllabus-block-card__meta text-body-secondary">
-                  {{
-                    topic.correctPercentage === null
-                      ? ('syllabus.notPractised' | translate)
-                      : ('syllabus.correctPercentage'
-                        | translate: { percentage: topic.correctPercentage })
-                  }}
-                  · {{ 'syllabus.notesCount' | translate: { count: topic.notesCount } }}
+                <span class="syllabus-block-card__facts d-flex flex-wrap align-items-center">
+                  @if (topic.correctPercentage === null) {
+                    <span>{{ 'syllabus.notPractised' | translate }}</span>
+                  } @else {
+                    <span class="d-flex align-items-center gap-1">
+                      <span class="syllabus-block-card__mini-bar" aria-hidden="true">
+                        <span [style.width.%]="topic.correctPercentage"></span>
+                      </span>
+                      {{
+                        'syllabus.correctPercentage'
+                          | translate: { percentage: topic.correctPercentage }
+                      }}
+                    </span>
+                  }
+                  <span [class.text-primary]="topic.notesCount > 0">
+                    {{
+                      (topic.notesCount ? 'syllabus.notesCount' : 'syllabus.noNotes')
+                        | translate: { count: topic.notesCount }
+                    }}
+                  </span>
                 </span>
               </span>
               <button
                 type="button"
-                class="btn btn-outline-primary btn-sm d-flex align-items-center"
+                class="syllabus-block-card__practice btn btn-outline-primary btn-sm d-flex align-items-center"
                 (click)="practised.emit(topic.id)"
                 [attr.aria-label]="'syllabus.practiceTopic' | translate: { number: topic.number }">
                 <app-icon class="me-2" name="tests" />
                 {{ 'syllabus.practice' | translate }}
               </button>
+              <span class="syllabus-block-card__open d-flex align-items-center" aria-hidden="true">
+                <span class="syllabus-block-card__open-label">{{
+                  'syllabus.open' | translate
+                }}</span>
+                <app-icon name="chevron-right" />
+              </span>
             </li>
           }
         </ul>
@@ -98,6 +115,81 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
     </section>
   `,
   styles: `
+    .syllabus-block-card__topic {
+      position: relative;
+      gap: 0.875rem;
+      padding: 0.75rem 0.875rem;
+      background-color: var(--bs-white);
+      border: 2px solid rgba(var(--bs-dark-rgb), 0.14);
+      border-radius: 1rem;
+      transition:
+        border-color 0.12s,
+        box-shadow 0.12s;
+
+      &:hover,
+      &:focus-within {
+        border-color: var(--bs-dark);
+        box-shadow: 0.25rem 0.25rem 0 var(--bs-primary);
+      }
+
+      & + & {
+        margin-top: 0.625rem;
+      }
+    }
+
+    .syllabus-block-card__number {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      font-weight: 900;
+      background-color: var(--bs-light);
+      border: 2px solid var(--bs-dark);
+      border-radius: 0.75rem;
+    }
+
+    .syllabus-block-card__facts {
+      gap: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--bs-secondary-color);
+    }
+
+    .syllabus-block-card__mini-bar {
+      width: 3rem;
+      height: 0.375rem;
+      overflow: hidden;
+      background-color: rgba(var(--bs-dark-rgb), 0.14);
+      border-radius: var(--bs-border-radius-pill);
+
+      span {
+        display: block;
+        height: 100%;
+        background-color: var(--bs-primary);
+      }
+    }
+
+    .syllabus-block-card__practice {
+      position: relative;
+      z-index: 2;
+    }
+
+    .syllabus-block-card__open {
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 900;
+      color: var(--bs-primary);
+      white-space: nowrap;
+    }
+
+    @container (max-width: 32rem) {
+      .syllabus-block-card__open-label {
+        display: none;
+      }
+    }
+
     :host {
       display: block;
       container-type: inline-size;
@@ -188,6 +280,7 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
 
     .syllabus-block-card__topic-link {
       color: var(--bs-body-color);
+      text-decoration: none;
 
       &:hover {
         color: var(--bs-primary);
@@ -196,11 +289,6 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
 
     .syllabus-block-card__topics {
       padding: 0 1.25rem 1rem;
-    }
-
-    .syllabus-block-card__topic {
-      padding: 0.75rem 0;
-      border-top: 2px dashed rgba(var(--bs-dark-rgb), 0.14);
     }
 
     @container (max-width: 34rem) {

@@ -229,7 +229,9 @@
     "notPractised": "Sin practicar",
     "notesCount": "{{count}} apuntes",
     "practice": "Practicar",
-    "practiceTopic": "Practicar el tema {{number}}"
+    "practiceTopic": "Practicar el tema {{number}}",
+    "open": "Abrir",
+    "noNotes": "Sin apuntes"
   },
   "syllabusTopic": {
     "back": "Temario",
@@ -240,18 +242,25 @@
     "readLaw": "Leer en el BOE",
     "readLawLabel": "Leer {{name}} en el BOE (se abre en otra pestaña)",
     "noLaws": "Este tema no tiene normativa asociada.",
-    "notes": "Mis apuntes",
-    "uploadPdf": "Subir apunte",
-    "newNote": "Nuevo apunte",
-    "noteKind": {
-      "pdf": "PDF",
-      "text": "Texto",
-      "image": "Foto"
-    },
-    "noNotes": "Todavía no tienes apuntes en este tema.",
-    "notPractised": "Aún no has practicado este tema.",
-    "score": "Llevas un {{percentage}} % de aciertos en este tema.",
-    "uploadError": "No hemos podido subir el PDF. Inténtalo de nuevo."
+    "notes": "Tus apuntes",
+    "uploadError": "No hemos podido subir algún archivo. Inténtalo de nuevo.",
+    "scoreLabel": "de aciertos en simulacros",
+    "dropHint": "También puedes arrastrar archivos aquí",
+    "addNotes": "Añadir apuntes",
+    "addNotesHint": "PDF o fotos, varios a la vez. Si lo tienes en Word, guárdalo como PDF.",
+    "writeNote": "o escribe un apunte rápido",
+    "trend": "Tu evolución",
+    "trendLabel": "Porcentaje de aciertos en tus últimos {{count}} simulacros de este tema",
+    "improved": "Has subido {{points}} puntos desde tu primer simulacro de este tema.",
+    "dropped": "Has bajado {{points}} puntos desde tu primer simulacro de este tema.",
+    "noTrend": "Haz un simulacro de este tema para ver tu evolución.",
+    "review": "Para repasar",
+    "why": "Por qué",
+    "noReview": "No tienes preguntas falladas en este tema. ¡Bien!",
+    "moreToReview": "Y {{count}} más de otros simulacros.",
+    "pager": "Otros temas",
+    "previousTopic": "Tema anterior",
+    "nextTopic": "Tema siguiente"
   },
   "topicQuiz": {
     "eyebrow": "Simulacro",

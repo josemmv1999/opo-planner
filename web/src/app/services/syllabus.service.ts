@@ -160,7 +160,16 @@ export class SyllabusService {
           { id: 10, number: 10, name: 'Hojas de cálculo', correctPercentage: null, notesCount: 0 },
         ],
       },
-    ]).pipe(delay(400));
+    ]).pipe(
+      map((blocks) => {
+        const counts = this.#notesService.countByTopic();
+        return blocks.map((block) => ({
+          ...block,
+          topics: block.topics.map((topic) => ({ ...topic, notesCount: counts[topic.id] ?? 0 })),
+        }));
+      }),
+      delay(400),
+    );
   }
 
   getTopic(topicId: number): Observable<SyllabusTopicDetail> {
@@ -171,6 +180,10 @@ export class SyllabusService {
             const block = blocks.find(({ topics }) => topics.some(({ id }) => id === topicId));
             const topic = block?.topics.find(({ id }) => id === topicId);
             if (!block || !topic) throw new Error('Topic not found');
+            const topics = blocks.flatMap((current) => current.topics);
+            const index = topics.findIndex(({ id }) => id === topicId);
+            const toLink = (link?: { id: number; number: number; name: string }) =>
+              link ? { id: link.id, number: link.number, name: link.name } : null;
             return {
               id: topic.id,
               number: topic.number,
@@ -180,6 +193,8 @@ export class SyllabusService {
               correctPercentage: topic.correctPercentage,
               laws: TOPIC_LAWS[topic.id] ?? [],
               notes,
+              previousTopic: toLink(topics[index - 1]),
+              nextTopic: toLink(topics[index + 1]),
             };
           }),
         ),
