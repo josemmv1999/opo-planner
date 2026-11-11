@@ -5,6 +5,7 @@ import { NoteDetail, NoteDraft, TopicNote } from '../../common/models/syllabus.m
 import { readJson, writeJson } from './mock-storage';
 
 const STORAGE_KEY = 'mockNotes';
+const PAGES_KEY = 'mockNotePages';
 const DELAY_MS = 300;
 
 const SEED_NOTES: NoteDetail[] = [
@@ -72,14 +73,14 @@ export class NotesService {
     return of(note).pipe(delay(DELAY_MS));
   }
 
-  uploadPdf(topicId: number, file: File): Observable<TopicNote> {
+  uploadFile(topicId: number, file: File): Observable<TopicNote> {
     return from(readAsDataUrl(file)).pipe(
       map((fileUrl) => {
         const note: NoteDetail = {
           id: this.#nextId++,
           topicId,
-          title: file.name.replace(/\.pdf$/i, ''),
-          kind: 'pdf',
+          title: file.name.replace(/\.[^.]+$/, ''),
+          kind: file.type.startsWith('image/') ? 'image' : 'pdf',
           updatedAt: today(),
           content: null,
           fileUrl,
@@ -96,6 +97,14 @@ export class NotesService {
     this.#notes = this.#notes.filter(({ id }) => id !== noteId);
     this.#save();
     return of(noteId).pipe(delay(DELAY_MS));
+  }
+
+  getLastPage(noteId: number): number {
+    return readJson<Record<number, number>>(PAGES_KEY)?.[noteId] ?? 1;
+  }
+
+  setLastPage(noteId: number, page: number): void {
+    writeJson(PAGES_KEY, { ...readJson<Record<number, number>>(PAGES_KEY), [noteId]: page });
   }
 
   #save(): void {

@@ -23,10 +23,12 @@ export interface TopicLaw {
   boeId: string;
 }
 
+export type NoteKind = 'pdf' | 'image' | 'text';
+
 export interface TopicNote {
   id: number;
   title: string;
-  kind: 'pdf' | 'text';
+  kind: NoteKind;
   updatedAt: string;
 }
 

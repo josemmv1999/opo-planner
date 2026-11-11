@@ -31,7 +31,7 @@ export const SyllabusTopicStore = signalStore(
           ),
         ),
       ),
-      uploadPdf: rxMethod<File>(
+      uploadFile: rxMethod<File>(
         pipe(
           map((file) => ({ file, topicId: store.topic()?.id })),
           filter(
@@ -39,7 +39,7 @@ export const SyllabusTopicStore = signalStore(
           ),
           tap(() => patchState(store, { isUploading: true, error: null })),
           switchMap(({ file, topicId }) =>
-            notesService.uploadPdf(topicId, file).pipe(
+            notesService.uploadFile(topicId, file).pipe(
               tapResponse({
                 next: (note) =>
                   patchState(store, ({ topic }) => ({

@@ -28,6 +28,7 @@
     "@ngx-translate/http-loader": "^18.1.0",
     "bootstrap": "^5.3.8",
     "date-fns": "^4.4.0",
+    "pdfjs-dist": "^6.5.438",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -241,11 +241,12 @@
     "readLawLabel": "Leer {{name}} en el BOE (se abre en otra pestaña)",
     "noLaws": "Este tema no tiene normativa asociada.",
     "notes": "Mis apuntes",
-    "uploadPdf": "Subir PDF",
+    "uploadPdf": "Subir apunte",
     "newNote": "Nuevo apunte",
     "noteKind": {
       "pdf": "PDF",
-      "text": "Texto"
+      "text": "Texto",
+      "image": "Foto"
     },
     "noNotes": "Todavía no tienes apuntes en este tema.",
     "notPractised": "Aún no has practicado este tema.",
@@ -418,7 +419,8 @@
     "saved": "Hemos guardado el apunte.",
     "kind": {
       "pdf": "PDF",
-      "text": "Texto"
+      "text": "Texto",
+      "image": "Foto"
     },
     "errors": {
       "saving": "No hemos podido guardar el apunte. Inténtalo de nuevo.",
@@ -432,7 +434,18 @@
       "paragraph": "Texto normal",
       "list": "Lista",
       "numberedList": "Lista numerada"
-    }
+    },
+    "newTitle": "Nuevo apunte",
+    "edit": "Editar",
+    "more": "Más opciones",
+    "download": "Descargar",
+    "openTab": "Abrir en otra pestaña",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "page": "Página {{page}} de {{total}}",
+    "previous": "Apunte anterior: {{title}}",
+    "next": "Apunte siguiente: {{title}}",
+    "position": "{{current}} de {{total}}"
   },
   "profile": {
     "loading": "Cargando tu perfil",
