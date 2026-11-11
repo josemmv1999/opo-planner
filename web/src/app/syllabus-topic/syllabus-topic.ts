@@ -138,7 +138,8 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
           [trend]="store.trend()"
           [improvement]="store.improvement()"
           [reviewQuestions]="store.reviewQuestions()"
-          [reviewCount]="store.reviewCount()" />
+          [reviewCount]="store.reviewCount()"
+          (practised)="quiz.practise(topic.id, store.reviewQuiz())" />
       </div>
 
       <nav class="syllabus-topic__pager" [attr.aria-label]="'syllabusTopic.pager' | translate">

@@ -260,7 +260,8 @@
     "moreToReview": "Y {{count}} más de otros simulacros.",
     "pager": "Otros temas",
     "previousTopic": "Tema anterior",
-    "nextTopic": "Tema siguiente"
+    "nextTopic": "Tema siguiente",
+    "practiseReview": "Practicar solo estas ({{count}})"
   },
   "topicQuiz": {
     "eyebrow": "Simulacro",

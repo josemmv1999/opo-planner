@@ -7,6 +7,7 @@ import { Modal } from '../../common/components/modal/modal';
 import { QuizQuestionCard } from './quiz-question/quiz-question';
 import { QuizResult } from './quiz-result/quiz-result';
 import { QuizSetup } from './quiz-setup/quiz-setup';
+import { QuizQuestion } from '../../common/models/quiz.model';
 import { TopicQuizStore } from './topic-quiz.store';
 
 @Component({
@@ -139,5 +140,9 @@ export class TopicQuiz {
 
   open(topicId: number): void {
     this.store.open(topicId);
+  }
+
+  practise(topicId: number, questions: QuizQuestion[]): void {
+    this.store.practise({ topicId, questions });
   }
 }

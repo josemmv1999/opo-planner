@@ -109,6 +109,31 @@ export const TopicQuizStore = signalStore(
           ),
         ),
       ),
+      practise: rxMethod<{ topicId: number; questions: QuizQuestion[] }>(
+        pipe(
+          tap(() =>
+            patchState(store, { ...NEW_ROUND, topic: null, isLoadingTopic: true, error: null }),
+          ),
+          switchMap(({ topicId, questions }) =>
+            syllabusService.getTopic(topicId).pipe(
+              tapResponse({
+                next: (topic) =>
+                  patchState(store, {
+                    topic,
+                    questions,
+                    count: questions.length as QuestionCount,
+                    phase: 'playing',
+                    startedAt: new Date().toISOString(),
+                    isSetupModalOpen: false,
+                    isQuizModalOpen: true,
+                    isLoadingTopic: false,
+                  }),
+                error: () => patchState(store, { isLoadingTopic: false, error: 'loading' }),
+              }),
+            ),
+          ),
+        ),
+      ),
       start: rxMethod<void>(
         pipe(
           map(() => store.topic()),
@@ -213,6 +238,10 @@ export const TopicQuizStore = signalStore(
                   date: end,
                   percentage: store.percentage(),
                   mistakes,
+                  correctQuestionIds: store
+                    .questions()
+                    .filter((question, i) => store.answers()[i] === question.correctOption)
+                    .map(({ id }) => id),
                 }),
               ]).pipe(tapResponse({ next: () => undefined, error: () => undefined }));
             }),
