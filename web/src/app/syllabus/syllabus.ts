@@ -68,7 +68,7 @@ import { SyllabusStore } from './syllabus.store';
         </div>
       }
 
-      <div class="d-flex flex-column gap-3">
+      <div class="syllabus__blocks">
         @for (block of store.visibleBlocks(); track block.id) {
           <app-syllabus-block-card
             [block]="block"
@@ -90,6 +90,16 @@ import { SyllabusStore } from './syllabus.store';
     <app-topic-quiz #quiz />
   `,
   styles: `
+    .syllabus__blocks {
+      display: grid;
+      gap: 1rem;
+      align-items: start;
+
+      @container (min-width: 80rem) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
     .syllabus__stats {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
