@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { formatISO, startOfToday, subDays } from 'date-fns';
 import { Observable, delay, of } from 'rxjs';
 import { HomeData } from '../../common/models/home.model';
+import { readExamDate } from './mock-storage';
 
 const daysAgo = (days: number): string =>
   formatISO(subDays(startOfToday(), days), { representation: 'date' });
@@ -10,7 +11,7 @@ const daysAgo = (days: number): string =>
 export class HomeService {
   getHomeData(): Observable<HomeData> {
     return of({
-      examDate: '2027-06-12',
+      examDate: readExamDate(),
       studyStartDate: daysAgo(0),
       streakDays: 0,
       lastSevenDays: [6, 5, 4, 3, 2, 1, 0].map((days) => ({

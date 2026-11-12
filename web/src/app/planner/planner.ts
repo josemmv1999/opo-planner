@@ -26,10 +26,20 @@ import { PlannerStore } from './planner.store';
       <section class="card card--yellow planner__exam d-flex flex-row align-items-center">
         <app-icon name="flag" />
         <span class="d-flex flex-column">
-          <strong>{{ 'planner.examDate' | translate }}</strong>
-          <span class="planner__meta text-body-secondary">
-            {{ examDate | formatDate: "EEEE, d 'de' MMMM 'de' yyyy" }}
-          </span>
+          <label for="planner-exam-date" class="fw-bold">{{
+            'planner.examDate' | translate
+          }}</label>
+          <input
+            #examDateInput
+            id="planner-exam-date"
+            type="date"
+            class="form-control form-control-sm planner__date"
+            [value]="examDate"
+            [disabled]="store.isSavingExamDate()"
+            (change)="store.saveExamDate(examDateInput.value)" />
+          @if (store.error() === 'savingExamDate') {
+            <span class="text-danger small">{{ 'planner.examDateError' | translate }}</span>
+          }
         </span>
         <span class="planner__days-left ms-auto">
           {{ 'planner.daysLeft' | translate: { days: store.daysToExam() } }}
@@ -196,13 +206,8 @@ import { PlannerStore } from './planner.store';
       padding: 0.75rem 1.25rem;
     }
 
-    .planner__meta {
-      font-size: 0.875rem;
-      font-weight: 700;
-
-      &::first-letter {
-        text-transform: uppercase;
-      }
+    .planner__date {
+      width: auto;
     }
 
     .planner__days-left {

@@ -9,7 +9,7 @@ import {
   PlannerWeek,
   TaskDraft,
 } from '../../common/models/planner.model';
-import { readJson, writeJson } from './mock-storage';
+import { readExamDate, readJson, writeExamDate, writeJson } from './mock-storage';
 
 type MockEntry = [day: number, start: string, end: string, text: string, isDone?: boolean];
 
@@ -97,7 +97,7 @@ export class PlannerService {
   getWeek(weekStart: string): Observable<PlannerWeek> {
     const monday = parseISO(weekStart);
     return of<PlannerWeek>({
-      examDate: '2027-06-12',
+      examDate: readExamDate(),
       schedule: this.#schedule,
       otherSchedules: [{ oppositionName: OTHER_OPPOSITION, schedule: this.#otherSchedule }],
       entries: this.#entries.filter(({ start }) => isInWeek(start, monday)),
@@ -120,6 +120,11 @@ export class PlannerService {
       : [...this.#entries, entry];
     this.#save();
     return of(entry).pipe(delay(DELAY_MS));
+  }
+
+  saveExamDate(date: string): Observable<string> {
+    writeExamDate(date);
+    return of(date).pipe(delay(DELAY_MS));
   }
 
   saveSchedule(schedule: StudySchedule): Observable<StudySchedule> {

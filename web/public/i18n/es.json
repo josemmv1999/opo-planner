@@ -415,7 +415,8 @@
       "title": "Horario de estudio",
       "lead": "Es tu horario por defecto para esta oposición. Sale sombreado en el planner para que veas cuándo te toca estudiar.",
       "saveError": "No hemos podido guardar el horario. Inténtalo de nuevo."
-    }
+    },
+    "examDateError": "No hemos podido guardar la fecha del examen."
   },
   "notes": {
     "back": "Volver al tema",
