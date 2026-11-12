@@ -7,6 +7,7 @@ import {
   output,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
@@ -77,7 +78,7 @@ const clamp = (value: number, min: number, max: number): number =>
           <div class="planner-calendar__head"></div>
           <div class="planner-calendar__rows">
             @for (label of hourLabels; track label) {
-              <span class="planner-calendar__hour" [style.grid-row]="hourRow($index)">
+              <span #hourCell class="planner-calendar__hour" [style.grid-row]="hourRow($index)">
                 {{ label }}
               </span>
             }
@@ -201,6 +202,7 @@ const clamp = (value: number, min: number, max: number): number =>
     }
 
     .planner-calendar__body {
+      position: relative;
       max-height: 70dvh;
       overflow-y: auto;
     }
@@ -527,32 +529,26 @@ export class PlannerCalendar {
   protected readonly drag = signal<DragState | null>(null);
   private readonly strip = viewChild.required<ElementRef<HTMLElement>>('strip');
   private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
+  private readonly hourCells = viewChildren<ElementRef<HTMLElement>>('hourCell');
   #isClickSuppressed = false;
-  #scrolledRow: number | null = null;
+  #scrolledHour: number | null = null;
 
   constructor() {
     afterRenderEffect(() => {
-      const days = this.days();
-      const row =
-        days.find(({ studyRows }) => studyRows.length)?.studyRows[0].startRow ?? this.#nowRow();
-      if (!days.length || row === this.#scrolledRow) return;
-      this.#scrolledRow = row;
-      this.#scrollToRow(row);
+      const hour = this.#startHour();
+      const cell = this.hourCells()[hour]?.nativeElement;
+      if (!this.days().length || !cell || hour === this.#scrolledHour) return;
+      this.#scrolledHour = hour;
+      this.body().nativeElement.scrollTop = cell.offsetTop - (cell.parentElement?.offsetTop ?? 0);
     });
   }
 
-  #nowRow(): number {
-    const now = new Date();
-    return (now.getHours() - FIRST_HOUR) * ROWS_PER_HOUR + 1;
-  }
-
-  #scrollToRow(row: number): void {
-    const body = this.body().nativeElement;
-    const hour = Math.max(0, Math.floor((row - 1) / ROWS_PER_HOUR) - 1);
-    const label = body.querySelectorAll<HTMLElement>('.planner-calendar__hour')[hour];
-    const head = body.querySelector<HTMLElement>('.planner-calendar__head');
-    if (!label || !head) return;
-    body.scrollTop += label.getBoundingClientRect().top - head.getBoundingClientRect().bottom;
+  #startHour(): number {
+    const studyRow = this.days().find(({ studyRows }) => studyRows.length)?.studyRows[0].startRow;
+    const hour = studyRow
+      ? Math.floor((studyRow - 1) / ROWS_PER_HOUR)
+      : new Date().getHours() - FIRST_HOUR;
+    return Math.max(0, hour - 1);
   }
 
   protected readonly hourLabels = HOUR_LABELS;
