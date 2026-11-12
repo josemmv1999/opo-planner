@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { outputFromObservable, toObservable } from '@angular/core/rxjs-interop';
 import { filter, map, pairwise } from 'rxjs';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../common/components/modal/modal';
 import { QuizQuestionCard } from './quiz-question/quiz-question';
@@ -12,7 +13,15 @@ import { TopicQuizStore } from './topic-quiz.store';
 
 @Component({
   selector: 'app-topic-quiz',
-  imports: [NgTemplateOutlet, TranslatePipe, Modal, QuizSetup, QuizQuestionCard, QuizResult],
+  imports: [
+    Button,
+    NgTemplateOutlet,
+    TranslatePipe,
+    Modal,
+    QuizSetup,
+    QuizQuestionCard,
+    QuizResult,
+  ],
   providers: [TopicQuizStore],
   template: `
     <ng-template #heading>
@@ -100,10 +109,14 @@ import { TopicQuizStore } from './topic-quiz.store';
           <h3 class="h5 mb-0">{{ 'topicQuiz.exitTitle' | translate }}</h3>
           <p class="text-body-secondary mb-0">{{ 'topicQuiz.exitText' | translate }}</p>
           <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-primary" (click)="store.closeExitModal()">
+            <button
+              app-button
+              variant="outline-primary"
+              type="button"
+              (click)="store.closeExitModal()">
               {{ 'topicQuiz.keepGoing' | translate }}
             </button>
-            <button type="button" class="btn btn-primary" (click)="store.exit()">
+            <button app-button type="button" (click)="store.exit()">
               {{ 'topicQuiz.exit' | translate }}
             </button>
           </div>

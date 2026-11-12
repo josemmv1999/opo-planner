@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Icon } from '../../../common/components/icon/icon';
 import { ReviewQuestion, TopicResult } from '../../../common/models/syllabus.model';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
 
@@ -9,7 +9,7 @@ const LOW_PERCENTAGE = 70;
 
 @Component({
   selector: 'app-topic-progress',
-  imports: [TranslatePipe, Icon, FormatDatePipe],
+  imports: [Button, TranslatePipe, FormatDatePipe],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
     <section class="card card--teal">
@@ -77,10 +77,12 @@ const LOW_PERCENTAGE = 70;
         }
         @if (reviewCount()) {
           <button
+            app-button
+            variant="outline-primary"
             type="button"
-            class="btn btn-outline-primary d-flex align-items-center align-self-start"
-            (click)="practised.emit()">
-            <app-icon class="me-2" name="tests" />
+            class="align-self-start"
+            (click)="practised.emit()"
+            icon="tests">
             {{ 'syllabusTopic.practiseReview' | translate: { count: reviewCount() } }}
           </button>
         }

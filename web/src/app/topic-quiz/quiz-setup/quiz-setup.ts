@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
 
 @Component({
   selector: 'app-quiz-setup',
-  imports: [TranslatePipe, Icon],
+  imports: [Button, TranslatePipe, Icon],
   template: `
     <section class="d-flex flex-column gap-4">
       <p class="text-body-secondary mb-0">{{ 'topicQuiz.setup.lead' | translate }}</p>
@@ -29,13 +30,14 @@ import { QUESTION_COUNTS, QuestionCount } from '../topic-quiz.store';
         </div>
       </fieldset>
       <div class="d-flex flex-wrap justify-content-end gap-2">
-        <button type="button" class="btn btn-outline-primary" (click)="cancelled.emit()">
+        <button app-button variant="outline-primary" type="button" (click)="cancelled.emit()">
           {{ 'actions.cancel' | translate }}
         </button>
         <button
+          app-button
           type="button"
-          class="btn btn-primary d-flex align-items-center"
-          [class.is-loading]="isLoading()"
+          class="d-flex align-items-center"
+          [isLoading]="isLoading()"
           [disabled]="isLoading()"
           (click)="started.emit()">
           {{ 'topicQuiz.setup.start' | translate }}
