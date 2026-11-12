@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  forwardRef,
+  input,
+  model,
+  signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 let nextId = 0;
@@ -22,7 +30,7 @@ let nextId = 0;
       [type]="type()"
       [value]="value()"
       [placeholder]="placeholder()"
-      [disabled]="isDisabled()"
+      [disabled]="isDisabled() || disabled()"
       [readOnly]="readonly()"
       [required]="required()"
       [attr.autocomplete]="autocomplete()"
@@ -42,7 +50,9 @@ let nextId = 0;
       display: block;
     }
   `,
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputField), multi: true }],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputField), multi: true },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputField implements ControlValueAccessor {
@@ -60,7 +70,8 @@ export class InputField implements ControlValueAccessor {
   readonly error = input('');
   readonly hint = input('');
 
-  protected readonly value = signal('');
+  readonly value = model('');
+  readonly disabled = input(false);
   protected readonly isDisabled = signal(false);
   protected readonly hasError = computed(() => this.error().length > 0);
 
