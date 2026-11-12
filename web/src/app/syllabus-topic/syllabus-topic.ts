@@ -85,7 +85,7 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
         <section class="d-flex flex-column gap-3">
           <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
             <h2 class="syllabus-topic__section mb-0">{{ 'syllabusTopic.notes' | translate }}</h2>
-            <span class="syllabus-topic__meta text-body-secondary">
+            <span class="syllabus-topic__meta syllabus-topic__drop-hint text-body-secondary">
               {{ 'syllabusTopic.dropHint' | translate }}
             </span>
           </div>
@@ -176,6 +176,12 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
     <app-topic-quiz #quiz (closed)="reload()" />
   `,
   styles: `
+    .syllabus-topic__drop-hint {
+      @media (hover: none) {
+        display: none;
+      }
+    }
+
     :host {
       container-type: inline-size;
     }
