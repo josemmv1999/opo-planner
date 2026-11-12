@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from '../common/guards/auth.guard';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
 import { ExamSession } from './exam-session/exam-session';
@@ -17,18 +18,20 @@ export const routes: Routes = [
   {
     path: '',
     component: AuthLayoutComponent,
+    canActivate: [guestGuard],
     children: [
       { path: 'login', component: Login },
       { path: 'register', component: Register },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
     ],
   },
-  { path: 'onboarding', component: Onboarding },
-  { path: 'exams/:examId', component: ExamSession },
-  { path: 'syllabus/:topicId/notes/:noteId', component: Note },
+  { path: 'onboarding', component: Onboarding, canActivate: [authGuard] },
+  { path: 'exams/:examId', component: ExamSession, canActivate: [authGuard] },
+  { path: 'syllabus/:topicId/notes/:noteId', component: Note, canActivate: [authGuard] },
   {
     path: '',
     component: AppLayout,
+    canActivate: [authGuard],
     children: [
       { path: 'home', component: Home },
       { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
