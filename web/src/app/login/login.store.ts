@@ -3,6 +3,7 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap } from 'rxjs';
+import { TOKEN_KEY } from '../../common/guards/auth.guard';
 import { AccountService } from '../services/account.service';
 import { Credentials } from '../../common/models/credentials.model';
 import { User } from '../../common/models/user.model';
@@ -33,6 +34,7 @@ export const LoginStore = signalStore(
           tap(() => patchState(store, { isLoggingIn: true, error: null })),
           switchMap((credentials) =>
             accountService.getToken(credentials).pipe(
+              tap((token) => localStorage.setItem(TOKEN_KEY, token)),
               switchMap(() => accountService.getCurrentUser()),
               tapResponse({
                 next: (currentUser) => {

@@ -11,6 +11,7 @@ import { PasswordForm } from './password-form/password-form';
 import { ProfileForm } from './profile-form/profile-form';
 import { ProfileStore } from './profile.store';
 
+import { TOKEN_KEY } from '../../common/guards/auth.guard';
 @Component({
   selector: 'app-profile',
   imports: [
@@ -240,6 +241,7 @@ export class Profile {
   }
 
   protected logout(): void {
+    localStorage.removeItem(TOKEN_KEY);
     this.#router.navigate(['/login']);
   }
 }

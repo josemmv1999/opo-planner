@@ -40,6 +40,7 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
 const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
   route.firstChild ? deepestChild(route.firstChild) : route;
 
+import { TOKEN_KEY } from '../../common/guards/auth.guard';
 @Component({
   selector: 'app-layout',
   imports: [RouterOutlet, RouterLink, Modal, Icon, TranslatePipe, Sidebar, BottomNav, PageHeader],
@@ -197,6 +198,7 @@ export class AppLayout {
   }
 
   protected logout(): void {
+    localStorage.removeItem(TOKEN_KEY);
     this.#router.navigate(['/login']);
   }
 }
