@@ -8,6 +8,8 @@ import {
   inject,
   input,
   output,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
@@ -36,6 +38,7 @@ const hoursFormat = new Intl.NumberFormat('es', { maximumFractionDigits: 1 });
         @for (opposition of oppositions(); track opposition.id) {
           @let isActive = opposition.id === activeId();
           <button
+            #tab
             type="button"
             class="schedule-editor__tab d-flex align-items-center"
             role="tab"
@@ -99,6 +102,7 @@ const hoursFormat = new Intl.NumberFormat('es', { maximumFractionDigits: 1 });
               <label class="schedule-editor__time d-flex flex-column gap-1">
                 {{ 'onboarding.schedule.start' | translate }}
                 <input
+                  #slotStart
                   class="form-control"
                   type="time"
                   [class.is-invalid]="issue"
@@ -160,6 +164,7 @@ const hoursFormat = new Intl.NumberFormat('es', { maximumFractionDigits: 1 });
             </div>
           }
           <button
+            #addButton
             type="button"
             class="schedule-editor__add btn btn-outline-primary d-flex align-items-center align-self-start"
             (click)="addSlot()">
@@ -345,7 +350,9 @@ export class ScheduleEditor {
   protected readonly days = DAYS;
   protected readonly formattedHours = computed(() => hoursFormat.format(this.weeklyHours()));
 
-  readonly #host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly tabs = viewChildren<ElementRef<HTMLElement>>('tab');
+  private readonly slotStarts = viewChildren<ElementRef<HTMLElement>>('slotStart');
+  private readonly addButton = viewChild.required<ElementRef<HTMLElement>>('addButton');
   readonly #injector = inject(Injector);
 
   protected emitSlotChange(index: number, part: keyof TimeSlot, event: Event): void {
@@ -354,18 +361,12 @@ export class ScheduleEditor {
 
   protected addSlot(): void {
     this.slotAdded.emit();
-    this.#focusAfterRender(() =>
-      [...this.#queryAll('.schedule-editor__slot')].at(-1)?.querySelector('input'),
-    );
+    this.#focusAfterRender(() => this.slotStarts().at(-1));
   }
 
   protected removeSlot(index: number): void {
     this.slotRemoved.emit(index);
-    this.#focusAfterRender(
-      () =>
-        this.#queryAll('.schedule-editor__slot input').item(0) ??
-        this.#host.nativeElement.querySelector('.schedule-editor__add'),
-    );
+    this.#focusAfterRender(() => this.slotStarts()[0] ?? this.addButton());
   }
 
   protected moveTab(event: KeyboardEvent): void {
@@ -374,16 +375,10 @@ export class ScheduleEditor {
     const step = event.key === 'ArrowRight' ? 1 : ids.length - 1;
     const nextId = ids[(ids.indexOf(this.activeId() ?? '') + step) % ids.length];
     this.scheduleSelected.emit(nextId);
-    this.#focusAfterRender(() =>
-      this.#host.nativeElement.querySelector<HTMLElement>(`#schedule-tab-${nextId}`),
-    );
+    this.#focusAfterRender(() => this.tabs()[ids.indexOf(nextId)]);
   }
 
-  #queryAll(selector: string): NodeListOf<HTMLElement> {
-    return this.#host.nativeElement.querySelectorAll<HTMLElement>(selector);
-  }
-
-  #focusAfterRender(target: () => HTMLElement | null | undefined): void {
-    afterNextRender(() => target()?.focus(), { injector: this.#injector });
+  #focusAfterRender(target: () => ElementRef<HTMLElement> | undefined): void {
+    afterNextRender(() => target()?.nativeElement.focus(), { injector: this.#injector });
   }
 }
