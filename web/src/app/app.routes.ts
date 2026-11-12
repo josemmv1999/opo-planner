@@ -2,17 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from '../common/guards/auth.guard';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
-import { ExamSession } from './exam-session/exam-session';
-import { Exams } from './exams/exams';
-import { Home } from './home/home';
-import { Login } from './login/login';
-import { Note } from './note/note';
-import { Onboarding } from './onboarding/onboarding';
-import { Planner } from './planner/planner';
-import { Profile } from './profile/profile';
-import { Register } from './register/register';
-import { Syllabus } from './syllabus/syllabus';
-import { SyllabusTopic } from './syllabus-topic/syllabus-topic';
 
 export const routes: Routes = [
   {
@@ -20,25 +9,60 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     canActivate: [guestGuard],
     children: [
-      { path: 'login', component: Login },
-      { path: 'register', component: Register },
+      { path: 'login', loadComponent: () => import('./login/login').then((m) => m.Login) },
+      {
+        path: 'register',
+        loadComponent: () => import('./register/register').then((m) => m.Register),
+      },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
     ],
   },
-  { path: 'onboarding', component: Onboarding, canActivate: [authGuard] },
-  { path: 'exams/:examId', component: ExamSession, canActivate: [authGuard] },
-  { path: 'syllabus/:topicId/notes/:noteId', component: Note, canActivate: [authGuard] },
+  {
+    path: 'onboarding',
+    loadComponent: () => import('./onboarding/onboarding').then((m) => m.Onboarding),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'exams/:examId',
+    loadComponent: () => import('./exam-session/exam-session').then((m) => m.ExamSession),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'syllabus/:topicId/notes/:noteId',
+    loadComponent: () => import('./note/note').then((m) => m.Note),
+    canActivate: [authGuard],
+  },
   {
     path: '',
     component: AppLayout,
     canActivate: [authGuard],
     children: [
-      { path: 'home', component: Home },
-      { path: 'syllabus', component: Syllabus, data: { titleKey: 'nav.syllabus' } },
-      { path: 'syllabus/:topicId', component: SyllabusTopic, data: { titleKey: 'nav.syllabus' } },
-      { path: 'exams', component: Exams, data: { titleKey: 'nav.exams' } },
-      { path: 'planner', component: Planner, data: { titleKey: 'nav.planner' } },
-      { path: 'profile', component: Profile, data: { titleKey: 'nav.profile' } },
+      { path: 'home', loadComponent: () => import('./home/home').then((m) => m.Home) },
+      {
+        path: 'syllabus',
+        loadComponent: () => import('./syllabus/syllabus').then((m) => m.Syllabus),
+        data: { titleKey: 'nav.syllabus' },
+      },
+      {
+        path: 'syllabus/:topicId',
+        loadComponent: () => import('./syllabus-topic/syllabus-topic').then((m) => m.SyllabusTopic),
+        data: { titleKey: 'nav.syllabus' },
+      },
+      {
+        path: 'exams',
+        loadComponent: () => import('./exams/exams').then((m) => m.Exams),
+        data: { titleKey: 'nav.exams' },
+      },
+      {
+        path: 'planner',
+        loadComponent: () => import('./planner/planner').then((m) => m.Planner),
+        data: { titleKey: 'nav.planner' },
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./profile/profile').then((m) => m.Profile),
+        data: { titleKey: 'nav.profile' },
+      },
     ],
   },
   { path: '**', redirectTo: 'home' },
