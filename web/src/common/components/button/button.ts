@@ -29,6 +29,7 @@ export class Button {
     | 'outline-primary'
     | 'outline-secondary'
     | 'outline-danger'
+    | 'outline-success'
     | 'link'
   >('primary');
   readonly size = input<'sm' | 'lg' | null>(null);

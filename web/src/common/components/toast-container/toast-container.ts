@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Button } from '../button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NotificationType } from '../../models/notification.model';
 import { NotificationService } from '../../services/notification.service';
@@ -12,7 +13,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, string> = {
 
 @Component({
   selector: 'app-toast-container',
-  imports: [TranslatePipe, Icon],
+  imports: [Button, TranslatePipe, Icon],
   host: { class: 'position-fixed top-0 end-0 d-flex flex-column gap-2 p-3' },
   template: `
     @for (region of regions(); track region.live) {
@@ -24,12 +25,14 @@ const NOTIFICATION_ICONS: Record<NotificationType, string> = {
             <app-icon class="toast-card__icon" [name]="icons[notification.type]" />
             <span class="flex-grow-1">{{ notification.messageKey | translate }}</span>
             <button
+              app-button
+              variant="link"
               type="button"
-              class="btn btn-link text-body d-flex align-items-center p-1"
+              class="text-body p-1"
               [title]="'notifications.close' | translate"
-              (click)="notificationService.remove(notification.id)">
-              <app-icon name="close" />
-            </button>
+              (click)="notificationService.remove(notification.id)"
+              icon="close"
+              [isIconOnly]="true"></button>
           </div>
         }
       </div>
