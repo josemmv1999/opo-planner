@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
+import { InputField } from '../../common/components/input/input';
 import { Modal } from '../../common/components/modal/modal';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { ScheduleEditor } from '../onboarding/schedule-editor/schedule-editor';
@@ -13,6 +14,7 @@ import { PlannerStore } from './planner.store';
   selector: 'app-planner',
   imports: [
     Button,
+    InputField,
     TranslatePipe,
     Icon,
     Modal,
@@ -29,17 +31,13 @@ import { PlannerStore } from './planner.store';
         <section class="card card--yellow planner__exam d-flex flex-row align-items-center">
           <app-icon name="flag" />
           <span class="d-flex flex-column">
-            <label for="planner-exam-date" class="fw-bold">{{
-              'planner.examDate' | translate
-            }}</label>
-            <input
-              #examDateInput
-              id="planner-exam-date"
+            <app-input
+              class="planner__date"
               type="date"
-              class="form-control form-control-sm planner__date"
+              [label]="'planner.examDate' | translate"
               [value]="examDate"
               [disabled]="store.isSavingExamDate()"
-              (change)="store.saveExamDate(examDateInput.value)" />
+              (valueChange)="store.saveExamDate($event)" />
             @if (store.error() === 'savingExamDate') {
               <span class="text-danger small">{{ 'planner.examDateError' | translate }}</span>
             }
@@ -228,7 +226,7 @@ import { PlannerStore } from './planner.store';
     }
 
     .planner__date {
-      width: auto;
+      align-self: flex-start;
     }
 
     .planner__days-left {
