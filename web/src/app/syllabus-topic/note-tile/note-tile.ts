@@ -40,7 +40,6 @@ import { startLoading } from '../../note/pdf-viewer/pdf-viewer';
       <span class="note-tile__body d-flex flex-column">
         <strong>{{ note().title }}</strong>
         <span class="note-tile__meta text-body-secondary">
-          {{ 'notes.kind.' + note().kind | translate }} ·
           {{ note().updatedAt | formatDate: 'd MMM' }}
         </span>
       </span>
