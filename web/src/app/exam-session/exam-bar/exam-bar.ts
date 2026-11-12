@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
 
 @Component({
   selector: 'app-exam-bar',
-  imports: [TranslatePipe, Icon, CountdownPipe],
+  imports: [Button, TranslatePipe, Icon, CountdownPipe],
   template: `
     <div class="card card--flat exam-bar d-flex flex-row flex-wrap align-items-center">
       <button
+        app-button
+        variant="link"
         type="button"
-        class="btn btn-link exam-bar__exit d-flex align-items-center p-0"
+        class="exam-bar__exit d-flex align-items-center p-0"
         (click)="exited.emit()">
         <app-icon class="me-1" name="close" />
         {{ 'examSession.exit' | translate }}
@@ -29,7 +32,7 @@ import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
         <app-icon class="me-1" name="timer" />
         {{ secondsLeft() | countdown }}
       </span>
-      <button type="button" class="btn btn-primary btn-sm ms-auto" (click)="submitted.emit()">
+      <button app-button size="sm" type="button" class="ms-auto" (click)="submitted.emit()">
         {{ 'examSession.submit' | translate }}
       </button>
     </div>

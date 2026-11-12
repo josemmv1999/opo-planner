@@ -8,6 +8,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { ExamQuestion } from '../../../common/models/exam.model';
@@ -16,7 +17,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 @Component({
   selector: 'app-exam-question',
-  imports: [TranslatePipe, Icon],
+  imports: [Button, TranslatePipe, Icon],
   template: `
     <section class="card card--cyan h-100">
       <div class="card-body d-flex flex-column gap-4">
@@ -69,16 +70,19 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
         <div class="d-flex justify-content-between gap-2 mt-auto">
           <button
+            app-button
+            variant="outline-primary"
             type="button"
-            class="btn btn-outline-primary d-flex align-items-center"
             [disabled]="index() === 0"
-            (click)="moved.emit(index() - 1)">
-            <app-icon class="me-2" name="chevron-left" />
+            (click)="moved.emit(index() - 1)"
+            icon="chevron-left">
             {{ 'actions.back' | translate }}
           </button>
           <button
+            app-button
+            variant="outline-primary"
             type="button"
-            class="btn btn-outline-primary d-flex align-items-center"
+            class="d-flex align-items-center"
             [disabled]="index() === total() - 1"
             (click)="moved.emit(index() + 1)">
             {{ 'actions.next' | translate }}

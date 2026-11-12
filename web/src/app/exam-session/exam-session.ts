@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { Icon } from '../../common/components/icon/icon';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../common/components/modal/modal';
 import { ExamBar } from './exam-bar/exam-bar';
@@ -14,7 +15,16 @@ const FLAG_KEY = 'm';
 
 @Component({
   selector: 'app-exam-session',
-  imports: [TranslatePipe, Icon, Modal, ExamBar, ExamQuestionCard, ExamNavigator, ExamResult],
+  imports: [
+    Button,
+    TranslatePipe,
+    Icon,
+    Modal,
+    ExamBar,
+    ExamQuestionCard,
+    ExamNavigator,
+    ExamResult,
+  ],
   providers: [ExamSessionStore],
   host: {
     class: 'exam-session d-flex flex-column gap-3 mx-auto',
@@ -34,8 +44,10 @@ const FLAG_KEY = 'm';
       } @else if (store.isReviewing()) {
         <div class="card card--flat exam-session__review d-flex flex-row align-items-center">
           <button
+            app-button
+            variant="link"
             type="button"
-            class="btn btn-link exam-session__back d-flex align-items-center p-0"
+            class="exam-session__back d-flex align-items-center p-0"
             (click)="store.closeReview()">
             <app-icon class="me-1" name="chevron-left" />
             {{ 'examSession.backToResult' | translate }}
@@ -104,12 +116,13 @@ const FLAG_KEY = 'm';
           </p>
           <div class="d-flex flex-wrap justify-content-end gap-2">
             <button
+              app-button
+              variant="outline-primary"
               type="button"
-              class="btn btn-outline-primary"
               (click)="store.closeSubmitModal()">
               {{ 'examSession.keepGoing' | translate }}
             </button>
-            <button type="button" class="btn btn-primary" (click)="store.submit()">
+            <button app-button type="button" (click)="store.submit()">
               {{ 'examSession.submit' | translate }}
             </button>
           </div>
@@ -126,10 +139,14 @@ const FLAG_KEY = 'm';
           <h2 class="h5 mb-0">{{ 'examSession.exitTitle' | translate }}</h2>
           <p class="text-body-secondary mb-0">{{ 'examSession.exitText' | translate }}</p>
           <div class="d-flex flex-wrap justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-primary" (click)="store.closeExitModal()">
+            <button
+              app-button
+              variant="outline-primary"
+              type="button"
+              (click)="store.closeExitModal()">
               {{ 'examSession.keepGoing' | translate }}
             </button>
-            <button type="button" class="btn btn-primary" (click)="exit()">
+            <button app-button type="button" (click)="exit()">
               {{ 'examSession.exit' | translate }}
             </button>
           </div>

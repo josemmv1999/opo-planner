@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Icon } from '../../../common/components/icon/icon';
 import { WeakBlock } from '../../../common/models/exam.model';
 import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
 
 @Component({
   selector: 'app-exam-result',
-  imports: [RouterLink, TranslatePipe, Icon, CountdownPipe],
+  imports: [Button, RouterLink, TranslatePipe, CountdownPipe],
   template: `
     <section class="card card--green">
       <div class="card-body d-flex flex-column gap-4">
@@ -62,11 +62,7 @@ import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
         }
 
         <div class="d-flex flex-wrap gap-2">
-          <button
-            type="button"
-            class="btn btn-primary d-flex align-items-center"
-            (click)="reviewed.emit()">
-            <app-icon class="me-2" name="eye" />
+          <button app-button type="button" (click)="reviewed.emit()" icon="eye">
             {{ 'examResult.review' | translate }}
           </button>
           <a class="btn btn-outline-primary" routerLink="/exams">
