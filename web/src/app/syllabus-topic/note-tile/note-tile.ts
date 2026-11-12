@@ -27,7 +27,7 @@ import { startLoading } from '../../note/pdf-viewer/pdf-viewer';
         <span class="note-tile__kind">{{ 'notes.kind.' + note().kind | translate }}</span>
         @switch (note().kind) {
           @case ('pdf') {
-            <span #pdfPreview class="d-block"></span>
+            <canvas #pdfPreview></canvas>
           }
           @case ('image') {
             <img class="note-tile__image" [src]="note().preview" alt="" />
@@ -141,7 +141,7 @@ export class NoteTile {
   readonly note = input.required<TopicNote>();
   readonly topicId = input.required<number>();
 
-  private readonly pdfPreview = viewChild<ElementRef<HTMLElement>>('pdfPreview');
+  private readonly pdfPreview = viewChild<ElementRef<HTMLCanvasElement>>('pdfPreview');
   #loadingTask: PDFDocumentLoadingTask | null = null;
 
   constructor() {
@@ -150,19 +150,17 @@ export class NoteTile {
   }
 
   async #paintFirstPage(): Promise<void> {
-    const container = this.pdfPreview()?.nativeElement;
+    const canvas = this.pdfPreview()?.nativeElement;
     const src = this.note().preview;
-    if (!container || !src) return;
+    if (!canvas || !src) return;
     this.#loadingTask = await startLoading(src);
     const page = await (await this.#loadingTask.promise).getPage(1);
     const base = page.getViewport({ scale: 1 });
     const viewport = page.getViewport({
-      scale: (container.clientWidth / base.width) * devicePixelRatio,
+      scale: (canvas.clientWidth / base.width) * devicePixelRatio,
     });
-    const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    container.replaceChildren(canvas);
     await page.render({ canvas, viewport }).promise;
   }
 }
