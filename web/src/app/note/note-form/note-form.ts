@@ -9,6 +9,7 @@ import {
   output,
 } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputField } from '../../../common/components/input/input';
 import { NoteDraft } from '../../../common/models/syllabus.model';
@@ -19,7 +20,7 @@ const TITLE_MAX_LENGTH = 80;
 
 @Component({
   selector: 'app-note-form',
-  imports: [ReactiveFormsModule, TranslatePipe, InputField, NoteEditor],
+  imports: [Button, ReactiveFormsModule, TranslatePipe, InputField, NoteEditor],
   template: `
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <app-input
@@ -37,26 +38,26 @@ const TITLE_MAX_LENGTH = 80;
       <div class="d-flex flex-wrap align-items-center gap-2">
         @if (isEditing()) {
           <button
+            app-button
+            variant="link"
             type="button"
-            class="btn btn-link link-danger text-decoration-none px-0 me-auto"
-            [class.is-loading]="isDeleting()"
+            class="link-danger text-decoration-none px-0 me-auto"
+            [isLoading]="isDeleting()"
             [disabled]="isBusy()"
             (click)="deleted.emit()">
             {{ 'notes.delete' | translate }}
           </button>
         }
         <button
+          app-button
+          variant="outline-primary"
           type="button"
-          class="btn btn-outline-primary ms-auto"
+          class="ms-auto"
           [disabled]="isBusy()"
           (click)="cancelled.emit()">
           {{ 'actions.cancel' | translate }}
         </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [class.is-loading]="isSaving()"
-          [disabled]="isBusy()">
+        <button app-button type="submit" [isLoading]="isSaving()" [disabled]="isBusy()">
           {{ 'actions.save' | translate }}
         </button>
       </div>
