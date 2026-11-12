@@ -16,6 +16,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputField } from '../../../common/components/input/input';
 import { OtherPlannerEntry, TaskDraft } from '../../../common/models/planner.model';
@@ -33,7 +34,7 @@ const endAfterStart = (group: AbstractControl): ValidationErrors | null => {
 
 @Component({
   selector: 'app-planner-task-form',
-  imports: [ReactiveFormsModule, TranslatePipe, InputField, FormatDatePipe],
+  imports: [Button, ReactiveFormsModule, TranslatePipe, InputField, FormatDatePipe],
   template: `
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <h2 class="h5 mb-0">
@@ -93,26 +94,26 @@ const endAfterStart = (group: AbstractControl): ValidationErrors | null => {
       <div class="d-flex flex-wrap align-items-center gap-2">
         @if (isEditing()) {
           <button
+            app-button
+            variant="link"
             type="button"
-            class="btn btn-link link-danger text-decoration-none px-0 me-auto"
-            [class.is-loading]="isDeleting()"
+            class="link-danger text-decoration-none px-0 me-auto"
+            [isLoading]="isDeleting()"
             [disabled]="isBusy()"
             (click)="deleted.emit()">
             {{ 'planner.task.delete' | translate }}
           </button>
         }
         <button
+          app-button
+          variant="outline-primary"
           type="button"
-          class="btn btn-outline-primary ms-auto"
+          class="ms-auto"
           [disabled]="isBusy()"
           (click)="cancelled.emit()">
           {{ 'actions.cancel' | translate }}
         </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [class.is-loading]="isSaving()"
-          [disabled]="isBusy()">
+        <button app-button type="submit" [isLoading]="isSaving()" [disabled]="isBusy()">
           {{ 'actions.save' | translate }}
         </button>
       </div>
