@@ -8,6 +8,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
 import { QuizQuestion } from '../../../common/models/quiz.model';
@@ -16,13 +17,15 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 @Component({
   selector: 'app-quiz-question',
-  imports: [TranslatePipe, Icon],
+  imports: [Button, TranslatePipe, Icon],
   template: `
     <section class="d-flex flex-column gap-4">
       <div class="d-flex align-items-center gap-3">
         <button
+          app-button
+          variant="link"
           type="button"
-          class="btn btn-link quiz-question__exit d-flex align-items-center p-0"
+          class="quiz-question__exit d-flex align-items-center p-0"
           (click)="exited.emit()">
           <app-icon class="me-1" name="close" />
           {{ 'topicQuiz.exit' | translate }}
@@ -113,8 +116,9 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
         </span>
         @if (answer() !== null) {
           <button
+            app-button
             type="button"
-            class="btn btn-primary d-flex align-items-center"
+            class="d-flex align-items-center"
             (click)="nextClicked.emit()">
             {{ (isLast() ? 'topicQuiz.seeResult' : 'topicQuiz.next') | translate }}
             <app-icon class="ms-2" name="arrow-right" />

@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Icon } from '../../../common/components/icon/icon';
 import { QuizQuestion } from '../../../common/models/quiz.model';
 
 @Component({
   selector: 'app-quiz-result',
-  imports: [TranslatePipe, Icon],
+  imports: [Button, TranslatePipe],
   template: `
     <section class="d-flex flex-column gap-4">
       <p class="d-flex flex-wrap align-items-baseline gap-3 mb-0">
@@ -33,14 +33,10 @@ import { QuizQuestion } from '../../../common/models/quiz.model';
       }
 
       <div class="d-flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="btn btn-primary d-flex align-items-center"
-          (click)="restarted.emit()">
-          <app-icon class="me-2" name="refresh" />
+        <button app-button type="button" (click)="restarted.emit()" icon="refresh">
           {{ 'topicQuiz.result.again' | translate }}
         </button>
-        <button type="button" class="btn btn-outline-primary" (click)="closed.emit()">
+        <button app-button variant="outline-primary" type="button" (click)="closed.emit()">
           {{ 'topicQuiz.result.close' | translate }}
         </button>
       </div>
