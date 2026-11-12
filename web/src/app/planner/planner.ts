@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { Modal } from '../../common/components/modal/modal';
@@ -11,6 +12,7 @@ import { PlannerStore } from './planner.store';
 @Component({
   selector: 'app-planner',
   imports: [
+    Button,
     TranslatePipe,
     Icon,
     Modal,
@@ -50,22 +52,31 @@ import { PlannerStore } from './planner.store';
 
       <div class="d-flex flex-wrap align-items-center gap-2">
         <button
+          app-button
+          variant="outline-primary"
           type="button"
-          class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
+          class="planner__icon-button"
           [title]="'planner.previousWeek' | translate"
-          (click)="store.previousWeek()">
-          <app-icon name="chevron-left" />
-        </button>
-        <button type="button" class="btn btn-outline-primary btn-sm" (click)="store.goToToday()">
+          (click)="store.previousWeek()"
+          icon="chevron-left"
+          [isIconOnly]="true"></button>
+        <button
+          app-button
+          variant="outline-primary"
+          size="sm"
+          type="button"
+          (click)="store.goToToday()">
           {{ 'planner.today' | translate }}
         </button>
         <button
+          app-button
+          variant="outline-primary"
           type="button"
-          class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
+          class="planner__icon-button"
           [title]="'planner.nextWeek' | translate"
-          (click)="store.nextWeek()">
-          <app-icon name="chevron-right" />
-        </button>
+          (click)="store.nextWeek()"
+          icon="chevron-right"
+          [isIconOnly]="true"></button>
         <h2 class="planner__range mb-0 ms-1">
           {{ store.weekStart() | formatDate: 'd MMM' }} –
           {{ store.weekEnd() | formatDate: 'd MMM yyyy' }}
@@ -91,17 +102,14 @@ import { PlannerStore } from './planner.store';
             </button>
           </div>
           <button
+            app-button
+            variant="outline-primary"
             type="button"
-            class="btn btn-outline-primary d-flex align-items-center"
-            (click)="store.openScheduleModal()">
-            <app-icon class="me-2" name="settings" />
+            (click)="store.openScheduleModal()"
+            icon="settings">
             {{ 'planner.schedule.open' | translate }}
           </button>
-          <button
-            type="button"
-            class="btn btn-primary d-flex align-items-center"
-            (click)="store.openNewTask(null)">
-            <app-icon class="me-2" name="add" />
+          <button app-button type="button" (click)="store.openNewTask(null)" icon="add">
             {{ 'planner.task.new' | translate }}
           </button>
         </div>
@@ -182,16 +190,17 @@ import { PlannerStore } from './planner.store';
             }
             <div class="d-flex flex-wrap justify-content-end gap-2">
               <button
+                app-button
+                variant="outline-primary"
                 type="button"
-                class="btn btn-outline-primary"
                 [disabled]="store.isSavingSchedule()"
                 (click)="store.closeScheduleModal()">
                 {{ 'actions.cancel' | translate }}
               </button>
               <button
+                app-button
                 type="button"
-                class="btn btn-primary"
-                [class.is-loading]="store.isSavingSchedule()"
+                [isLoading]="store.isSavingSchedule()"
                 [disabled]="!store.canSaveSchedule() || store.isSavingSchedule()"
                 (click)="store.saveSchedule()">
                 {{ 'actions.save' | translate }}

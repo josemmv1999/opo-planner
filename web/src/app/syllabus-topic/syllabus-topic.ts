@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { TopicQuiz } from '../topic-quiz/topic-quiz';
@@ -12,7 +13,7 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
 
 @Component({
   selector: 'app-syllabus-topic',
-  imports: [RouterLink, TranslatePipe, Icon, TopicQuiz, NoteTile, TopicProgress],
+  imports: [Button, RouterLink, TranslatePipe, Icon, TopicQuiz, NoteTile, TopicProgress],
   providers: [SyllabusTopicStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -54,11 +55,7 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
                 </span>
               </span>
             }
-            <button
-              type="button"
-              class="btn btn-primary d-flex align-items-center"
-              (click)="quiz.open(topic.id)">
-              <app-icon class="me-2" name="tests" />
+            <button app-button type="button" (click)="quiz.open(topic.id)" icon="tests">
               {{ 'syllabusTopic.practice' | translate }}
             </button>
           </div>
