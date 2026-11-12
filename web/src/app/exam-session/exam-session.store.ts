@@ -9,8 +9,8 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { subSeconds } from 'date-fns';
-import { filter, interval, map, pipe, switchMap, tap } from 'rxjs';
+import { formatISO, subSeconds } from 'date-fns';
+import { filter, forkJoin, interval, map, pipe, switchMap, tap } from 'rxjs';
 import { ExamDetail, WeakBlock } from '../../common/models/exam.model';
 import { ExamService } from '../services/exam.service';
 import { PlannerService } from '../services/planner.service';
@@ -161,27 +161,36 @@ export const ExamSessionStore = signalStore(
       patchState(store, { isExitModalOpen: false });
     },
   })),
-  withHooks((store, plannerService = inject(PlannerService)) => ({
-    onInit(): void {
-      rxMethod<boolean>(
-        pipe(
-          filter(Boolean),
-          map(() => store.exam()),
-          filter((exam): exam is ExamDetail => exam !== null),
-          switchMap(({ name }) => {
-            const end = new Date();
-            return plannerService
-              .logRecord({
-                kind: 'exam',
-                name,
-                percentage: store.percentage(),
-                start: subSeconds(end, store.secondsTaken()).toISOString(),
-                end: end.toISOString(),
-              })
-              .pipe(tapResponse({ next: () => undefined, error: () => undefined }));
-          }),
-        ),
-      )(store.hasSubmitted);
-    },
-  })),
+  withHooks(
+    (store, plannerService = inject(PlannerService), examService = inject(ExamService)) => ({
+      onInit(): void {
+        rxMethod<boolean>(
+          pipe(
+            filter(Boolean),
+            map(() => store.exam()),
+            filter((exam): exam is ExamDetail => exam !== null),
+            switchMap(({ id, name }) => {
+              const end = new Date();
+              return forkJoin([
+                plannerService.logRecord({
+                  kind: 'exam',
+                  name,
+                  percentage: store.percentage(),
+                  start: subSeconds(end, store.secondsTaken()).toISOString(),
+                  end: end.toISOString(),
+                }),
+                examService.saveAttempt({
+                  kind: id === 'mixed' ? 'mixed' : 'official',
+                  name,
+                  date: formatISO(end, { representation: 'date' }),
+                  minutesTaken: Math.round(store.secondsTaken() / 60),
+                  percentage: store.percentage(),
+                }),
+              ]).pipe(tapResponse({ next: () => undefined, error: () => undefined }));
+            }),
+          ),
+        )(store.hasSubmitted);
+      },
+    }),
+  ),
 );
