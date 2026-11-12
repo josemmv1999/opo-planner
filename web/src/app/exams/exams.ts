@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
@@ -7,7 +8,7 @@ import { ExamsStore } from './exams.store';
 
 @Component({
   selector: 'app-exams',
-  imports: [RouterLink, TranslatePipe, Icon, FormatDatePipe],
+  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe],
   providers: [ExamsStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -19,10 +20,11 @@ import { ExamsStore } from './exams.store';
         <h2 class="exams__starter-title mb-0">{{ 'exams.official.title' | translate }}</h2>
         <p class="text-body-secondary mb-0">{{ 'exams.official.text' | translate }}</p>
         <button
+          app-button
           type="button"
-          class="btn btn-primary d-flex align-items-center align-self-start mt-auto"
-          (click)="scrollToOfficialList()">
-          <app-icon class="me-2" name="tests" />
+          class="align-self-start mt-auto"
+          (click)="scrollToOfficialList()"
+          icon="tests">
           {{ 'exams.official.choose' | translate }}
         </button>
       </section>
