@@ -66,6 +66,7 @@ export interface TopicResult {
   percentage: number;
   mistakes: ReviewQuestion[];
   correctQuestionIds: number[];
+  isReview: boolean;
 }
 
 export interface SyllabusTopicDetail {
