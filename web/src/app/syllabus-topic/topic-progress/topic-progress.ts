@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ReviewQuestion, TopicResult } from '../../../common/models/syllabus.model';
@@ -31,6 +31,14 @@ const LOW_PERCENTAGE = 70;
               </span>
             }
           </div>
+          @if (hasLowResult()) {
+            <p class="topic-progress__legend d-flex align-items-center gap-2 mb-0">
+              <span
+                class="topic-progress__swatch topic-progress__bar--low"
+                aria-hidden="true"></span>
+              {{ 'syllabusTopic.lowLegend' | translate: { percentage: lowPercentage } }}
+            </p>
+          }
           @if (improvement(); as improvement) {
             <p class="topic-progress__summary mb-0">
               {{
@@ -132,6 +140,24 @@ const LOW_PERCENTAGE = 70;
 
     .topic-progress__bar--low {
       background-color: var(--bs-secondary);
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(var(--bs-white-rgb), 0.5) 0 0.25rem,
+        transparent 0.25rem 0.5rem
+      );
+    }
+
+    .topic-progress__legend {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--bs-secondary-color);
+    }
+
+    .topic-progress__swatch {
+      width: 1rem;
+      height: 0.75rem;
+      border: 2px solid var(--bs-dark);
+      border-radius: 0.25rem;
     }
 
     .topic-progress__summary {
@@ -206,4 +232,7 @@ export class TopicProgress {
 
   protected readonly letters = LETTERS;
   protected readonly lowPercentage = LOW_PERCENTAGE;
+  protected readonly hasLowResult = computed(() =>
+    this.trend().some(({ percentage }) => percentage < LOW_PERCENTAGE),
+  );
 }
