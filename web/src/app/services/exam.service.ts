@@ -39,17 +39,27 @@ const QUESTION_BANK: Omit<ExamQuestion, 'id'>[] = [
 
 const EXAM_QUESTIONS = 60;
 const EXAM_MINUTES = 60;
+const OFFICIAL_YEARS = [2025, 2024, 2023];
 
 @Injectable({ providedIn: 'root' })
 export class ExamService {
   #history: ExamAttempt[] = readJson<ExamAttempt[]>(HISTORY_KEY) ?? [];
 
   getOfficialExams(): Observable<OfficialExam[]> {
-    return of<OfficialExam[]>([
-      { id: 2025, name: 'Convocatoria 2025', questionCount: 60, minutes: 60, lastPercentage: null },
-      { id: 2024, name: 'Convocatoria 2024', questionCount: 60, minutes: 60, lastPercentage: 72 },
-      { id: 2023, name: 'Convocatoria 2023', questionCount: 60, minutes: 60, lastPercentage: 64 },
-    ]).pipe(delay(300));
+    return of(
+      OFFICIAL_YEARS.map((year) => {
+        const name = `Convocatoria ${year}`;
+        return {
+          id: year,
+          name,
+          questionCount: EXAM_QUESTIONS,
+          minutes: EXAM_MINUTES,
+          lastPercentage:
+            [...this.#history].reverse().find((attempt) => attempt.name === name)?.percentage ??
+            null,
+        };
+      }),
+    ).pipe(delay(300));
   }
 
   getExam(examId: string): Observable<ExamDetail> {
