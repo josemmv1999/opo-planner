@@ -232,7 +232,13 @@ export class Onboarding {
     const previousIndex = this.store.stepIndex();
     move();
     if (this.store.stepIndex() !== previousIndex) {
-      afterNextRender(() => this.heading().nativeElement.focus(), { injector: this.#injector });
+      afterNextRender(
+        () => {
+          scrollTo({ top: 0, behavior: 'instant' });
+          this.heading().nativeElement.focus({ preventScroll: true });
+        },
+        { injector: this.#injector },
+      );
     }
   }
 }
