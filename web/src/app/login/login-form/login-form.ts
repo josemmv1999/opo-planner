@@ -30,9 +30,9 @@ import { PasswordInput } from '../../../common/components/password-input/passwor
           {{ 'login.error' | translate }}
         </span>
       }
-      <app-button type="submit" [isFullWidth]="true" [isLoading]="isLoggingIn()">
+      <button app-button type="submit" class="w-100" [isLoading]="isLoggingIn()">
         {{ 'login.submit' | translate }}
-      </app-button>
+      </button>
       <span class="text-center mb-0">
         {{ 'login.noAccount' | translate }}
         <a routerLink="/register">{{ 'login.goToRegister' | translate }}</a>
