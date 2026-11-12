@@ -60,31 +60,6 @@ export class ExamService {
   }
 
   getHistory(): Observable<ExamAttempt[]> {
-    return of<ExamAttempt[]>([
-      {
-        id: 3,
-        kind: 'mixed',
-        name: 'Batiburrillo',
-        date: '2026-11-08',
-        minutesTaken: 52,
-        percentage: 68,
-      },
-      {
-        id: 2,
-        kind: 'official',
-        name: 'Convocatoria 2024',
-        date: '2026-11-02',
-        minutesTaken: 58,
-        percentage: 72,
-      },
-      {
-        id: 1,
-        kind: 'official',
-        name: 'Convocatoria 2023',
-        date: '2026-10-25',
-        minutesTaken: 60,
-        percentage: 64,
-      },
-    ]).pipe(delay(300));
+    return of<ExamAttempt[]>([]).pipe(delay(300));
   }
 }
