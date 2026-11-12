@@ -17,25 +17,15 @@ import { PageHeader } from '../../common/components/page-header/page-header';
 import { Sidebar } from '../../common/components/sidebar/sidebar';
 import { greetingKeyFor } from '../../common/utils/greeting-key';
 import { InterfaceModeService } from '../../common/services/interface-mode.service';
+import { readStorage, writeStorage } from '../../common/utils/storage';
 import { AppLayoutStore } from './app-layout.store';
 
 const SIDEBAR_COLLAPSED_KEY = 'isSidebarCollapsed';
 
-const readIsSidebarCollapsed = (): boolean => {
-  try {
-    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
+const readIsSidebarCollapsed = (): boolean => readStorage(SIDEBAR_COLLAPSED_KEY) === 'true';
 
-const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
-  try {
-    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed));
-  } catch {
-    return;
-  }
-};
+const saveIsSidebarCollapsed = (isCollapsed: boolean): void =>
+  writeStorage(SIDEBAR_COLLAPSED_KEY, String(isCollapsed));
 
 const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
   route.firstChild ? deepestChild(route.firstChild) : route;
