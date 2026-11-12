@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
@@ -30,7 +31,7 @@ const toObjectUrl = (dataUrl: string): string => {
 
 @Component({
   selector: 'app-note',
-  imports: [RouterLink, TranslatePipe, Icon, FormatDatePipe, NoteForm, PdfViewer],
+  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe, NoteForm, PdfViewer],
   providers: [NoteStore],
   host: { class: 'd-flex flex-column', '(document:click)': 'closeMenu($event)' },
   template: `
@@ -78,10 +79,12 @@ const toObjectUrl = (dataUrl: string): string => {
           </span>
         } @else if (note.kind === 'text' && !store.isEditing()) {
           <button
+            app-button
+            variant="outline-primary"
+            size="sm"
             type="button"
-            class="btn btn-outline-primary btn-sm d-flex align-items-center"
-            (click)="store.startEditing()">
-            <app-icon class="me-2" name="edit" />
+            (click)="store.startEditing()"
+            icon="edit">
             {{ 'notes.edit' | translate }}
           </button>
         }
