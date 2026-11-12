@@ -1,28 +1,38 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Icon } from '../icon/icon';
 
 @Component({
-  selector: 'app-button',
+  selector: 'button[app-button]',
+  imports: [Icon],
+  host: {
+    '[class]': "'btn btn-' + variant() + (size() ? ' btn-' + size() : '')",
+    '[class.d-flex]': 'icon()',
+    '[class.align-items-center]': 'icon()',
+    '[class.justify-content-center]': 'isIconOnly()',
+    '[class.is-loading]': 'isLoading()',
+    '[attr.aria-busy]': 'isLoading()',
+  },
   template: `
-    <button
-      [class]="'btn btn-' + variant()"
-      [class.w-100]="isFullWidth()"
-      [type]="type()"
-      [disabled]="isDisabled() || isLoading()"
-      [attr.aria-busy]="isLoading()">
-      @if (isLoading()) {
-        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-      }
-      <ng-content />
-    </button>
+    @if (icon(); as icon) {
+      <app-icon [class.me-2]="!isIconOnly()" [name]="icon" />
+    }
+    <ng-content />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Button {
   readonly variant = input<
-    'primary' | 'secondary' | 'danger' | 'outline-primary' | 'outline-secondary' | 'link'
+    | 'primary'
+    | 'secondary'
+    | 'danger'
+    | 'light'
+    | 'outline-primary'
+    | 'outline-secondary'
+    | 'outline-danger'
+    | 'link'
   >('primary');
-  readonly type = input<'button' | 'submit'>('button');
-  readonly isDisabled = input(false);
+  readonly size = input<'sm' | 'lg' | null>(null);
+  readonly icon = input<string | null>(null);
+  readonly isIconOnly = input(false);
   readonly isLoading = input(false);
-  readonly isFullWidth = input(false);
 }

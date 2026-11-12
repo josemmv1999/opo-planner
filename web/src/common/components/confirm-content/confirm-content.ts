@@ -9,12 +9,16 @@ import { Button } from '../button/button';
     <h2 class="card-title fs-4">{{ title() }}</h2>
     <p>{{ message() }}</p>
     <div class="d-flex justify-content-end gap-2">
-      <app-button variant="outline-primary" (click)="cancelAction.emit()">
+      <button app-button type="button" variant="outline-primary" (click)="cancelAction.emit()">
         {{ 'actions.cancel' | translate }}
-      </app-button>
-      <app-button [variant]="isDanger() ? 'danger' : 'primary'" (click)="confirm.emit()">
+      </button>
+      <button
+        app-button
+        type="button"
+        [variant]="isDanger() ? 'danger' : 'primary'"
+        (click)="confirm.emit()">
         {{ 'actions.confirm' | translate }}
-      </app-button>
+      </button>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
