@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { InterfaceChoice } from './interface-choice/interface-choice';
@@ -29,6 +30,7 @@ interface Hint {
 @Component({
   selector: 'app-onboarding',
   imports: [
+    Button,
     TranslatePipe,
     Icon,
     OnboardingStepper,
@@ -108,10 +110,11 @@ interface Hint {
       <div class="d-flex flex-wrap align-items-center gap-3">
         @if (store.stepIndex() > 0) {
           <button
+            app-button
+            variant="outline-primary"
             type="button"
-            class="btn btn-outline-primary d-flex align-items-center"
-            (click)="back()">
-            <app-icon class="me-2" name="chevron-left" />
+            (click)="back()"
+            icon="chevron-left">
             {{ 'actions.back' | translate }}
           </button>
         }
@@ -122,9 +125,10 @@ interface Hint {
             }
           </p>
           <button
+            app-button
             type="button"
-            class="btn btn-primary d-flex align-items-center"
-            [class.is-loading]="store.isSaving()"
+            class="d-flex align-items-center"
+            [isLoading]="store.isSaving()"
             [disabled]="store.isSaving()"
             (click)="next()">
             {{ (store.isLastStep() ? 'actions.start' : 'actions.next') | translate }}
