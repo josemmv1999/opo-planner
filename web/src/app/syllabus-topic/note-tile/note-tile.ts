@@ -98,7 +98,7 @@ import { startLoading } from '../../note/pdf-viewer/pdf-viewer';
       left: 0.5rem;
       z-index: 1;
       padding: 0.125rem 0.5rem;
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 900;
       text-transform: uppercase;
       background-color: var(--note-kind);

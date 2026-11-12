@@ -111,7 +111,7 @@ const LOW_PERCENTAGE = 70;
 
     .topic-progress__value,
     .topic-progress__date {
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 900;
       white-space: nowrap;
     }
@@ -164,7 +164,7 @@ const LOW_PERCENTAGE = 70;
         place-items: center;
         width: 1.25rem;
         height: 1.25rem;
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         border: 1.5px solid currentColor;
         border-radius: 0.375rem;
       }

@@ -101,7 +101,7 @@ type DayState = 'studied' | 'notStudied' | 'pending';
     }
 
     .streak-card__initial {
-      font-size: 0.625rem;
+      font-size: 0.75rem;
       font-weight: 700;
     }
 
