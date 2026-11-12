@@ -72,6 +72,7 @@ describe('PlannerStore', () => {
             deleteTask: (taskId: number) => of(taskId),
             setDone: (taskId: number) => of(taskId),
             saveSchedule: (schedule: StudySchedule) => of(schedule),
+            saveExamDate: (date: string) => of(date),
           },
         },
       ],
@@ -200,5 +201,13 @@ describe('PlannerStore', () => {
     store.saveSchedule();
     expect(store.schedule().days).toEqual([0, 1]);
     expect(store.isScheduleModalOpen()).toBe(false);
+  });
+
+  it('saves a new exam date and ignores an empty one', () => {
+    store.load('2026-11-09');
+    store.saveExamDate('2027-09-20');
+    expect(store.examDate()).toBe('2027-09-20');
+    store.saveExamDate('');
+    expect(store.examDate()).toBe('2027-09-20');
   });
 });

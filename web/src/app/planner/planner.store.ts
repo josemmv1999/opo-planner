@@ -48,6 +48,7 @@ interface PlannerState {
   scheduleDraft: StudySchedule | null;
   isScheduleModalOpen: boolean;
   isSavingSchedule: boolean;
+  isSavingExamDate: boolean;
   entries: PlannerEntry[];
   otherEntries: OtherPlannerEntry[];
   taskDraft: TaskDraft | null;
@@ -56,7 +57,7 @@ interface PlannerState {
   isLoading: boolean;
   isSaving: boolean;
   isDeleting: boolean;
-  error: 'loading' | 'saving' | 'deleting' | 'moving' | 'savingSchedule' | null;
+  error: 'loading' | 'saving' | 'deleting' | 'moving' | 'savingSchedule' | 'savingExamDate' | null;
 }
 
 export interface TaskSlot {
@@ -92,6 +93,7 @@ export const PlannerStore = signalStore(
     scheduleDraft: null,
     isScheduleModalOpen: false,
     isSavingSchedule: false,
+    isSavingExamDate: false,
     entries: [],
     otherEntries: [],
     taskDraft: null,
@@ -354,6 +356,21 @@ export const PlannerStore = signalStore(
       updateScheduleSlot(index: number, part: keyof TimeSlot, value: string): void {
         updateScheduleDraft((draft) => updateScheduleSlot(draft, index, part, value));
       },
+      saveExamDate: rxMethod<string>(
+        pipe(
+          filter(Boolean),
+          tap(() => patchState(store, { isSavingExamDate: true, error: null })),
+          switchMap((date) =>
+            plannerService.saveExamDate(date).pipe(
+              tapResponse({
+                next: (examDate) => patchState(store, { examDate, isSavingExamDate: false }),
+                error: () =>
+                  patchState(store, { isSavingExamDate: false, error: 'savingExamDate' }),
+              }),
+            ),
+          ),
+        ),
+      ),
       saveSchedule: rxMethod<void>(
         pipe(
           map(() => store.scheduleDraft()),
