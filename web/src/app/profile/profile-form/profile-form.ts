@@ -8,6 +8,7 @@ import {
   output,
 } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputField } from '../../../common/components/input/input';
 import { ProfileData } from '../../../common/models/user.model';
@@ -17,7 +18,7 @@ const NAME_MAX_LENGTH = 60;
 
 @Component({
   selector: 'app-profile-form',
-  imports: [ReactiveFormsModule, TranslatePipe, InputField],
+  imports: [Button, ReactiveFormsModule, TranslatePipe, InputField],
   template: `
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <div class="profile-form__names">
@@ -47,9 +48,10 @@ const NAME_MAX_LENGTH = 60;
         </p>
       }
       <button
+        app-button
         type="submit"
-        class="btn btn-primary align-self-start"
-        [class.is-loading]="isSaving()"
+        class="align-self-start"
+        [isLoading]="isSaving()"
         [disabled]="isSaving()">
         {{ 'actions.save' | translate }}
       </button>

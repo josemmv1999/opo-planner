@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Icon } from '../../common/components/icon/icon';
 import { Modal } from '../../common/components/modal/modal';
 import { InitialsPipe } from '../../common/pipes/initials.pipe';
 import { AppLayoutStore } from '../app-layout/app-layout.store';
@@ -15,8 +15,8 @@ import { TOKEN_KEY } from '../../common/guards/auth.guard';
 @Component({
   selector: 'app-profile',
   imports: [
+    Button,
     TranslatePipe,
-    Icon,
     Modal,
     InitialsPipe,
     ProfileForm,
@@ -102,10 +102,12 @@ import { TOKEN_KEY } from '../../common/guards/auth.guard';
               </ul>
               @if (profile.availableOppositions().length) {
                 <button
+                  app-button
+                  variant="outline-primary"
                   type="button"
-                  class="btn btn-outline-primary d-flex align-items-center align-self-start"
-                  (click)="profile.openAddModal()">
-                  <app-icon class="me-2" name="add" />
+                  class="align-self-start"
+                  (click)="profile.openAddModal()"
+                  icon="add">
                   {{ 'profile.addOpposition' | translate }}
                 </button>
               } @else {
@@ -134,10 +136,12 @@ import { TOKEN_KEY } from '../../common/guards/auth.guard';
             <h3 class="profile__section mb-0">{{ 'profile.session' | translate }}</h3>
             <p class="text-body-secondary mb-0">{{ 'profile.sessionText' | translate }}</p>
             <button
+              app-button
+              variant="outline-primary"
               type="button"
-              class="btn btn-outline-primary d-flex align-items-center align-self-start"
-              (click)="logout()">
-              <app-icon class="me-2" name="logout" />
+              class="align-self-start"
+              (click)="logout()"
+              icon="logout">
               {{ 'appLayout.logout' | translate }}
             </button>
           </div>
@@ -175,16 +179,17 @@ import { TOKEN_KEY } from '../../common/guards/auth.guard';
           }
           <div class="d-flex flex-wrap justify-content-end gap-2">
             <button
+              app-button
+              variant="outline-primary"
               type="button"
-              class="btn btn-outline-primary"
               [disabled]="profile.isAddingOppositions()"
               (click)="profile.closeAddModal()">
               {{ 'actions.cancel' | translate }}
             </button>
             <button
+              app-button
               type="button"
-              class="btn btn-primary"
-              [class.is-loading]="profile.isAddingOppositions()"
+              [isLoading]="profile.isAddingOppositions()"
               [disabled]="!profile.selectedIds().length || profile.isAddingOppositions()"
               (click)="profile.addSelected()">
               {{ 'profile.add' | translate }}
