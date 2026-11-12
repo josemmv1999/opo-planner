@@ -8,19 +8,6 @@ const STORAGE_KEY = 'mockNotes';
 const PAGES_KEY = 'mockNotePages';
 const DELAY_MS = 300;
 
-const SEED_NOTES: NoteDetail[] = [
-  {
-    id: 1,
-    topicId: 1,
-    title: 'Derechos fundamentales',
-    kind: 'text',
-    updatedAt: '2026-10-28',
-    content:
-      '<h2>Derechos fundamentales</h2><p>Están en la Sección 1.ª del Capítulo II del Título I (artículos 15 a 29).</p><ul><li>Tienen la máxima protección: recurso de amparo.</li><li>Se desarrollan por ley orgánica.</li></ul>',
-    fileUrl: null,
-  },
-];
-
 const today = (): string => formatISO(new Date(), { representation: 'date' });
 
 const PREVIEW_LENGTH = 220;
@@ -49,7 +36,7 @@ const readAsDataUrl = (file: File): Promise<string> =>
 
 @Injectable({ providedIn: 'root' })
 export class NotesService {
-  #notes: NoteDetail[] = readJson<NoteDetail[]>(STORAGE_KEY) ?? SEED_NOTES;
+  #notes: NoteDetail[] = readJson<NoteDetail[]>(STORAGE_KEY) ?? [];
   #nextId = Math.max(0, ...this.#notes.map(({ id }) => id)) + 1;
 
   getTopicNotes(topicId: number): Observable<TopicNote[]> {
