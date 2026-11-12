@@ -22,87 +22,89 @@ import { PlannerStore } from './planner.store';
   providers: [PlannerStore],
   host: { class: 'd-flex flex-column gap-3' },
   template: `
-    @if (store.examDate(); as examDate) {
-      <section class="card card--yellow planner__exam d-flex flex-row align-items-center">
-        <app-icon name="flag" />
-        <span class="d-flex flex-column">
-          <label for="planner-exam-date" class="fw-bold">{{
-            'planner.examDate' | translate
-          }}</label>
-          <input
-            #examDateInput
-            id="planner-exam-date"
-            type="date"
-            class="form-control form-control-sm planner__date"
-            [value]="examDate"
-            [disabled]="store.isSavingExamDate()"
-            (change)="store.saveExamDate(examDateInput.value)" />
-          @if (store.error() === 'savingExamDate') {
-            <span class="text-danger small">{{ 'planner.examDateError' | translate }}</span>
-          }
-        </span>
-        <span class="planner__days-left ms-auto">
-          {{ 'planner.daysLeft' | translate: { days: store.daysToExam() } }}
-        </span>
-      </section>
-    }
+    <div class="planner__top">
+      @if (store.examDate(); as examDate) {
+        <section class="card card--yellow planner__exam d-flex flex-row align-items-center">
+          <app-icon name="flag" />
+          <span class="d-flex flex-column">
+            <label for="planner-exam-date" class="fw-bold">{{
+              'planner.examDate' | translate
+            }}</label>
+            <input
+              #examDateInput
+              id="planner-exam-date"
+              type="date"
+              class="form-control form-control-sm planner__date"
+              [value]="examDate"
+              [disabled]="store.isSavingExamDate()"
+              (change)="store.saveExamDate(examDateInput.value)" />
+            @if (store.error() === 'savingExamDate') {
+              <span class="text-danger small">{{ 'planner.examDateError' | translate }}</span>
+            }
+          </span>
+          <span class="planner__days-left ms-auto">
+            {{ 'planner.daysLeft' | translate: { days: store.daysToExam() } }}
+          </span>
+        </section>
+      }
 
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <button
-        type="button"
-        class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
-        [title]="'planner.previousWeek' | translate"
-        (click)="store.previousWeek()">
-        <app-icon name="chevron-left" />
-      </button>
-      <button type="button" class="btn btn-outline-primary btn-sm" (click)="store.goToToday()">
-        {{ 'planner.today' | translate }}
-      </button>
-      <button
-        type="button"
-        class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
-        [title]="'planner.nextWeek' | translate"
-        (click)="store.nextWeek()">
-        <app-icon name="chevron-right" />
-      </button>
-      <h2 class="planner__range mb-0 ms-1">
-        {{ store.weekStart() | formatDate: 'd MMM' }} –
-        {{ store.weekEnd() | formatDate: 'd MMM yyyy' }}
-      </h2>
-      <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
-        <div
-          class="planner__segmented d-flex"
-          role="group"
-          [attr.aria-label]="'planner.view.label' | translate">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button
+          type="button"
+          class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
+          [title]="'planner.previousWeek' | translate"
+          (click)="store.previousWeek()">
+          <app-icon name="chevron-left" />
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="store.goToToday()">
+          {{ 'planner.today' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary planner__icon-button d-flex align-items-center justify-content-center"
+          [title]="'planner.nextWeek' | translate"
+          (click)="store.nextWeek()">
+          <app-icon name="chevron-right" />
+        </button>
+        <h2 class="planner__range mb-0 ms-1">
+          {{ store.weekStart() | formatDate: 'd MMM' }} –
+          {{ store.weekEnd() | formatDate: 'd MMM yyyy' }}
+        </h2>
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+          <div
+            class="planner__segmented d-flex"
+            role="group"
+            [attr.aria-label]="'planner.view.label' | translate">
+            <button
+              type="button"
+              class="planner__segment"
+              [attr.aria-pressed]="!store.isFullCalendar()"
+              (click)="store.showFullCalendar(false)">
+              {{ 'planner.view.own' | translate }}
+            </button>
+            <button
+              type="button"
+              class="planner__segment"
+              [attr.aria-pressed]="store.isFullCalendar()"
+              (click)="store.showFullCalendar(true)">
+              {{ 'planner.view.full' | translate }}
+            </button>
+          </div>
           <button
             type="button"
-            class="planner__segment"
-            [attr.aria-pressed]="!store.isFullCalendar()"
-            (click)="store.showFullCalendar(false)">
-            {{ 'planner.view.own' | translate }}
+            class="btn btn-outline-primary d-flex align-items-center"
+            (click)="store.openScheduleModal()">
+            <app-icon class="me-2" name="settings" />
+            {{ 'planner.schedule.open' | translate }}
           </button>
           <button
             type="button"
-            class="planner__segment"
-            [attr.aria-pressed]="store.isFullCalendar()"
-            (click)="store.showFullCalendar(true)">
-            {{ 'planner.view.full' | translate }}
+            class="btn btn-primary d-flex align-items-center"
+            (click)="store.openNewTask(null)">
+            <app-icon class="me-2" name="add" />
+            {{ 'planner.task.new' | translate }}
           </button>
         </div>
-        <button
-          type="button"
-          class="btn btn-outline-primary d-flex align-items-center"
-          (click)="store.openScheduleModal()">
-          <app-icon class="me-2" name="settings" />
-          {{ 'planner.schedule.open' | translate }}
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary d-flex align-items-center"
-          (click)="store.openNewTask(null)">
-          <app-icon class="me-2" name="add" />
-          {{ 'planner.task.new' | translate }}
-        </button>
       </div>
     </div>
 
@@ -201,6 +203,16 @@ import { PlannerStore } from './planner.store';
     </app-modal>
   `,
   styles: `
+    .planner__top {
+      display: grid;
+      gap: 1rem;
+      align-items: center;
+
+      @container (min-width: 80rem) {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+    }
+
     .planner__exam {
       gap: 0.75rem;
       padding: 0.75rem 1.25rem;
