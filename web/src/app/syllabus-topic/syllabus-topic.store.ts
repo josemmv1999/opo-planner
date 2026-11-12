@@ -3,6 +3,7 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { concatMap, filter, forkJoin, from, map, pipe, switchMap, tap } from 'rxjs';
+import { QuizQuestion } from '../../common/models/quiz.model';
 import {
   ReviewQuestion,
   SyllabusTopicDetail,
@@ -36,11 +37,14 @@ export const SyllabusTopicStore = signalStore(
       [...results()].sort((a, b) => a.date.localeCompare(b.date)),
     );
     const pendingReview = computed(() => {
-      const seen = new Set<number>();
-      return [...sortedResults()]
-        .reverse()
-        .flatMap(({ mistakes }) => mistakes)
-        .filter(({ questionId }) => !seen.has(questionId) && seen.add(questionId));
+      const settled = new Set<number>();
+      return [...sortedResults()].reverse().flatMap(({ mistakes, correctQuestionIds }) => {
+        const pending = mistakes.filter(({ questionId }) => !settled.has(questionId));
+        [...pending.map(({ questionId }) => questionId), ...correctQuestionIds].forEach((id) =>
+          settled.add(id),
+        );
+        return pending;
+      });
     });
     return {
       trend: computed(() => sortedResults().slice(-TREND_LENGTH)),
@@ -52,6 +56,16 @@ export const SyllabusTopicStore = signalStore(
       }),
       reviewQuestions: computed<ReviewQuestion[]>(() => pendingReview().slice(0, REVIEW_LENGTH)),
       reviewCount: computed(() => pendingReview().length),
+      reviewQuiz: computed<QuizQuestion[]>(() =>
+        pendingReview().map(({ questionId, statement, options, correctOption, reasoning }) => ({
+          id: questionId,
+          caseText: null,
+          statement,
+          options,
+          correctOption,
+          reasoning,
+        })),
+      ),
     };
   }),
   withMethods(

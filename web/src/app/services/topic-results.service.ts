@@ -14,6 +14,7 @@ const seedResults = (): TopicResult[] =>
     topicId: 1,
     date: subWeeks(new Date(), SEED_PERCENTAGES.length - 1 - i).toISOString(),
     percentage,
+    correctQuestionIds: [],
     mistakes:
       i === SEED_PERCENTAGES.length - 1
         ? [

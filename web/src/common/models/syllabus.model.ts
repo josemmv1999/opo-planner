@@ -65,6 +65,7 @@ export interface TopicResult {
   date: string;
   percentage: number;
   mistakes: ReviewQuestion[];
+  correctQuestionIds: number[];
 }
 
 export interface SyllabusTopicDetail {

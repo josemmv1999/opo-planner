@@ -160,4 +160,12 @@ describe('TopicQuizStore', () => {
       ],
     });
   });
+
+  it('practises a given set of questions without the setup step', () => {
+    store.practise({ topicId: 5, questions: [question(7), question(8)] });
+    expect(store.phase()).toBe('playing');
+    expect(store.isQuizModalOpen()).toBe(true);
+    expect(store.isSetupModalOpen()).toBe(false);
+    expect(store.questions().map(({ id }) => id)).toEqual([7, 8]);
+  });
 });

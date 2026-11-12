@@ -21,12 +21,20 @@ const TOPIC: SyllabusTopicDetail = {
 };
 
 const RESULTS: TopicResult[] = [
-  { id: 2, topicId: 5, date: '2026-11-08T10:00:00Z', percentage: 80, mistakes: [] },
+  {
+    id: 2,
+    topicId: 5,
+    date: '2026-11-08T10:00:00Z',
+    percentage: 80,
+    mistakes: [],
+    correctQuestionIds: [],
+  },
   {
     id: 1,
     topicId: 5,
     date: '2026-11-01T10:00:00Z',
     percentage: 60,
+    correctQuestionIds: [],
     mistakes: [
       {
         questionId: 9,
@@ -73,5 +81,24 @@ describe('SyllabusTopicStore', () => {
     expect(store.trend().map(({ percentage }) => percentage)).toEqual([60, 80]);
     expect(store.improvement()).toBe(20);
     expect(store.reviewQuestions().map(({ questionId }) => questionId)).toEqual([9]);
+  });
+
+  it('drops a question from review once a later quiz gets it right', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        SyllabusTopicStore,
+        { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
+        { provide: NotesService, useValue: {} },
+        {
+          provide: TopicResultsService,
+          useValue: {
+            getTopicResults: () => of([{ ...RESULTS[0], correctQuestionIds: [9] }, RESULTS[1]]),
+          },
+        },
+      ],
+    });
+    const store = TestBed.inject(SyllabusTopicStore);
+    store.load(5);
+    expect(store.reviewCount()).toBe(0);
   });
 });

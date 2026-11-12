@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Icon } from '../../../common/components/icon/icon';
 import { ReviewQuestion, TopicResult } from '../../../common/models/syllabus.model';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
 
@@ -8,7 +9,7 @@ const LOW_PERCENTAGE = 70;
 
 @Component({
   selector: 'app-topic-progress',
-  imports: [TranslatePipe, FormatDatePipe],
+  imports: [TranslatePipe, Icon, FormatDatePipe],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
     <section class="card card--teal">
@@ -73,6 +74,15 @@ const LOW_PERCENTAGE = 70;
                 | translate: { count: reviewCount() - reviewQuestions().length }
             }}
           </p>
+        }
+        @if (reviewCount()) {
+          <button
+            type="button"
+            class="btn btn-outline-primary d-flex align-items-center align-self-start"
+            (click)="practised.emit()">
+            <app-icon class="me-2" name="tests" />
+            {{ 'syllabusTopic.practiseReview' | translate: { count: reviewCount() } }}
+          </button>
         }
       </div>
     </section>
@@ -190,6 +200,7 @@ export class TopicProgress {
   readonly improvement = input<number | null>(null);
   readonly reviewQuestions = input.required<ReviewQuestion[]>();
   readonly reviewCount = input(0);
+  readonly practised = output();
 
   protected readonly letters = LETTERS;
   protected readonly lowPercentage = LOW_PERCENTAGE;
