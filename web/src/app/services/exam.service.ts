@@ -6,6 +6,9 @@ import {
   ExamQuestion,
   OfficialExam,
 } from '../../common/models/exam.model';
+import { readJson, writeJson } from './mock-storage';
+
+const HISTORY_KEY = 'mockExamHistory';
 
 const QUESTION_BANK: Omit<ExamQuestion, 'id'>[] = [
   {
@@ -39,6 +42,8 @@ const EXAM_MINUTES = 60;
 
 @Injectable({ providedIn: 'root' })
 export class ExamService {
+  #history: ExamAttempt[] = readJson<ExamAttempt[]>(HISTORY_KEY) ?? [];
+
   getOfficialExams(): Observable<OfficialExam[]> {
     return of<OfficialExam[]>([
       { id: 2025, name: 'Convocatoria 2025', questionCount: 60, minutes: 60, lastPercentage: null },
@@ -60,6 +65,13 @@ export class ExamService {
   }
 
   getHistory(): Observable<ExamAttempt[]> {
-    return of<ExamAttempt[]>([]).pipe(delay(300));
+    return of([...this.#history].reverse()).pipe(delay(300));
+  }
+
+  saveAttempt(attempt: Omit<ExamAttempt, 'id'>): Observable<ExamAttempt> {
+    const saved = { ...attempt, id: this.#history.length + 1 };
+    this.#history = [...this.#history, saved];
+    writeJson(HISTORY_KEY, this.#history);
+    return of(saved).pipe(delay(300));
   }
 }
