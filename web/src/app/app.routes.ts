@@ -38,4 +38,5 @@ export const routes: Routes = [
       { path: 'profile', component: Profile, data: { titleKey: 'nav.profile' } },
     ],
   },
+  { path: '**', redirectTo: 'home' },
 ];
