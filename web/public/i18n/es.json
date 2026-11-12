@@ -253,6 +253,7 @@
     "trendLabel": "Porcentaje de aciertos en tus últimos {{count}} simulacros de este tema",
     "improved": "Has subido {{points}} puntos desde tu primer simulacro de este tema.",
     "dropped": "Has bajado {{points}} puntos desde tu primer simulacro de este tema.",
+    "lowLegend": "Por debajo del {{percentage}} %",
     "noTrend": "Haz un simulacro de este tema para ver tu evolución.",
     "review": "Para repasar",
     "why": "Por qué",
