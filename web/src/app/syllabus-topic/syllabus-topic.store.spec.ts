@@ -28,6 +28,7 @@ const RESULTS: TopicResult[] = [
     percentage: 80,
     mistakes: [],
     correctQuestionIds: [],
+    isReview: false,
   },
   {
     id: 1,
@@ -35,6 +36,7 @@ const RESULTS: TopicResult[] = [
     date: '2026-11-01T10:00:00Z',
     percentage: 60,
     correctQuestionIds: [],
+    isReview: false,
     mistakes: [
       {
         questionId: 9,
@@ -100,5 +102,26 @@ describe('SyllabusTopicStore', () => {
     const store = TestBed.inject(SyllabusTopicStore);
     store.load(5);
     expect(store.reviewCount()).toBe(0);
+  });
+
+  it('leaves review rounds out of the trend', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        SyllabusTopicStore,
+        { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
+        { provide: NotesService, useValue: {} },
+        {
+          provide: TopicResultsService,
+          useValue: {
+            getTopicResults: () =>
+              of([{ ...RESULTS[0], id: 3, percentage: 100, isReview: true }, ...RESULTS]),
+          },
+        },
+      ],
+    });
+    const store = TestBed.inject(SyllabusTopicStore);
+    store.load(5);
+    expect(store.trend().map(({ id }) => id)).toEqual([1, 2]);
+    expect(store.improvement()).toBe(20);
   });
 });

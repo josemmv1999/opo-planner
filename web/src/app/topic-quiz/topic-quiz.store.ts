@@ -23,7 +23,13 @@ export type QuestionCount = (typeof QUESTION_COUNTS)[number];
 const GREAT_SHARE = 0.75;
 const GOOD_SHARE = 0.5;
 
-const NEW_ROUND = { phase: 'setup' as const, questions: [], answers: [], index: 0 };
+const NEW_ROUND = {
+  phase: 'setup' as const,
+  questions: [],
+  answers: [],
+  index: 0,
+  isReview: false,
+};
 
 interface TopicQuizState {
   topic: SyllabusTopicDetail | null;
@@ -38,6 +44,7 @@ interface TopicQuizState {
   isLoadingTopic: boolean;
   isLoadingQuestions: boolean;
   startedAt: string | null;
+  isReview: boolean;
   error: 'loading' | null;
 }
 
@@ -55,6 +62,7 @@ export const TopicQuizStore = signalStore(
     isLoadingTopic: false,
     isLoadingQuestions: false,
     startedAt: null,
+    isReview: false,
     error: null,
   }),
   withComputed(({ questions, answers, index }) => {
@@ -124,6 +132,7 @@ export const TopicQuizStore = signalStore(
                     count: questions.length as QuestionCount,
                     phase: 'playing',
                     startedAt: new Date().toISOString(),
+                    isReview: true,
                     isSetupModalOpen: false,
                     isQuizModalOpen: true,
                     isLoadingTopic: false,
@@ -242,6 +251,7 @@ export const TopicQuizStore = signalStore(
                     .questions()
                     .filter((question, i) => store.answers()[i] === question.correctOption)
                     .map(({ id }) => id),
+                  isReview: store.isReview(),
                 }),
               ]).pipe(tapResponse({ next: () => undefined, error: () => undefined }));
             }),

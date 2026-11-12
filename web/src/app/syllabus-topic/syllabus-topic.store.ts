@@ -46,10 +46,11 @@ export const SyllabusTopicStore = signalStore(
         return pending;
       });
     });
+    const quizResults = computed(() => sortedResults().filter(({ isReview }) => !isReview));
     return {
-      trend: computed(() => sortedResults().slice(-TREND_LENGTH)),
+      trend: computed(() => quizResults().slice(-TREND_LENGTH)),
       improvement: computed(() => {
-        const sorted = sortedResults();
+        const sorted = quizResults();
         return sorted.length > 1
           ? sorted[sorted.length - 1].percentage - sorted[0].percentage
           : null;
