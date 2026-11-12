@@ -250,7 +250,7 @@ const clamp = (value: number, min: number, max: number): number =>
 
     .planner-calendar__hour {
       padding: 0 0.375rem;
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--bs-secondary-color);
       text-align: right;
@@ -471,7 +471,7 @@ const clamp = (value: number, min: number, max: number): number =>
 
       .planner-calendar__strip-day {
         padding: 0.375rem 0;
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         font-weight: 800;
         color: var(--bs-secondary-color);
         text-transform: uppercase;

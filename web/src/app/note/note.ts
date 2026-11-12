@@ -236,7 +236,7 @@ const toObjectUrl = (dataUrl: string): string => {
 
     .note__kind {
       padding: 0.125rem 0.5rem;
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 900;
       text-transform: uppercase;
       border: 1.5px solid var(--bs-dark);

@@ -158,7 +158,7 @@ import { ExamsStore } from './exams.store';
     .exams__tag {
       align-self: flex-start;
       padding: 0.125rem 0.5rem;
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 900;
       color: var(--bs-dark);
       text-transform: uppercase;
