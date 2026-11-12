@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Button } from '../../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PasswordInput } from '../../../common/components/password-input/password-input';
 import { PasswordChange } from '../../../common/models/user.model';
@@ -8,7 +9,7 @@ import { validationErrorKey } from '../../../common/utils/validation-error-key';
 
 @Component({
   selector: 'app-password-form',
-  imports: [ReactiveFormsModule, TranslatePipe, PasswordInput],
+  imports: [Button, ReactiveFormsModule, TranslatePipe, PasswordInput],
   template: `
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <app-password-input
@@ -26,9 +27,11 @@ import { validationErrorKey } from '../../../common/utils/validation-error-key';
         </p>
       }
       <button
+        app-button
+        variant="outline-primary"
         type="submit"
-        class="btn btn-outline-primary align-self-start"
-        [class.is-loading]="isSaving()"
+        class="align-self-start"
+        [isLoading]="isSaving()"
         [disabled]="isSaving()">
         {{ 'profile.changePassword' | translate }}
       </button>
