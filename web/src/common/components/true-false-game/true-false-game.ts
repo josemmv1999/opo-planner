@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Button } from '../button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TrueFalseStatement } from '../../models/true-false-statement.model';
 import { Icon } from '../icon/icon';
@@ -25,7 +26,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 
 @Component({
   selector: 'app-true-false-game',
-  imports: [TranslatePipe, Icon, Modal],
+  imports: [Button, TranslatePipe, Icon, Modal],
   template: `
     <section class="card card--cyan h-100">
       <div class="true-false-game__body card-body card-body--home d-flex flex-column">
@@ -91,8 +92,10 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
                 </p>
                 @if (isExplanationClamped()) {
                   <button
+                    app-button
+                    variant="link"
                     type="button"
-                    class="true-false-game__more btn btn-link p-0 ms-auto"
+                    class="true-false-game__more p-0 ms-auto"
                     (click)="isExplanationOpen.set(true)">
                     {{ 'trueFalseGame.fullExplanation' | translate }}
                   </button>
@@ -144,18 +147,19 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
           <div class="true-false-game__actions d-flex gap-2">
             @if (!currentStatement()) {
               <button
+                app-button
                 #playAgainButton
                 type="button"
-                class="btn btn-primary d-flex align-items-center"
-                (click)="playAgain()">
-                <app-icon class="me-2" name="refresh" />
+                (click)="playAgain()"
+                icon="refresh">
                 {{ 'trueFalseGame.playAgain' | translate }}
               </button>
             } @else if (hasAnswered()) {
               <button
+                app-button
                 #nextButton
                 type="button"
-                class="btn btn-primary border-dark d-flex align-items-center"
+                class="border-dark d-flex align-items-center"
                 (click)="next()">
                 {{
                   (isLastStatement() ? 'trueFalseGame.seeResult' : 'trueFalseGame.next') | translate
@@ -164,18 +168,22 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
               </button>
             } @else {
               <button
+                app-button
+                variant="outline-success"
                 #trueButton
                 type="button"
-                class="true-false-game__answer btn btn-outline-success d-flex align-items-center justify-content-center"
-                (click)="answer(true)">
-                <app-icon class="me-2" name="check" />
+                class="true-false-game__answer"
+                (click)="answer(true)"
+                icon="check">
                 {{ 'trueFalseGame.true' | translate }}
               </button>
               <button
+                app-button
+                variant="outline-danger"
                 type="button"
-                class="true-false-game__answer btn btn-outline-danger d-flex align-items-center justify-content-center"
-                (click)="answer(false)">
-                <app-icon class="me-2" name="close" />
+                class="true-false-game__answer"
+                (click)="answer(false)"
+                icon="close">
                 {{ 'trueFalseGame.false' | translate }}
               </button>
             }
@@ -195,8 +203,9 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
             <p class="fw-bold mb-0">{{ statement.text }}</p>
             <p class="mb-0">{{ statement.explanation }}</p>
             <button
+              app-button
               type="button"
-              class="btn btn-primary align-self-end"
+              class="align-self-end"
               (click)="isExplanationOpen.set(false)">
               {{ 'trueFalseGame.understood' | translate }}
             </button>
