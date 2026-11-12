@@ -48,67 +48,71 @@ import { ExamsStore } from './exams.store';
     } @else if (store.error()) {
       <div class="alert alert-danger mb-0" role="alert">{{ 'exams.loadError' | translate }}</div>
     } @else {
-      <section #officialList class="card card--cyan">
-        <div class="card-body d-flex flex-column gap-3">
-          <h2 class="exams__section mb-0">{{ 'exams.official.listTitle' | translate }}</h2>
-          <ul class="list-unstyled mb-0">
-            @for (exam of store.officialExams(); track exam.id) {
-              <li class="exams__row d-flex align-items-center gap-3">
-                <span class="d-flex flex-column flex-grow-1 overflow-hidden">
-                  <span class="fw-bold">{{ exam.name }}</span>
-                  <span class="exams__meta text-body-secondary">
-                    {{
-                      'exams.official.meta'
-                        | translate: { questions: exam.questionCount, minutes: exam.minutes }
-                    }}
-                    ·
-                    {{
-                      exam.lastPercentage === null
-                        ? ('exams.official.notTaken' | translate)
-                        : ('exams.official.lastAttempt'
-                          | translate: { percentage: exam.lastPercentage })
-                    }}
+      <div class="exams__lists">
+        <section #officialList class="card card--cyan">
+          <div class="card-body d-flex flex-column gap-3">
+            <h2 class="exams__section mb-0">{{ 'exams.official.listTitle' | translate }}</h2>
+            <ul class="list-unstyled mb-0">
+              @for (exam of store.officialExams(); track exam.id) {
+                <li class="exams__row d-flex align-items-center gap-3">
+                  <span class="d-flex flex-column flex-grow-1 overflow-hidden">
+                    <span class="fw-bold">{{ exam.name }}</span>
+                    <span class="exams__meta text-body-secondary">
+                      {{
+                        'exams.official.meta'
+                          | translate: { questions: exam.questionCount, minutes: exam.minutes }
+                      }}
+                      ·
+                      {{
+                        exam.lastPercentage === null
+                          ? ('exams.official.notTaken' | translate)
+                          : ('exams.official.lastAttempt'
+                            | translate: { percentage: exam.lastPercentage })
+                      }}
+                    </span>
                   </span>
-                </span>
-                <a class="btn btn-outline-primary btn-sm" [routerLink]="['/exams', exam.id]">
-                  {{
-                    (exam.lastPercentage === null ? 'exams.official.take' : 'exams.official.retake')
-                      | translate
-                  }}
-                </a>
-              </li>
-            }
-          </ul>
-        </div>
-      </section>
+                  <a class="btn btn-outline-primary btn-sm" [routerLink]="['/exams', exam.id]">
+                    {{
+                      (exam.lastPercentage === null
+                        ? 'exams.official.take'
+                        : 'exams.official.retake'
+                      ) | translate
+                    }}
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        </section>
 
-      <section class="card card--teal">
-        <div class="card-body d-flex flex-column gap-3">
-          <h2 class="exams__section mb-0">{{ 'exams.history.title' | translate }}</h2>
-          <ul class="list-unstyled mb-0">
-            @for (attempt of store.history(); track attempt.id) {
-              <li class="exams__row d-flex align-items-center gap-3">
-                <span
-                  class="exams__tag"
-                  [class.bg-info]="attempt.kind === 'official'"
-                  [class.bg-warning]="attempt.kind === 'mixed'">
-                  {{ 'exams.kinds.' + attempt.kind | translate }}
-                </span>
-                <span class="d-flex flex-column flex-grow-1 overflow-hidden">
-                  <span class="fw-bold">{{ attempt.name }}</span>
-                  <span class="exams__meta text-body-secondary">
-                    {{ attempt.date | formatDate: 'd MMM' }} ·
-                    {{ 'exams.history.minutes' | translate: { minutes: attempt.minutesTaken } }}
+        <section class="card card--teal">
+          <div class="card-body d-flex flex-column gap-3">
+            <h2 class="exams__section mb-0">{{ 'exams.history.title' | translate }}</h2>
+            <ul class="list-unstyled mb-0">
+              @for (attempt of store.history(); track attempt.id) {
+                <li class="exams__row d-flex align-items-center gap-3">
+                  <span
+                    class="exams__tag"
+                    [class.bg-info]="attempt.kind === 'official'"
+                    [class.bg-warning]="attempt.kind === 'mixed'">
+                    {{ 'exams.kinds.' + attempt.kind | translate }}
                   </span>
-                </span>
-                <span class="exams__percentage">{{ attempt.percentage }} %</span>
-              </li>
-            } @empty {
-              <li class="text-body-secondary">{{ 'exams.history.empty' | translate }}</li>
-            }
-          </ul>
-        </div>
-      </section>
+                  <span class="d-flex flex-column flex-grow-1 overflow-hidden">
+                    <span class="fw-bold">{{ attempt.name }}</span>
+                    <span class="exams__meta text-body-secondary">
+                      {{ attempt.date | formatDate: 'd MMM' }} ·
+                      {{ 'exams.history.minutes' | translate: { minutes: attempt.minutesTaken } }}
+                    </span>
+                  </span>
+                  <span class="exams__percentage">{{ attempt.percentage }} %</span>
+                </li>
+              } @empty {
+                <li class="text-body-secondary">{{ 'exams.history.empty' | translate }}</li>
+              }
+            </ul>
+          </div>
+        </section>
+      </div>
     }
 
     <p class="exams__note text-body-secondary mb-0">{{ 'exams.note' | translate }}</p>
@@ -123,6 +127,16 @@ import { ExamsStore } from './exams.store';
       gap: 1rem;
 
       @container (min-width: 40rem) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .exams__lists {
+      display: grid;
+      gap: 1rem;
+      align-items: start;
+
+      @container (min-width: 64rem) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
