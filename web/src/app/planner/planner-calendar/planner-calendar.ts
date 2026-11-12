@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  afterRenderEffect,
   input,
   output,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../common/components/icon/icon';
@@ -13,6 +15,7 @@ import { PlacedEntry, PlannerDay } from '../../../common/models/planner.model';
 import { TaskMove, TaskSlot } from '../planner.store';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
 import {
+  FIRST_HOUR,
   HOUR_LABELS,
   ROW_COUNT,
   ROWS_PER_HOUR,
@@ -70,12 +73,12 @@ const clamp = (value: number, min: number, max: number): number =>
         }
       </div>
 
-      <div class="d-flex">
+      <div #body class="planner-calendar__body d-flex">
         <div class="planner-calendar__hours">
           <div class="planner-calendar__head"></div>
           <div class="planner-calendar__rows">
             @for (label of hourLabels; track label) {
-              <span class="planner-calendar__hour" [style.grid-row]="hourRow($index)">
+              <span #hourCell class="planner-calendar__hour" [style.grid-row]="hourRow($index)">
                 {{ label }}
               </span>
             }
@@ -198,8 +201,18 @@ const clamp = (value: number, min: number, max: number): number =>
       flex: 0 0 3.25rem;
     }
 
+    .planner-calendar__body {
+      position: relative;
+      max-height: 70dvh;
+      overflow-y: auto;
+    }
+
     .planner-calendar__head {
+      position: sticky;
+      top: 0;
+      z-index: 3;
       height: 3.75rem;
+      background-color: var(--bs-card-bg);
       padding: 0.5rem 0.25rem;
       font-size: 0.75rem;
       font-weight: 800;
@@ -515,7 +528,28 @@ export class PlannerCalendar {
 
   protected readonly drag = signal<DragState | null>(null);
   private readonly strip = viewChild.required<ElementRef<HTMLElement>>('strip');
+  private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
+  private readonly hourCells = viewChildren<ElementRef<HTMLElement>>('hourCell');
   #isClickSuppressed = false;
+  #scrolledHour: number | null = null;
+
+  constructor() {
+    afterRenderEffect(() => {
+      const hour = this.#startHour();
+      const cell = this.hourCells()[hour]?.nativeElement;
+      if (!this.days().length || !cell || hour === this.#scrolledHour) return;
+      this.#scrolledHour = hour;
+      this.body().nativeElement.scrollTop = cell.offsetTop - (cell.parentElement?.offsetTop ?? 0);
+    });
+  }
+
+  #startHour(): number {
+    const studyRow = this.days().find(({ studyRows }) => studyRows.length)?.studyRows[0].startRow;
+    const hour = studyRow
+      ? Math.floor((studyRow - 1) / ROWS_PER_HOUR)
+      : new Date().getHours() - FIRST_HOUR;
+    return Math.max(0, hour - 1);
+  }
 
   protected readonly hourLabels = HOUR_LABELS;
   protected readonly rowCount = ROW_COUNT;
