@@ -98,6 +98,7 @@ const clamp = (value: number, min: number, max: number): number =>
             <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
             <div
               class="planner-calendar__rows planner-calendar__rows--lined"
+              (pointerdown)="isClickSuppressed = false"
               (click)="selectSlot($event, day.date)">
               @for (range of day.studyRows; track range.startRow) {
                 <div
@@ -527,10 +528,10 @@ export class PlannerCalendar {
   readonly entryMoved = output<TaskMove>();
 
   protected readonly drag = signal<DragState | null>(null);
+  protected isClickSuppressed = false;
   private readonly strip = viewChild.required<ElementRef<HTMLElement>>('strip');
   private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
   private readonly hourCells = viewChildren<ElementRef<HTMLElement>>('hourCell');
-  #isClickSuppressed = false;
   #scrolledHour: number | null = null;
 
   constructor() {
@@ -556,7 +557,7 @@ export class PlannerCalendar {
   protected readonly rowsPerHour = ROWS_PER_HOUR;
 
   protected openEntry(entryId: number): void {
-    if (!this.#isClickSuppressed) this.entryOpened.emit(entryId);
+    if (!this.isClickSuppressed) this.entryOpened.emit(entryId);
   }
 
   protected rowsOf({ id, startRow, endRow }: PlacedEntry): string {
@@ -581,7 +582,7 @@ export class PlannerCalendar {
     if (!rows) return;
     event.preventDefault();
     element.setPointerCapture(event.pointerId);
-    const isSingleDay = getComputedStyle(this.strip().nativeElement).display !== 'none';
+    const isSingleDay = this.strip().nativeElement.checkVisibility();
     this.drag.set({
       id: entry.id,
       dayIndex,
@@ -626,8 +627,7 @@ export class PlannerCalendar {
       this.entryOpened.emit(drag.id);
       return;
     }
-    this.#isClickSuppressed = true;
-    setTimeout(() => (this.#isClickSuppressed = false));
+    this.isClickSuppressed = true;
     if (!drag.rowDelta && !drag.dayDelta) return;
     this.entryMoved.emit({
       id: drag.id,
@@ -639,7 +639,7 @@ export class PlannerCalendar {
 
   protected selectSlot(event: MouseEvent, date: string): void {
     const rows = event.currentTarget as HTMLElement;
-    if (event.target !== rows || this.#isClickSuppressed) return;
+    if (event.target !== rows || this.isClickSuppressed) return;
     this.slotSelected.emit({ date, start: slotStartAt(event.offsetY / rows.clientHeight) });
   }
 
