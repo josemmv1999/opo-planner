@@ -11,26 +11,14 @@ export class HomeService {
   getHomeData(): Observable<HomeData> {
     return of({
       examDate: '2027-06-12',
-      studyStartDate: daysAgo(70),
-      streakDays: 4,
-      lastSevenDays: [
-        { date: daysAgo(6), hasStudied: true },
-        { date: daysAgo(5), hasStudied: false },
-        { date: daysAgo(4), hasStudied: true },
-        { date: daysAgo(3), hasStudied: true },
-        { date: daysAgo(2), hasStudied: true },
-        { date: daysAgo(1), hasStudied: true },
-        { date: daysAgo(0), hasStudied: false },
-      ],
-      studiedBlocks: [
-        { id: 1, name: 'Organización del Estado' },
-        { id: 2, name: 'Derecho de la Unión Europea' },
-      ],
-      weakBlocks: [
-        { id: 3, name: 'Procedimiento Administrativo', correctPercentage: 42 },
-        { id: 4, name: 'Gestión de personal', correctPercentage: 55 },
-        { id: 5, name: 'Ofimática', correctPercentage: 68 },
-      ],
+      studyStartDate: daysAgo(0),
+      streakDays: 0,
+      lastSevenDays: [6, 5, 4, 3, 2, 1, 0].map((days) => ({
+        date: daysAgo(days),
+        hasStudied: false,
+      })),
+      studiedBlocks: [],
+      weakBlocks: [],
       statements: [
         {
           id: 1,
