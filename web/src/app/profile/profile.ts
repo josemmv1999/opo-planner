@@ -11,7 +11,7 @@ import { PasswordForm } from './password-form/password-form';
 import { ProfileForm } from './profile-form/profile-form';
 import { ProfileStore } from './profile.store';
 
-import { TOKEN_KEY } from '../../common/guards/auth.guard';
+import { SessionService } from '../../common/services/session.service';
 @Component({
   selector: 'app-profile',
   imports: [
@@ -234,6 +234,7 @@ export class Profile {
   protected readonly store = inject(AppLayoutStore);
   protected readonly profile = inject(ProfileStore);
   readonly #router = inject(Router);
+  readonly #session = inject(SessionService);
 
   constructor() {
     this.profile.loadOppositions();
@@ -246,7 +247,7 @@ export class Profile {
   }
 
   protected logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
+    this.#session.end();
     this.#router.navigate(['/login']);
   }
 }
