@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  afterRenderEffect,
   input,
   output,
   signal,
@@ -13,6 +14,7 @@ import { PlacedEntry, PlannerDay } from '../../../common/models/planner.model';
 import { TaskMove, TaskSlot } from '../planner.store';
 import { FormatDatePipe } from '../../../common/pipes/format-date.pipe';
 import {
+  FIRST_HOUR,
   HOUR_LABELS,
   ROW_COUNT,
   ROWS_PER_HOUR,
@@ -70,7 +72,7 @@ const clamp = (value: number, min: number, max: number): number =>
         }
       </div>
 
-      <div class="d-flex">
+      <div #body class="planner-calendar__body d-flex">
         <div class="planner-calendar__hours">
           <div class="planner-calendar__head"></div>
           <div class="planner-calendar__rows">
@@ -198,8 +200,17 @@ const clamp = (value: number, min: number, max: number): number =>
       flex: 0 0 3.25rem;
     }
 
+    .planner-calendar__body {
+      max-height: 70dvh;
+      overflow-y: auto;
+    }
+
     .planner-calendar__head {
+      position: sticky;
+      top: 0;
+      z-index: 3;
       height: 3.75rem;
+      background-color: var(--bs-card-bg);
       padding: 0.5rem 0.25rem;
       font-size: 0.75rem;
       font-weight: 800;
@@ -515,7 +526,34 @@ export class PlannerCalendar {
 
   protected readonly drag = signal<DragState | null>(null);
   private readonly strip = viewChild.required<ElementRef<HTMLElement>>('strip');
+  private readonly body = viewChild.required<ElementRef<HTMLElement>>('body');
   #isClickSuppressed = false;
+  #scrolledRow: number | null = null;
+
+  constructor() {
+    afterRenderEffect(() => {
+      const days = this.days();
+      const row =
+        days.find(({ studyRows }) => studyRows.length)?.studyRows[0].startRow ?? this.#nowRow();
+      if (!days.length || row === this.#scrolledRow) return;
+      this.#scrolledRow = row;
+      this.#scrollToRow(row);
+    });
+  }
+
+  #nowRow(): number {
+    const now = new Date();
+    return (now.getHours() - FIRST_HOUR) * ROWS_PER_HOUR + 1;
+  }
+
+  #scrollToRow(row: number): void {
+    const body = this.body().nativeElement;
+    const hour = Math.max(0, Math.floor((row - 1) / ROWS_PER_HOUR) - 1);
+    const label = body.querySelectorAll<HTMLElement>('.planner-calendar__hour')[hour];
+    const head = body.querySelector<HTMLElement>('.planner-calendar__head');
+    if (!label || !head) return;
+    body.scrollTop += label.getBoundingClientRect().top - head.getBoundingClientRect().bottom;
+  }
 
   protected readonly hourLabels = HOUR_LABELS;
   protected readonly rowCount = ROW_COUNT;
