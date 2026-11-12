@@ -270,6 +270,10 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
       @container (min-width: 64rem) {
         grid-template-columns: minmax(0, 1fr) 22rem;
       }
+
+      @container (min-width: 96rem) {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      }
     }
 
     .syllabus-topic__section {
