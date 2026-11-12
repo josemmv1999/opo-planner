@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   effect,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
@@ -89,7 +91,7 @@ const toObjectUrl = (dataUrl: string): string => {
           </button>
         }
 
-        <span class="note__menu">
+        <span #menu class="note__menu">
           <button
             type="button"
             class="note__icon-button"
@@ -400,6 +402,7 @@ export class Note {
   protected readonly zoomIndex = signal(DEFAULT_ZOOM_INDEX);
   protected readonly position = signal<PdfPosition | null>(null);
   protected readonly isMenuOpen = signal(false);
+  private readonly menu = viewChild<ElementRef<HTMLElement>>('menu');
 
   protected readonly draft = computed(() => {
     const note = this.store.note();
@@ -442,7 +445,7 @@ export class Note {
   }
 
   protected closeMenu(event: MouseEvent): void {
-    if (!(event.target as HTMLElement).closest('.note__menu')) this.isMenuOpen.set(false);
+    if (!this.menu()?.nativeElement.contains(event.target as Node)) this.isMenuOpen.set(false);
   }
 
   protected changeZoom(step: number): void {
