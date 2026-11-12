@@ -40,7 +40,7 @@ const saveIsSidebarCollapsed = (isCollapsed: boolean): void => {
 const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
   route.firstChild ? deepestChild(route.firstChild) : route;
 
-import { TOKEN_KEY } from '../../common/guards/auth.guard';
+import { SessionService } from '../../common/services/session.service';
 @Component({
   selector: 'app-layout',
   imports: [RouterOutlet, RouterLink, Modal, Icon, TranslatePipe, Sidebar, BottomNav, PageHeader],
@@ -175,6 +175,7 @@ export class AppLayout {
   protected readonly isSidebarCollapsed = signal(readIsSidebarCollapsed());
   protected readonly isTouchLayout = inject(InterfaceModeService).isTouchLayout;
   readonly #router = inject(Router);
+  readonly #session = inject(SessionService);
   readonly #route = inject(ActivatedRoute);
 
   protected readonly pageTitleKey = toSignal(
@@ -198,7 +199,7 @@ export class AppLayout {
   }
 
   protected logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
+    this.#session.end();
     this.#router.navigate(['/login']);
   }
 }
