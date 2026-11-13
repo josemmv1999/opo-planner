@@ -11,12 +11,21 @@ import {
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { formatISO, subSeconds } from 'date-fns';
 import { filter, forkJoin, interval, map, pipe, switchMap, tap } from 'rxjs';
-import { ExamDetail, WeakBlock } from '../../common/models/exam.model';
+import {
+  CUSTOM_EXAM_ID,
+  ExamDetail,
+  ExamKind,
+  ExamRequest,
+  WeakBlock,
+} from '../../common/models/exam.model';
 import { ExamService } from '../services/exam.service';
 import { PlannerService } from '../services/planner.service';
 
 const LOW_TIME_SECONDS = 5 * 60;
 const WEAK_BLOCKS_SHOWN = 3;
+
+const kindOf = (examId: string): ExamKind =>
+  examId === 'mixed' || examId === CUSTOM_EXAM_ID ? examId : 'official';
 
 interface ExamSessionState {
   exam: ExamDetail | null;
@@ -87,11 +96,14 @@ export const ExamSessionStore = signalStore(
     };
   }),
   withMethods((store, examService = inject(ExamService)) => ({
-    load: rxMethod<string>(
+    load: rxMethod<ExamRequest>(
       pipe(
         tap(() => patchState(store, { isLoading: true, error: null })),
-        switchMap((examId) =>
-          examService.getExam(examId).pipe(
+        switchMap(({ examId, custom }) =>
+          (examId === CUSTOM_EXAM_ID
+            ? examService.getCustomExam(custom)
+            : examService.getExam(examId)
+          ).pipe(
             tapResponse({
               next: (exam) =>
                 patchState(store, {
@@ -180,7 +192,7 @@ export const ExamSessionStore = signalStore(
                   end: end.toISOString(),
                 }),
                 examService.saveAttempt({
-                  kind: id === 'mixed' ? 'mixed' : 'official',
+                  kind: kindOf(id),
                   name,
                   date: formatISO(end, { representation: 'date' }),
                   minutesTaken: Math.round(store.secondsTaken() / 60),

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ExamRequest } from '../../common/models/exam.model';
 import { Router } from '@angular/router';
 import { Icon } from '../../common/components/icon/icon';
 import { Button } from '../../common/components/button/button';
@@ -193,12 +194,23 @@ const FLAG_KEY = 'm';
 })
 export class ExamSession {
   readonly examId = input.required<string>();
+  readonly topics = input('');
+  readonly count = input('');
+  readonly officialOnly = input('');
 
   protected readonly store = inject(ExamSessionStore);
   readonly #router = inject(Router);
+  readonly #request = computed<ExamRequest>(() => ({
+    examId: this.examId(),
+    custom: {
+      topicIds: this.topics().split(',').map(Number).filter(Boolean),
+      questionCount: Number(this.count()),
+      isOfficialOnly: this.officialOnly() === 'true',
+    },
+  }));
 
   constructor() {
-    this.store.load(this.examId);
+    this.store.load(this.#request);
     this.store.runTimer();
   }
 

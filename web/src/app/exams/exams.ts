@@ -96,7 +96,8 @@ import { ExamsStore } from './exams.store';
                   <span
                     class="exams__tag"
                     [class.bg-info]="attempt.kind === 'official'"
-                    [class.bg-warning]="attempt.kind === 'mixed'">
+                    [class.bg-warning]="attempt.kind === 'mixed'"
+                    [class.bg-success]="attempt.kind === 'custom'">
                     {{ 'exams.kinds.' + attempt.kind | translate }}
                   </span>
                   <span class="d-flex flex-column flex-grow-1 overflow-hidden">

@@ -310,7 +310,8 @@
     "loadError": "No hemos podido cargar los exámenes.",
     "kinds": {
       "official": "Oficial",
-      "mixed": "Batiburrillo"
+      "mixed": "Batiburrillo",
+      "custom": "Personalizado"
     },
     "official": {
       "title": "Exámenes oficiales",

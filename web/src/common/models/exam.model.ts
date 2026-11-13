@@ -1,4 +1,17 @@
-export type ExamKind = 'official' | 'mixed';
+export type ExamKind = 'official' | 'mixed' | 'custom';
+
+export const CUSTOM_EXAM_ID = 'custom';
+
+export interface CustomExamConfig {
+  topicIds: number[];
+  questionCount: number;
+  isOfficialOnly: boolean;
+}
+
+export interface ExamRequest {
+  examId: string;
+  custom: CustomExamConfig;
+}
 
 export interface OfficialExam {
   id: number;
