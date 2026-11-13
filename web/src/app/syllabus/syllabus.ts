@@ -70,13 +70,16 @@ import { SyllabusStore } from './syllabus.store';
 
       <div class="syllabus__blocks">
         @for (block of store.visibleBlocks(); track block.id) {
+          @let review = store.blockReviews()[block.id];
           <app-syllabus-block-card
             [block]="block"
+            [reviewCount]="review.questions.length"
             [isExpanded]="store.expandedBlockIds().includes(block.id)"
             [isUpdating]="store.updatingBlockIds().includes(block.id)"
             (toggled)="store.toggleExpanded(block.id)"
             (studiedToggled)="store.toggleStudied(block.id)"
-            (practised)="quiz.open($event)" />
+            (practised)="quiz.open($event)"
+            (reviewed)="quiz.practiseBlock(review)" />
         } @empty {
           <p class="text-body-secondary mb-0">{{ 'syllabus.empty' | translate }}</p>
         }
@@ -87,7 +90,7 @@ import { SyllabusStore } from './syllabus.store';
       </p>
     }
 
-    <app-topic-quiz #quiz />
+    <app-topic-quiz #quiz (closed)="store.reloadResults()" />
   `,
   styles: `
     .syllabus__blocks {
