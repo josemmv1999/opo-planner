@@ -9,6 +9,10 @@ const DELAY_MS = 300;
 export class TopicResultsService {
   #results: TopicResult[] = readJson<TopicResult[]>(STORAGE_KEY) ?? [];
 
+  getAllResults(): Observable<TopicResult[]> {
+    return of(this.#results).pipe(delay(DELAY_MS));
+  }
+
   getTopicResults(topicId: number): Observable<TopicResult[]> {
     return of(this.#results.filter((result) => result.topicId === topicId)).pipe(delay(DELAY_MS));
   }

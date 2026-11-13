@@ -230,6 +230,7 @@
     "notesCount": "{{count}} apuntes",
     "practice": "Practicar",
     "practiceTopic": "Practicar el tema {{number}}",
+    "reviewBlock": "Repasar fallos ({{count}})",
     "open": "Abrir",
     "noNotes": "Sin apuntes"
   },

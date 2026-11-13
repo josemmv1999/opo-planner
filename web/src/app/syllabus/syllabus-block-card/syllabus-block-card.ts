@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Button } from '../../../common/components/button/button';
 import { Icon } from '../../../common/components/icon/icon';
 import { SyllabusBlock } from '../../../common/models/syllabus.model';
 import { scoreBarClass } from '../../../common/utils/score-bar-class';
 
 @Component({
   selector: 'app-syllabus-block-card',
-  imports: [RouterLink, TranslatePipe, Icon],
+  imports: [Button, RouterLink, TranslatePipe, Icon],
   template: `
     <section
       class="card h-100"
@@ -58,6 +59,19 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
           {{ (block().isStudied ? 'syllabus.studied' : 'syllabus.markStudied') | translate }}
         </button>
       </div>
+
+      @if (reviewCount()) {
+        <button
+          app-button
+          variant="outline-primary"
+          size="sm"
+          type="button"
+          class="syllabus-block-card__review align-self-start"
+          icon="refresh"
+          (click)="reviewed.emit()">
+          {{ 'syllabus.reviewBlock' | translate: { count: reviewCount() } }}
+        </button>
+      }
 
       @if (isExpanded()) {
         <ul
@@ -199,6 +213,10 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
       padding: 1rem 1.25rem;
     }
 
+    .syllabus-block-card__review {
+      margin: -0.25rem 1.25rem 1rem;
+    }
+
     .syllabus-block-card__toggle {
       min-width: 0;
       padding: 0;
@@ -323,9 +341,11 @@ export class SyllabusBlockCard {
   readonly block = input.required<SyllabusBlock>();
   readonly isExpanded = input(false);
   readonly isUpdating = input(false);
+  readonly reviewCount = input(0);
   readonly toggled = output();
   readonly studiedToggled = output();
   readonly practised = output<number>();
+  readonly reviewed = output();
 
   protected readonly barClass = computed(() => scoreBarClass(this.block().correctPercentage ?? 0));
 }

@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SyllabusBlock } from '../../common/models/syllabus.model';
+import { ReviewQuestion, SyllabusBlock, TopicResult } from '../../common/models/syllabus.model';
 import { SyllabusService } from '../services/syllabus.service';
+import { TopicResultsService } from '../services/topic-results.service';
 import { SyllabusStore } from './syllabus.store';
 
 const block = (
@@ -25,6 +26,36 @@ const block = (
   })),
 });
 
+const mistake = (questionId: number): ReviewQuestion => ({
+  questionId,
+  statement: `Question ${questionId}`,
+  options: ['A', 'B'],
+  chosenOption: 0,
+  correctOption: 1,
+  reasoning: 'Because',
+});
+
+const RESULTS: TopicResult[] = [
+  {
+    id: 1,
+    topicId: 20,
+    date: '2026-11-01',
+    percentage: 0,
+    mistakes: [mistake(1), mistake(2)],
+    correctQuestionIds: [],
+    isReview: false,
+  },
+  {
+    id: 2,
+    topicId: 22,
+    date: '2026-11-02',
+    percentage: 0,
+    mistakes: [mistake(3)],
+    correctQuestionIds: [],
+    isReview: false,
+  },
+];
+
 describe('SyllabusStore', () => {
   let store: InstanceType<typeof SyllabusStore>;
   const setStudied = vi.fn((blockId: number, isStudied: boolean) => of({ blockId, isStudied }));
@@ -42,6 +73,7 @@ describe('SyllabusStore', () => {
             setStudied,
           },
         },
+        { provide: TopicResultsService, useValue: { getAllResults: () => of(RESULTS) } },
       ],
     });
     store = TestBed.inject(SyllabusStore);
@@ -52,6 +84,17 @@ describe('SyllabusStore', () => {
     expect(store.blocks().length).toBe(3);
     expect(store.expandedBlockIds()).toEqual([2]);
     expect(store.isLoading()).toBe(false);
+  });
+
+  it('gathers the pending mistakes of each block with their topic', () => {
+    const review = store.blockReviews()[2];
+    expect(review.label).toBe('Bloque 2');
+    expect(review.questions.map(({ topicId, question }) => [topicId, question.id])).toEqual([
+      [20, 1],
+      [20, 2],
+      [22, 3],
+    ]);
+    expect(store.blockReviews()[1].questions).toEqual([]);
   });
 
   it('sums up studied blocks, topics and the average ignoring blocks without data', () => {
