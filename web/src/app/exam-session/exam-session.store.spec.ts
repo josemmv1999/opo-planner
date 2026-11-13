@@ -22,6 +22,7 @@ const EXAM: ExamDetail = {
 describe('ExamSessionStore', () => {
   let store: InstanceType<typeof ExamSessionStore>;
   const logRecord = vi.fn(() => of(null));
+  const getCustomExam = vi.fn(() => of({ ...EXAM, id: 'custom', name: 'Custom' }));
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -29,15 +30,25 @@ describe('ExamSessionStore', () => {
     TestBed.configureTestingModule({
       providers: [
         ExamSessionStore,
-        { provide: ExamService, useValue: { getExam: () => of(EXAM) } },
+        { provide: ExamService, useValue: { getExam: () => of(EXAM), getCustomExam } },
         { provide: PlannerService, useValue: { logRecord } },
       ],
     });
     store = TestBed.inject(ExamSessionStore);
-    store.load('mixed');
+    store.load({
+      examId: 'mixed',
+      custom: { topicIds: [], questionCount: 0, isOfficialOnly: false },
+    });
   });
 
   afterEach(() => vi.useRealTimers());
+
+  it('loads a custom exam with its config', () => {
+    const custom = { topicIds: [1, 5], questionCount: 3, isOfficialOnly: true };
+    store.load({ examId: 'custom', custom });
+    expect(getCustomExam).toHaveBeenCalledWith(custom);
+    expect(store.exam()?.name).toBe('Custom');
+  });
 
   it('starts with every question blank and the full time', () => {
     expect(store.total()).toBe(3);
