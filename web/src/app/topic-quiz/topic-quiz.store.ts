@@ -21,20 +21,52 @@ export const QUESTION_COUNTS = [10, 20, 30] as const;
 export type QuestionCount = (typeof QUESTION_COUNTS)[number];
 
 const GREAT_SHARE = 0.75;
+
+const toReviewQuestion = (
+  { id, statement, options, correctOption, reasoning }: QuizQuestion,
+  chosenOption: number,
+): ReviewQuestion => ({
+  questionId: id,
+  statement,
+  options,
+  chosenOption,
+  correctOption,
+  reasoning,
+});
 const GOOD_SHARE = 0.5;
 
 const NEW_ROUND = {
   phase: 'setup' as const,
   questions: [],
+  questionTopicIds: [],
   answers: [],
   index: 0,
   isReview: false,
+  reviewedBlock: null,
 };
+
+export interface BlockReviewQuestion {
+  topicId: number;
+  question: QuizQuestion;
+}
+
+export interface BlockReview {
+  label: string;
+  name: string;
+  questions: BlockReviewQuestion[];
+}
+
+interface FinishedRound {
+  topicNumber: number | null;
+  blockLabel: string | null;
+  start: string;
+}
 
 interface TopicQuizState {
   topic: SyllabusTopicDetail | null;
   count: QuestionCount;
   questions: QuizQuestion[];
+  questionTopicIds: number[];
   answers: number[];
   index: number;
   phase: QuizPhase;
@@ -45,6 +77,7 @@ interface TopicQuizState {
   isLoadingQuestions: boolean;
   startedAt: string | null;
   isReview: boolean;
+  reviewedBlock: Pick<BlockReview, 'label' | 'name'> | null;
   error: 'loading' | null;
 }
 
@@ -53,6 +86,7 @@ export const TopicQuizStore = signalStore(
     topic: null,
     count: 20,
     questions: [],
+    questionTopicIds: [],
     answers: [],
     index: 0,
     phase: 'setup',
@@ -63,6 +97,7 @@ export const TopicQuizStore = signalStore(
     isLoadingQuestions: false,
     startedAt: null,
     isReview: false,
+    reviewedBlock: null,
     error: null,
   }),
   withComputed(({ questions, answers, index }) => {
@@ -129,6 +164,7 @@ export const TopicQuizStore = signalStore(
                   patchState(store, {
                     topic,
                     questions,
+                    questionTopicIds: questions.map(() => topic.id),
                     count: questions.length as QuestionCount,
                     phase: 'playing',
                     startedAt: new Date().toISOString(),
@@ -143,6 +179,21 @@ export const TopicQuizStore = signalStore(
           ),
         ),
       ),
+      practiseBlock({ label, name, questions }: BlockReview): void {
+        patchState(store, {
+          ...NEW_ROUND,
+          topic: null,
+          reviewedBlock: { label, name },
+          questions: questions.map(({ question }) => question),
+          questionTopicIds: questions.map(({ topicId }) => topicId),
+          phase: 'playing',
+          startedAt: new Date().toISOString(),
+          isReview: true,
+          isSetupModalOpen: false,
+          isQuizModalOpen: true,
+          error: null,
+        });
+      },
       start: rxMethod<void>(
         pipe(
           map(() => store.topic()),
@@ -154,6 +205,7 @@ export const TopicQuizStore = signalStore(
                 next: (questions) =>
                   patchState(store, {
                     questions,
+                    questionTopicIds: questions.map(() => topic.id),
                     phase: 'playing',
                     startedAt: new Date().toISOString(),
                     isSetupModalOpen: false,
@@ -211,47 +263,39 @@ export const TopicQuizStore = signalStore(
         rxMethod<QuizPhase>(
           pipe(
             filter((phase) => phase === 'finished'),
-            map(() => ({ topic: store.topic(), start: store.startedAt() })),
-            filter(
-              (round): round is { topic: SyllabusTopicDetail; start: string } =>
-                round.topic !== null && round.start !== null,
-            ),
-            switchMap(({ topic, start }) => {
+            map(() => ({
+              topicNumber: store.topic()?.number ?? null,
+              blockLabel: store.reviewedBlock()?.label ?? null,
+              start: store.startedAt(),
+            })),
+            filter((round): round is FinishedRound => round.start !== null),
+            switchMap(({ topicNumber, blockLabel, start }) => {
               const end = new Date().toISOString();
-              const mistakes = store
-                .questions()
-                .map<ReviewQuestion | null>((question, i) => {
-                  const chosenOption = store.answers()[i];
-                  return chosenOption === question.correctOption
-                    ? null
-                    : {
-                        questionId: question.id,
-                        statement: question.statement,
-                        options: question.options,
-                        chosenOption,
-                        correctOption: question.correctOption,
-                        reasoning: question.reasoning,
-                      };
-                })
-                .filter((mistake): mistake is ReviewQuestion => mistake !== null);
+              const topicIds = [...new Set(store.questionTopicIds())];
               return forkJoin([
                 plannerService.logRecord({
                   kind: 'quiz',
-                  name: `Tema ${topic.number}`,
+                  name: topicNumber === null ? (blockLabel ?? '') : `Tema ${topicNumber}`,
                   percentage: store.percentage(),
                   start,
                   end,
                 }),
-                topicResultsService.saveResult({
-                  topicId: topic.id,
-                  date: end,
-                  percentage: store.percentage(),
-                  mistakes,
-                  correctQuestionIds: store
-                    .questions()
-                    .filter((question, i) => store.answers()[i] === question.correctOption)
-                    .map(({ id }) => id),
-                  isReview: store.isReview(),
+                ...topicIds.map((topicId) => {
+                  const indexes = store
+                    .questionTopicIds()
+                    .flatMap((id, i) => (id === topicId ? [i] : []));
+                  const isRight = (i: number): boolean =>
+                    store.answers()[i] === store.questions()[i].correctOption;
+                  return topicResultsService.saveResult({
+                    topicId,
+                    date: end,
+                    percentage: Math.round((indexes.filter(isRight).length / indexes.length) * 100),
+                    mistakes: indexes
+                      .filter((i) => !isRight(i))
+                      .map((i) => toReviewQuestion(store.questions()[i], store.answers()[i])),
+                    correctQuestionIds: indexes.filter(isRight).map((i) => store.questions()[i].id),
+                    isReview: store.isReview(),
+                  });
                 }),
               ]).pipe(tapResponse({ next: () => undefined, error: () => undefined }));
             }),

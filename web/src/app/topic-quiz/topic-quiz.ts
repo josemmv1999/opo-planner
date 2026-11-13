@@ -9,7 +9,7 @@ import { QuizQuestionCard } from './quiz-question/quiz-question';
 import { QuizResult } from './quiz-result/quiz-result';
 import { QuizSetup } from './quiz-setup/quiz-setup';
 import { QuizQuestion } from '../../common/models/quiz.model';
-import { TopicQuizStore } from './topic-quiz.store';
+import { BlockReview, TopicQuizStore } from './topic-quiz.store';
 
 @Component({
   selector: 'app-topic-quiz',
@@ -33,6 +33,13 @@ import { TopicQuizStore } from './topic-quiz.store';
           <h2 class="topic-quiz__title mb-0">
             {{ 'syllabus.topicName' | translate: { number: topic.number, name: topic.name } }}
           </h2>
+        </div>
+      } @else if (store.reviewedBlock(); as block) {
+        <div class="d-flex flex-column gap-1">
+          <p class="topic-quiz__eyebrow text-body-secondary mb-0">
+            {{ 'topicQuiz.blockReview' | translate }}
+          </p>
+          <h2 class="topic-quiz__title mb-0">{{ block.label }} · {{ block.name }}</h2>
         </div>
       }
     </ng-template>
@@ -157,5 +164,9 @@ export class TopicQuiz {
 
   practise(topicId: number, questions: QuizQuestion[]): void {
     this.store.practise({ topicId, questions });
+  }
+
+  practiseBlock(review: BlockReview): void {
+    this.store.practiseBlock(review);
   }
 }
