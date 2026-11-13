@@ -329,6 +329,16 @@
       "text": "Preguntas mezcladas de todo el temario, con la misma estructura que el examen real.",
       "start": "Empezar"
     },
+    "custom": {
+      "title": "Test personalizado",
+      "text": "Elige los temas, cuántas preguntas quieres y si solo deben salir preguntas de exámenes oficiales.",
+      "open": "Configurar",
+      "topics": "Temas",
+      "noTopics": "Elige al menos un tema.",
+      "count": "Número de preguntas",
+      "countOption": "{{count}} preguntas",
+      "officialOnly": "Solo preguntas de exámenes oficiales"
+    },
     "history": {
       "title": "Historial",
       "minutes": "{{minutes}} min",

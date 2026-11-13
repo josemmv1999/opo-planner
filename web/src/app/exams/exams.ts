@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Modal } from '../../common/components/modal/modal';
+import { CUSTOM_EXAM_ID, CustomExamConfig } from '../../common/models/exam.model';
+import { CustomTestForm } from './custom-test-form/custom-test-form';
 import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
@@ -8,7 +11,7 @@ import { ExamsStore } from './exams.store';
 
 @Component({
   selector: 'app-exams',
-  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe],
+  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe, Modal, CustomTestForm],
   providers: [ExamsStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -39,7 +42,34 @@ import { ExamsStore } from './exams.store';
           {{ 'exams.mixed.start' | translate }}
         </a>
       </section>
+      <section class="card card--green exams__starter">
+        <span class="exams__tag bg-success">{{ 'exams.kinds.custom' | translate }}</span>
+        <h2 class="exams__starter-title mb-0">{{ 'exams.custom.title' | translate }}</h2>
+        <p class="text-body-secondary mb-0">{{ 'exams.custom.text' | translate }}</p>
+        <button
+          app-button
+          type="button"
+          class="align-self-start mt-auto"
+          [disabled]="store.isLoading()"
+          (click)="store.openCustomModal()"
+          icon="tests">
+          {{ 'exams.custom.open' | translate }}
+        </button>
+      </section>
     </div>
+
+    <app-modal
+      size="lg"
+      [isOpen]="store.isCustomModalOpen()"
+      [label]="'exams.custom.title' | translate"
+      (closed)="store.closeCustomModal()">
+      <ng-template>
+        <app-custom-test-form
+          [blocks]="store.blocks()"
+          (started)="startCustomExam($event)"
+          (cancelled)="store.closeCustomModal()" />
+      </ng-template>
+    </app-modal>
 
     @if (store.isLoading()) {
       <div class="d-flex justify-content-center py-5">
@@ -132,6 +162,10 @@ import { ExamsStore } from './exams.store';
       @container (min-width: 40rem) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      @container (min-width: 64rem) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     .exams__lists {
@@ -209,10 +243,22 @@ import { ExamsStore } from './exams.store';
 })
 export class Exams {
   protected readonly store = inject(ExamsStore);
+  readonly #router = inject(Router);
   private readonly officialList = viewChild<ElementRef<HTMLElement>>('officialList');
 
   constructor() {
     this.store.load();
+  }
+
+  protected startCustomExam({ topicIds, questionCount, isOfficialOnly }: CustomExamConfig): void {
+    this.store.closeCustomModal();
+    this.#router.navigate(['/exams', CUSTOM_EXAM_ID], {
+      queryParams: {
+        topics: topicIds.join(','),
+        count: questionCount,
+        officialOnly: isOfficialOnly,
+      },
+    });
   }
 
   protected scrollToOfficialList(): void {
