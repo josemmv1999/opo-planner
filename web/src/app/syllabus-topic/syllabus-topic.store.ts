@@ -12,6 +12,10 @@ import {
 import { NotesService } from '../services/notes.service';
 import { SyllabusService } from '../services/syllabus.service';
 import { TopicResultsService } from '../services/topic-results.service';
+import {
+  pendingReview as pendingReviewOf,
+  toQuizQuestion,
+} from '../../common/utils/pending-review';
 
 const TREND_LENGTH = 5;
 const REVIEW_LENGTH = 3;
@@ -36,16 +40,7 @@ export const SyllabusTopicStore = signalStore(
     const sortedResults = computed(() =>
       [...results()].sort((a, b) => a.date.localeCompare(b.date)),
     );
-    const pendingReview = computed(() => {
-      const settled = new Set<number>();
-      return [...sortedResults()].reverse().flatMap(({ mistakes, correctQuestionIds }) => {
-        const pending = mistakes.filter(({ questionId }) => !settled.has(questionId));
-        [...pending.map(({ questionId }) => questionId), ...correctQuestionIds].forEach((id) =>
-          settled.add(id),
-        );
-        return pending;
-      });
-    });
+    const pendingReview = computed(() => pendingReviewOf(results()));
     const quizResults = computed(() => sortedResults().filter(({ isReview }) => !isReview));
     return {
       trend: computed(() => quizResults().slice(-TREND_LENGTH)),
@@ -57,16 +52,7 @@ export const SyllabusTopicStore = signalStore(
       }),
       reviewQuestions: computed<ReviewQuestion[]>(() => pendingReview().slice(0, REVIEW_LENGTH)),
       reviewCount: computed(() => pendingReview().length),
-      reviewQuiz: computed<QuizQuestion[]>(() =>
-        pendingReview().map(({ questionId, statement, options, correctOption, reasoning }) => ({
-          id: questionId,
-          caseText: null,
-          statement,
-          options,
-          correctOption,
-          reasoning,
-        })),
-      ),
+      reviewQuiz: computed<QuizQuestion[]>(() => pendingReview().map(toQuizQuestion)),
     };
   }),
   withMethods(

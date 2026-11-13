@@ -161,6 +161,42 @@ describe('TopicQuizStore', () => {
     });
   });
 
+  it('reviews a block and saves one review result per topic', () => {
+    store.practiseBlock({
+      label: 'Bloque I',
+      name: 'Estado',
+      questions: [
+        { topicId: 1, question: question(1) },
+        { topicId: 2, question: question(2) },
+        { topicId: 1, question: question(3) },
+      ],
+    });
+    expect(store.topic()).toBeNull();
+    expect(store.phase()).toBe('playing');
+    [1, 0, 1].forEach((option) => {
+      store.answer(option);
+      store.next();
+    });
+    TestBed.tick();
+    expect(logRecord).toHaveBeenCalledWith(expect.objectContaining({ name: 'Bloque I' }));
+    expect(saveResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        topicId: 1,
+        percentage: 100,
+        correctQuestionIds: [1, 3],
+        isReview: true,
+      }),
+    );
+    expect(saveResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        topicId: 2,
+        percentage: 0,
+        correctQuestionIds: [],
+        isReview: true,
+      }),
+    );
+  });
+
   it('practises a given set of questions without the setup step', () => {
     store.practise({ topicId: 5, questions: [question(7), question(8)] });
     expect(store.phase()).toBe('playing');

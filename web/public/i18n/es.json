@@ -266,6 +266,7 @@
   },
   "topicQuiz": {
     "eyebrow": "Simulacro",
+    "blockReview": "Repaso de fallos del bloque",
     "loading": "Cargando el simulacro",
     "loadError": "No hemos podido cargar el simulacro.",
     "setup": {
