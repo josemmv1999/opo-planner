@@ -10,3 +10,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/exams', icon: 'timer', labelKey: 'nav.exams' },
   { path: '/planner', icon: 'planner', labelKey: 'nav.planner' },
 ];
+
+export const ADMIN_NAV_ITEM: NavItem = { path: '/admin', icon: 'settings', labelKey: 'nav.admin' };
+
+export const navItemsFor = (isAdmin = false): readonly NavItem[] =>
+  isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS;

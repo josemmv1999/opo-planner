@@ -21,6 +21,7 @@ export class AccountService {
     return of({
       ...this.#profile,
       hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
+      isAdmin: true,
     }).pipe(delay(800));
   }
 

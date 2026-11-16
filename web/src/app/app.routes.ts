@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from '../common/guards/auth.guard';
+import { adminGuard } from './admin/admin.guard';
 import { AppLayout } from './app-layout/app-layout';
 import { AuthLayoutComponent } from './auth-layout/auth-layout';
 
@@ -57,6 +58,12 @@ export const routes: Routes = [
         path: 'planner',
         loadComponent: () => import('./planner/planner').then((m) => m.Planner),
         data: { titleKey: 'nav.planner' },
+      },
+      {
+        path: 'admin',
+        loadComponent: () => import('./admin/admin').then((m) => m.Admin),
+        canActivate: [adminGuard],
+        data: { titleKey: 'nav.admin' },
       },
       {
         path: 'profile',

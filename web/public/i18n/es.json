@@ -90,7 +90,12 @@
     "syllabus": "Temario",
     "exams": "Exámenes",
     "planner": "Planner",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "admin": "Admin"
+  },
+  "admin": {
+    "badge": "Modo administrador",
+    "intro": "Desde aquí gestionas el contenido de la app: los exámenes oficiales y sus preguntas."
   },
   "notifications": {
     "close": "Cerrar"

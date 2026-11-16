@@ -12,6 +12,7 @@ const USER: User = {
   surname: 'Ruiz',
   email: 'alba@example.com',
   hasCompletedOnboarding: true,
+  isAdmin: false,
 };
 const PROFILE: ProfileData = { name: 'Alba María', surname: 'Ruiz', email: 'alba@example.com' };
 

@@ -14,4 +14,5 @@ export interface User {
   surname: string;
   email: string;
   hasCompletedOnboarding: boolean;
+  isAdmin: boolean;
 }

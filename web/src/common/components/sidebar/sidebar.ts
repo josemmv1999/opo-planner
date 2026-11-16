@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { NAV_ITEMS } from '../../constants/nav-items';
+import { navItemsFor } from '../../constants/nav-items';
 import { Opposition } from '../../models/opposition.model';
 import { User } from '../../models/user.model';
 import { InitialsPipe } from '../../pipes/initials.pipe';
@@ -44,7 +44,7 @@ import { Icon } from '../icon/icon';
     }
 
     <nav class="d-flex flex-column gap-1" [attr.aria-label]="'appLayout.navLabel' | translate">
-      @for (item of navItems; track item.path) {
+      @for (item of navItems(); track item.path) {
         <a
           class="sidebar__link app-nav-link d-flex align-items-center gap-3"
           [routerLink]="item.path"
@@ -251,7 +251,7 @@ export class Sidebar {
   readonly logout = output();
   readonly changeOpposition = output();
 
-  protected readonly navItems = NAV_ITEMS;
+  protected readonly navItems = computed(() => navItemsFor(this.user()?.isAdmin));
 
   protected toggle(event: MouseEvent): void {
     this.toggleCollapse.emit();
