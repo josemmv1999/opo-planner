@@ -443,6 +443,10 @@
     "openPdf": "Abrir en otra pestaña",
     "saved": "Hemos guardado el apunte.",
     "highlight": "Subrayar",
+    "highlightTitle": "Subrayado",
+    "highlightNote": "Tu nota",
+    "highlightNotePlaceholder": "Por ejemplo: esto cae siempre en el examen",
+    "removeHighlight": "Quitar subrayado",
     "kind": {
       "pdf": "PDF",
       "text": "Texto",

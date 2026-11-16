@@ -26,6 +26,7 @@ const HIGHLIGHT: PdfHighlight = {
   page: 2,
   text: 'Artículo 1',
   rects: [{ x: 10, y: 20, width: 30, height: 2 }],
+  note: '',
 };
 
 describe('NoteStore', () => {
@@ -52,7 +53,11 @@ describe('NoteStore', () => {
             getLastPage: () => 3,
             setLastPage: vi.fn(),
             getHighlights: () => of([HIGHLIGHT]),
-            addHighlight: (_: number, draft: PdfHighlightDraft) => of({ ...draft, id: 2 }),
+            addHighlight: (_: number, draft: PdfHighlightDraft) =>
+              of({ ...draft, id: 2, note: '' }),
+            updateHighlightNote: (_: number, id: number, note: string) =>
+              of({ ...HIGHLIGHT, id, note }),
+            deleteHighlight: (_: number, id: number) => of(id),
           },
         },
         { provide: NotificationService, useValue: { success: vi.fn() } },
@@ -67,8 +72,25 @@ describe('NoteStore', () => {
     const selection = { page: 3, text: 'Título I', rects: [{ x: 5, y: 5, width: 20, height: 2 }] };
     store.select(selection);
     store.highlight();
-    expect(store.highlights()).toEqual([HIGHLIGHT, { ...selection, id: 2 }]);
+    expect(store.highlights()).toEqual([HIGHLIGHT, { ...selection, id: 2, note: '' }]);
     expect(store.selection()).toBeNull();
+  });
+
+  it('writes a note on a highlight and closes it', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.openHighlight(1);
+    expect(store.openedHighlight()).toEqual(HIGHLIGHT);
+    store.saveHighlightNote('Cae en el examen');
+    expect(store.highlights()[0].note).toBe('Cae en el examen');
+    expect(store.openedHighlightId()).toBeNull();
+  });
+
+  it('removes the opened highlight', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.openHighlight(1);
+    store.deleteHighlight();
+    expect(store.highlights()).toEqual([]);
+    expect(store.openedHighlight()).toBeNull();
   });
 
   it('ignores a highlight without selected text', () => {

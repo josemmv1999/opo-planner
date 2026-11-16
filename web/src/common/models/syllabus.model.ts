@@ -54,6 +54,7 @@ export interface PdfHighlightDraft {
 
 export interface PdfHighlight extends PdfHighlightDraft {
   id: number;
+  note: string;
 }
 
 export interface NoteDraft {

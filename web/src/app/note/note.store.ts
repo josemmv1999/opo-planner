@@ -1,6 +1,6 @@
-import { inject } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs';
 import {
@@ -24,12 +24,15 @@ interface NoteState {
   siblings: TopicNote[];
   highlights: PdfHighlight[];
   selection: PdfHighlightDraft | null;
+  openedHighlightId: number | null;
   initialPage: number;
   isEditing: boolean;
   isLoading: boolean;
   isSaving: boolean;
   isDeleting: boolean;
   isHighlighting: boolean;
+  isSavingHighlight: boolean;
+  isDeletingHighlight: boolean;
   hasDeleted: boolean;
   error: 'loading' | 'saving' | 'deleting' | 'highlighting' | null;
 }
@@ -41,15 +44,23 @@ export const NoteStore = signalStore(
     siblings: [],
     highlights: [],
     selection: null,
+    openedHighlightId: null,
     initialPage: 1,
     isEditing: false,
     isLoading: false,
     isSaving: false,
     isDeleting: false,
     isHighlighting: false,
+    isSavingHighlight: false,
+    isDeletingHighlight: false,
     hasDeleted: false,
     error: null,
   }),
+  withComputed(({ highlights, openedHighlightId }) => ({
+    openedHighlight: computed(
+      () => highlights().find(({ id }) => id === openedHighlightId()) ?? null,
+    ),
+  })),
   withMethods(
     (
       store,
@@ -106,6 +117,70 @@ export const NoteStore = signalStore(
                   })),
                 error: () => {
                   patchState(store, { isHighlighting: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      openHighlight(openedHighlightId: number): void {
+        patchState(store, { openedHighlightId });
+      },
+      closeHighlight(): void {
+        patchState(store, { openedHighlightId: null });
+      },
+      saveHighlightNote: rxMethod<string>(
+        pipe(
+          map((note) => ({
+            noteId: store.note()?.id,
+            highlightId: store.openedHighlightId(),
+            note,
+          })),
+          filter(
+            (update): update is { noteId: number; highlightId: number; note: string } =>
+              update.noteId !== undefined && update.highlightId !== null,
+          ),
+          tap(() => patchState(store, { isSavingHighlight: true, error: null })),
+          switchMap(({ noteId, highlightId, note }) =>
+            notesService.updateHighlightNote(noteId, highlightId, note).pipe(
+              tapResponse({
+                next: (updated) =>
+                  patchState(store, ({ highlights }) => ({
+                    highlights: highlights.map((highlight) =>
+                      highlight.id === updated.id ? updated : highlight,
+                    ),
+                    openedHighlightId: null,
+                    isSavingHighlight: false,
+                  })),
+                error: () => {
+                  patchState(store, { isSavingHighlight: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      deleteHighlight: rxMethod<void>(
+        pipe(
+          map(() => ({ noteId: store.note()?.id, highlightId: store.openedHighlightId() })),
+          filter(
+            (removal): removal is { noteId: number; highlightId: number } =>
+              removal.noteId !== undefined && removal.highlightId !== null,
+          ),
+          tap(() => patchState(store, { isDeletingHighlight: true, error: null })),
+          switchMap(({ noteId, highlightId }) =>
+            notesService.deleteHighlight(noteId, highlightId).pipe(
+              tapResponse({
+                next: () =>
+                  patchState(store, ({ highlights }) => ({
+                    highlights: highlights.filter(({ id }) => id !== highlightId),
+                    openedHighlightId: null,
+                    isDeletingHighlight: false,
+                  })),
+                error: () => {
+                  patchState(store, { isDeletingHighlight: false, error: 'highlighting' });
                   notificationService.error('notes.errors.highlighting');
                 },
               }),

@@ -15,6 +15,8 @@ import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
+import { Modal } from '../../common/components/modal/modal';
+import { HighlightForm } from './highlight-form/highlight-form';
 import { NoteForm } from './note-form/note-form';
 import { NoteStore } from './note.store';
 import { PdfPosition, PdfViewer } from './pdf-viewer/pdf-viewer';
@@ -33,7 +35,17 @@ const toObjectUrl = (dataUrl: string): string => {
 
 @Component({
   selector: 'app-note',
-  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe, NoteForm, PdfViewer],
+  imports: [
+    Button,
+    RouterLink,
+    TranslatePipe,
+    Icon,
+    FormatDatePipe,
+    NoteForm,
+    PdfViewer,
+    Modal,
+    HighlightForm,
+  ],
   providers: [NoteStore],
   host: { class: 'd-flex flex-column', '(document:click)': 'closeMenu($event)' },
   template: `
@@ -183,7 +195,8 @@ const toObjectUrl = (dataUrl: string): string => {
                 [initialPage]="store.initialPage()"
                 [highlights]="store.highlights()"
                 (positionChanged)="onPosition($event)"
-                (selected)="store.select($event)" />
+                (selected)="store.select($event)"
+                (highlightOpened)="store.openHighlight($event)" />
             }
           }
           @case ('image') {
@@ -229,6 +242,23 @@ const toObjectUrl = (dataUrl: string): string => {
         }
       </footer>
     }
+
+    <app-modal
+      [isOpen]="store.openedHighlightId() !== null"
+      [label]="'notes.highlightTitle' | translate"
+      (closed)="store.closeHighlight()">
+      <ng-template>
+        @if (store.openedHighlight(); as highlight) {
+          <app-highlight-form
+            [highlight]="highlight"
+            [isSaving]="store.isSavingHighlight()"
+            [isDeleting]="store.isDeletingHighlight()"
+            (saved)="store.saveHighlightNote($event)"
+            (deleted)="store.deleteHighlight()"
+            (cancelled)="store.closeHighlight()" />
+        }
+      </ng-template>
+    </app-modal>
   `,
   styles: `
     :host {

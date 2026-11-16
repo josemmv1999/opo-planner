@@ -124,9 +124,36 @@ export class NotesService {
   addHighlight(noteId: number, draft: PdfHighlightDraft): Observable<PdfHighlight> {
     const all = this.#readHighlights();
     const highlights = all[noteId] ?? [];
-    const highlight = { ...draft, id: Math.max(0, ...highlights.map(({ id }) => id)) + 1 };
+    const highlight = {
+      ...draft,
+      id: Math.max(0, ...highlights.map(({ id }) => id)) + 1,
+      note: '',
+    };
     writeJson(HIGHLIGHTS_KEY, { ...all, [noteId]: [...highlights, highlight] });
     return of(highlight).pipe(delay(DELAY_MS));
+  }
+
+  updateHighlightNote(noteId: number, highlightId: number, note: string): Observable<PdfHighlight> {
+    const highlights = (this.#readHighlights()[noteId] ?? []).map((highlight) =>
+      highlight.id === highlightId ? { ...highlight, note } : highlight,
+    );
+    this.#writeHighlights(noteId, highlights);
+    const updated = highlights.find(({ id }) => id === highlightId);
+    return updated
+      ? of(updated).pipe(delay(DELAY_MS))
+      : throwError(() => new Error('Highlight not found'));
+  }
+
+  deleteHighlight(noteId: number, highlightId: number): Observable<number> {
+    this.#writeHighlights(
+      noteId,
+      (this.#readHighlights()[noteId] ?? []).filter(({ id }) => id !== highlightId),
+    );
+    return of(highlightId).pipe(delay(DELAY_MS));
+  }
+
+  #writeHighlights(noteId: number, highlights: PdfHighlight[]): void {
+    writeJson(HIGHLIGHTS_KEY, { ...this.#readHighlights(), [noteId]: highlights });
   }
 
   #readHighlights(): Record<number, PdfHighlight[]> {

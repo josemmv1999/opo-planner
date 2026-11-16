@@ -37,6 +37,8 @@ const toBytes = (dataUrl: string): Uint8Array =>
 
 const loadPdfjs = () => import('pdfjs-dist');
 
+const toPercent = (value: number, size: number): number => (value / size) * 100;
+
 export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingTask> => {
   const pdfjs = await loadPdfjs();
   pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC;
@@ -45,7 +47,11 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
 
 @Component({
   selector: 'app-pdf-viewer',
-  host: { class: 'pdf-viewer', '(document:selectionchange)': 'readSelection()' },
+  host: {
+    class: 'pdf-viewer',
+    '(document:selectionchange)': 'readSelection()',
+    '(click)': 'openHighlightAt($event)',
+  },
   encapsulation: ViewEncapsulation.None,
   template: `
     @let pdf = layout();
@@ -58,6 +64,7 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
               @for (rect of highlight.rects; track $index) {
                 <span
                   class="pdf-viewer__highlight"
+                  [class.pdf-viewer__highlight--noted]="highlight.note"
                   [style.left.%]="rect.x"
                   [style.top.%]="rect.y"
                   [style.width.%]="rect.width"
@@ -105,6 +112,10 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
         background-color: rgba(var(--bs-warning-rgb), 0.45);
         mix-blend-mode: multiply;
         border-radius: 0.125rem;
+      }
+
+      .pdf-viewer__highlight--noted {
+        border-bottom: 2px solid var(--bs-warning);
       }
 
       .textLayer {
@@ -157,6 +168,7 @@ export class PdfViewer {
   readonly highlights = input<PdfHighlight[]>([]);
   readonly positionChanged = output<PdfPosition>();
   readonly selected = output<PdfHighlightDraft | null>();
+  readonly highlightOpened = output<number>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
@@ -276,7 +288,6 @@ export class PdfViewer {
       return;
     }
     const page = this.pages()[pageIndex].nativeElement.getBoundingClientRect();
-    const toPercent = (value: number, size: number): number => (value / size) * 100;
     this.selected.emit({
       page: pageIndex + 1,
       text: range.toString().trim(),
@@ -289,6 +300,26 @@ export class PdfViewer {
           height: toPercent(height, page.height),
         })),
     });
+  }
+
+  protected openHighlightAt({ target, clientX, clientY }: MouseEvent): void {
+    if (!getSelection()?.isCollapsed) return;
+    const pageIndex = this.pages().findIndex(({ nativeElement }) =>
+      nativeElement.contains(target as Node),
+    );
+    if (pageIndex === -1) return;
+    const page = this.pages()[pageIndex].nativeElement.getBoundingClientRect();
+    const x = toPercent(clientX - page.left, page.width);
+    const y = toPercent(clientY - page.top, page.height);
+    const highlight = this.highlightsByPage()
+      .get(pageIndex + 1)
+      ?.find(({ rects }) =>
+        rects.some(
+          (rect) =>
+            x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height,
+        ),
+      );
+    if (highlight) this.highlightOpened.emit(highlight.id);
   }
 
   #disconnect(): void {
