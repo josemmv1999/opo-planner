@@ -83,7 +83,7 @@ const currentWeekStart = (): string => toIsoDate(startOfWeek(startOfToday(), { w
 const todayIndex = (): number => (startOfToday().getDay() + 6) % 7;
 
 export const PlannerStore = signalStore(
-  withState<PlannerState>({
+  withState<PlannerState>(() => ({
     weekStart: currentWeekStart(),
     selectedDay: todayIndex(),
     examDate: null,
@@ -103,7 +103,7 @@ export const PlannerStore = signalStore(
     isSaving: false,
     isDeleting: false,
     error: null,
-  }),
+  })),
   withComputed(
     ({
       weekStart,
