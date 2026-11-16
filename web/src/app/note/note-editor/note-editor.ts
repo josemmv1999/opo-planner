@@ -1,9 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
-  SecurityContext,
-  afterRenderEffect,
+  ViewEncapsulation,
+  afterNextRender,
   forwardRef,
   inject,
   input,
@@ -11,28 +12,75 @@ import {
   viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ChainedCommands, Editor } from '@tiptap/core';
+import Highlight from '@tiptap/extension-highlight';
+import StarterKit from '@tiptap/starter-kit';
+import { Icon } from '../../../common/components/icon/icon';
 
 interface FormatAction {
-  command: string;
-  value?: string;
+  name: string;
+  attributes?: Record<string, unknown>;
   labelKey: string;
   text: string;
+  icon?: string;
+  apply: (chain: ChainedCommands) => ChainedCommands;
 }
 
 const FORMAT_ACTIONS: FormatAction[] = [
-  { command: 'bold', labelKey: 'notes.editor.bold', text: 'B' },
-  { command: 'italic', labelKey: 'notes.editor.italic', text: 'I' },
-  { command: 'formatBlock', value: 'h2', labelKey: 'notes.editor.heading', text: 'T' },
-  { command: 'formatBlock', value: 'p', labelKey: 'notes.editor.paragraph', text: '¶' },
-  { command: 'insertUnorderedList', labelKey: 'notes.editor.list', text: '•' },
-  { command: 'insertOrderedList', labelKey: 'notes.editor.numberedList', text: '1.' },
+  {
+    name: 'bold',
+    labelKey: 'notes.editor.bold',
+    text: 'B',
+    apply: (chain) => chain.toggleBold(),
+  },
+  {
+    name: 'italic',
+    labelKey: 'notes.editor.italic',
+    text: 'I',
+    apply: (chain) => chain.toggleItalic(),
+  },
+  {
+    name: 'heading',
+    attributes: { level: 2 },
+    labelKey: 'notes.editor.heading',
+    text: 'T',
+    apply: (chain) => chain.toggleHeading({ level: 2 }),
+  },
+  {
+    name: 'paragraph',
+    labelKey: 'notes.editor.paragraph',
+    text: '¶',
+    apply: (chain) => chain.setParagraph(),
+  },
+  {
+    name: 'highlight',
+    labelKey: 'notes.editor.highlight',
+    text: '',
+    icon: 'highlight',
+    apply: (chain) => chain.toggleHighlight(),
+  },
+  {
+    name: 'bulletList',
+    labelKey: 'notes.editor.list',
+    text: '•',
+    apply: (chain) => chain.toggleBulletList(),
+  },
+  {
+    name: 'orderedList',
+    labelKey: 'notes.editor.numberedList',
+    text: '1.',
+    apply: (chain) => chain.toggleOrderedList(),
+  },
 ];
+
+let nextId = 0;
 
 @Component({
   selector: 'app-note-editor',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Icon],
+  host: { class: 'note-editor' },
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div
       class="note-editor__toolbar d-flex flex-wrap gap-1"
@@ -42,29 +90,26 @@ const FORMAT_ACTIONS: FormatAction[] = [
         <button
           type="button"
           class="note-editor__tool"
-          [class.fst-italic]="action.command === 'italic'"
+          [class.fst-italic]="action.name === 'italic'"
           [title]="action.labelKey | translate"
           [attr.aria-label]="action.labelKey | translate"
+          [attr.aria-pressed]="activeLabels().has(action.labelKey)"
           [disabled]="isDisabled()"
           (mousedown)="$event.preventDefault()"
           (click)="format(action)">
-          {{ action.text }}
+          @if (action.icon) {
+            <app-icon [name]="action.icon" />
+          } @else {
+            {{ action.text }}
+          }
         </button>
       }
     </div>
-    <div
-      #area
-      class="note-editor__area"
-      role="textbox"
-      aria-multiline="true"
-      tabindex="0"
-      [attr.aria-label]="label()"
-      [attr.contenteditable]="!isDisabled()"
-      (input)="emitChange()"
-      (blur)="onTouched?.()"></div>
+    <span class="visually-hidden" [id]="labelId">{{ label() }}</span>
+    <div #area class="note-editor__area"></div>
   `,
   styles: `
-    :host {
+    .note-editor {
       display: block;
       background-color: var(--bs-white);
       border: 2px solid rgba(var(--bs-dark-rgb), 0.14);
@@ -88,18 +133,19 @@ const FORMAT_ACTIONS: FormatAction[] = [
       border: 0;
       border-radius: 0.5rem;
 
-      &:hover:not(:disabled) {
-        background-color: rgba(var(--bs-primary-rgb), 0.08);
+      &:hover:not(:disabled),
+      &[aria-pressed='true'] {
+        background-color: rgba(var(--bs-primary-rgb), 0.12);
       }
     }
 
-    .note-editor__area {
+    .note-editor__content {
       min-height: 18rem;
       padding: 0.875rem 1rem;
       line-height: 1.6;
       outline: none;
 
-      :is(h2) {
+      h2 {
         font-size: 1.25rem;
         font-weight: 900;
       }
@@ -113,23 +159,24 @@ const FORMAT_ACTIONS: FormatAction[] = [
 export class NoteEditor implements ControlValueAccessor {
   readonly label = input('');
 
-  readonly #sanitizer = inject(DomSanitizer);
   private readonly area = viewChild.required<ElementRef<HTMLElement>>('area');
   protected readonly actions = FORMAT_ACTIONS;
   protected readonly isDisabled = signal(false);
-  protected onTouched?: () => void;
-  readonly #writtenValue = signal('');
+  protected readonly activeLabels = signal(new Set<string>());
+  protected readonly labelId = `note-editor-label-${nextId++}`;
+  #editor: Editor | null = null;
+  #value = '';
   #onChange?: (value: string) => void;
+  #onTouched?: () => void;
 
   constructor() {
-    afterRenderEffect(() => {
-      this.area().nativeElement.innerHTML =
-        this.#sanitizer.sanitize(SecurityContext.HTML, this.#writtenValue()) ?? '';
-    });
+    afterNextRender(() => (this.#editor = this.#createEditor()));
+    inject(DestroyRef).onDestroy(() => this.#editor?.destroy());
   }
 
   writeValue(value: string | null): void {
-    this.#writtenValue.set(value ?? '');
+    this.#value = value ?? '';
+    this.#editor?.commands.setContent(this.#value, { emitUpdate: false });
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -137,20 +184,42 @@ export class NoteEditor implements ControlValueAccessor {
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+    this.#onTouched = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled.set(isDisabled);
+    this.#editor?.setEditable(!isDisabled, false);
   }
 
-  protected format({ command, value }: FormatAction): void {
-    this.area().nativeElement.focus();
-    document.execCommand(command, false, value);
-    this.emitChange();
+  protected format({ apply }: FormatAction): void {
+    if (this.#editor) apply(this.#editor.chain().focus()).run();
   }
 
-  protected emitChange(): void {
-    this.#onChange?.(this.area().nativeElement.innerHTML);
+  #createEditor(): Editor {
+    return new Editor({
+      element: this.area().nativeElement,
+      extensions: [StarterKit.configure({ heading: { levels: [2] } }), Highlight],
+      content: this.#value,
+      editable: !this.isDisabled(),
+      editorProps: {
+        attributes: {
+          class: 'note-editor__content',
+          role: 'textbox',
+          'aria-multiline': 'true',
+          'aria-labelledby': this.labelId,
+        },
+      },
+      onUpdate: ({ editor }) => this.#onChange?.(editor.getHTML()),
+      onBlur: () => this.#onTouched?.(),
+      onTransaction: ({ editor }) =>
+        this.activeLabels.set(
+          new Set(
+            FORMAT_ACTIONS.filter(({ name, attributes }) => editor.isActive(name, attributes)).map(
+              ({ labelKey }) => labelKey,
+            ),
+          ),
+        ),
+    });
   }
 }
