@@ -58,6 +58,19 @@ const toObjectUrl = (dataUrl: string): string => {
         </span>
 
         @if (note.kind === 'pdf') {
+          @if (store.selection()) {
+            <button
+              app-button
+              size="sm"
+              type="button"
+              icon="highlight"
+              [isLoading]="store.isHighlighting()"
+              [disabled]="store.isHighlighting()"
+              (pointerdown)="$event.preventDefault()"
+              (click)="highlight()">
+              {{ 'notes.highlight' | translate }}
+            </button>
+          }
           <span class="note__zoom d-flex align-items-center">
             <button
               type="button"
@@ -168,7 +181,9 @@ const toObjectUrl = (dataUrl: string): string => {
                 [src]="src"
                 [zoom]="zoomLevels[zoomIndex()]"
                 [initialPage]="store.initialPage()"
-                (positionChanged)="onPosition($event)" />
+                [highlights]="store.highlights()"
+                (positionChanged)="onPosition($event)"
+                (selected)="store.select($event)" />
             }
           }
           @case ('image') {
@@ -446,6 +461,11 @@ export class Note {
 
   protected closeMenu(event: MouseEvent): void {
     if (!this.menu()?.nativeElement.contains(event.target as Node)) this.isMenuOpen.set(false);
+  }
+
+  protected highlight(): void {
+    this.store.highlight();
+    getSelection()?.removeAllRanges();
   }
 
   protected changeZoom(step: number): void {

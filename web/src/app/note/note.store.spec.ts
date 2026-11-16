@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NoteDetail, NoteDraft } from '../../common/models/syllabus.model';
+import {
+  NoteDetail,
+  NoteDraft,
+  PdfHighlight,
+  PdfHighlightDraft,
+} from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
 import { NotesService } from '../services/notes.service';
 import { NoteStore } from './note.store';
@@ -14,6 +19,13 @@ const NOTE: NoteDetail = {
   updatedAt: '2026-11-10',
   content: '<p>Hola</p>',
   fileUrl: null,
+};
+
+const HIGHLIGHT: PdfHighlight = {
+  id: 1,
+  page: 2,
+  text: 'Artículo 1',
+  rects: [{ x: 10, y: 20, width: 30, height: 2 }],
 };
 
 describe('NoteStore', () => {
@@ -39,12 +51,30 @@ describe('NoteStore', () => {
             getTopicNotes: () => of([]),
             getLastPage: () => 3,
             setLastPage: vi.fn(),
+            getHighlights: () => of([HIGHLIGHT]),
+            addHighlight: (_: number, draft: PdfHighlightDraft) => of({ ...draft, id: 2 }),
           },
         },
         { provide: NotificationService, useValue: { success: vi.fn() } },
       ],
     });
     store = TestBed.inject(NoteStore);
+  });
+
+  it('loads the highlights of a note and saves the selected text as a new one', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    expect(store.highlights()).toEqual([HIGHLIGHT]);
+    const selection = { page: 3, text: 'Título I', rects: [{ x: 5, y: 5, width: 20, height: 2 }] };
+    store.select(selection);
+    store.highlight();
+    expect(store.highlights()).toEqual([HIGHLIGHT, { ...selection, id: 2 }]);
+    expect(store.selection()).toBeNull();
+  });
+
+  it('ignores a highlight without selected text', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.highlight();
+    expect(store.highlights()).toEqual([HIGHLIGHT]);
   });
 
   it('starts a new note in edit mode', () => {

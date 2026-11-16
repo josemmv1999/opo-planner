@@ -39,6 +39,23 @@ export interface NoteDetail extends Omit<TopicNote, 'preview'> {
   fileUrl: string | null;
 }
 
+export interface HighlightRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface PdfHighlightDraft {
+  page: number;
+  text: string;
+  rects: HighlightRect[];
+}
+
+export interface PdfHighlight extends PdfHighlightDraft {
+  id: number;
+}
+
 export interface NoteDraft {
   title: string;
   content: string;

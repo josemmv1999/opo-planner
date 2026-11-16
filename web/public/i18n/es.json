@@ -442,6 +442,7 @@
     "delete": "Borrar apunte",
     "openPdf": "Abrir en otra pestaña",
     "saved": "Hemos guardado el apunte.",
+    "highlight": "Subrayar",
     "kind": {
       "pdf": "PDF",
       "text": "Texto",
@@ -449,7 +450,8 @@
     },
     "errors": {
       "saving": "No hemos podido guardar el apunte. Inténtalo de nuevo.",
-      "deleting": "No hemos podido borrar el apunte. Inténtalo de nuevo."
+      "deleting": "No hemos podido borrar el apunte. Inténtalo de nuevo.",
+      "highlighting": "No hemos podido guardar el subrayado. Inténtalo de nuevo."
     },
     "editor": {
       "toolbar": "Formato",
