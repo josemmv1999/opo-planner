@@ -3,7 +3,13 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs';
-import { NoteDetail, NoteDraft, TopicNote } from '../../common/models/syllabus.model';
+import {
+  NoteDetail,
+  NoteDraft,
+  PdfHighlight,
+  PdfHighlightDraft,
+  TopicNote,
+} from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
 import { NotesService } from '../services/notes.service';
 
@@ -16,13 +22,16 @@ interface NoteState {
   topicId: number | null;
   note: NoteDetail | null;
   siblings: TopicNote[];
+  highlights: PdfHighlight[];
+  selection: PdfHighlightDraft | null;
   initialPage: number;
   isEditing: boolean;
   isLoading: boolean;
   isSaving: boolean;
   isDeleting: boolean;
+  isHighlighting: boolean;
   hasDeleted: boolean;
-  error: 'loading' | 'saving' | 'deleting' | null;
+  error: 'loading' | 'saving' | 'deleting' | 'highlighting' | null;
 }
 
 export const NoteStore = signalStore(
@@ -30,11 +39,14 @@ export const NoteStore = signalStore(
     topicId: null,
     note: null,
     siblings: [],
+    highlights: [],
+    selection: null,
     initialPage: 1,
     isEditing: false,
     isLoading: false,
     isSaving: false,
     isDeleting: false,
+    isHighlighting: false,
     hasDeleted: false,
     error: null,
   }),
@@ -53,17 +65,49 @@ export const NoteStore = signalStore(
             forkJoin({
               note: noteId === null ? of(null) : notesService.getNote(noteId),
               siblings: notesService.getTopicNotes(topicId),
+              highlights: noteId === null ? of([]) : notesService.getHighlights(noteId),
             }).pipe(
               tapResponse({
-                next: ({ note, siblings }) =>
+                next: ({ note, siblings, highlights }) =>
                   patchState(store, {
                     note,
                     siblings,
+                    highlights,
+                    selection: null,
                     initialPage: note ? notesService.getLastPage(note.id) : 1,
                     isEditing: note === null,
                     isLoading: false,
                   }),
                 error: () => patchState(store, { note: null, isLoading: false, error: 'loading' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      select(selection: PdfHighlightDraft | null): void {
+        patchState(store, { selection });
+      },
+      highlight: rxMethod<void>(
+        pipe(
+          map(() => ({ noteId: store.note()?.id, selection: store.selection() })),
+          filter(
+            (pending): pending is { noteId: number; selection: PdfHighlightDraft } =>
+              pending.noteId !== undefined && pending.selection !== null,
+          ),
+          tap(() => patchState(store, { isHighlighting: true, error: null })),
+          switchMap(({ noteId, selection }) =>
+            notesService.addHighlight(noteId, selection).pipe(
+              tapResponse({
+                next: (highlight) =>
+                  patchState(store, ({ highlights }) => ({
+                    highlights: [...highlights, highlight],
+                    selection: null,
+                    isHighlighting: false,
+                  })),
+                error: () => {
+                  patchState(store, { isHighlighting: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
               }),
             ),
           ),

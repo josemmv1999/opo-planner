@@ -1,11 +1,18 @@
 import { Injectable } from '@angular/core';
 import { formatISO } from 'date-fns';
 import { Observable, delay, from, map, of, throwError } from 'rxjs';
-import { NoteDetail, NoteDraft, TopicNote } from '../../common/models/syllabus.model';
+import {
+  NoteDetail,
+  NoteDraft,
+  PdfHighlight,
+  PdfHighlightDraft,
+  TopicNote,
+} from '../../common/models/syllabus.model';
 import { readJson, writeJson } from './mock-storage';
 
 const STORAGE_KEY = 'mockNotes';
 const PAGES_KEY = 'mockNotePages';
+const HIGHLIGHTS_KEY = 'mockPdfHighlights';
 const DELAY_MS = 300;
 
 const today = (): string => formatISO(new Date(), { representation: 'date' });
@@ -108,6 +115,22 @@ export class NotesService {
 
   setLastPage(noteId: number, page: number): void {
     writeJson(PAGES_KEY, { ...readJson<Record<number, number>>(PAGES_KEY), [noteId]: page });
+  }
+
+  getHighlights(noteId: number): Observable<PdfHighlight[]> {
+    return of(this.#readHighlights()[noteId] ?? []).pipe(delay(DELAY_MS));
+  }
+
+  addHighlight(noteId: number, draft: PdfHighlightDraft): Observable<PdfHighlight> {
+    const all = this.#readHighlights();
+    const highlights = all[noteId] ?? [];
+    const highlight = { ...draft, id: Math.max(0, ...highlights.map(({ id }) => id)) + 1 };
+    writeJson(HIGHLIGHTS_KEY, { ...all, [noteId]: [...highlights, highlight] });
+    return of(highlight).pipe(delay(DELAY_MS));
+  }
+
+  #readHighlights(): Record<number, PdfHighlight[]> {
+    return readJson<Record<number, PdfHighlight[]>>(HIGHLIGHTS_KEY) ?? {};
   }
 
   #save(): void {

@@ -10,11 +10,13 @@ import {
   input,
   output,
   ViewEncapsulation,
+  computed,
   signal,
   untracked,
   viewChildren,
 } from '@angular/core';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
+import { PdfHighlight, PdfHighlightDraft } from '../../../common/models/syllabus.model';
 
 export interface PdfPosition {
   page: number;
@@ -43,14 +45,26 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
 
 @Component({
   selector: 'app-pdf-viewer',
-  host: { class: 'pdf-viewer' },
+  host: { class: 'pdf-viewer', '(document:selectionchange)': 'readSelection()' },
   encapsulation: ViewEncapsulation.None,
   template: `
     @let pdf = layout();
     <div class="pdf-viewer__pages d-flex flex-column align-items-center" [style.width]="pdf?.width">
-      @for (key of pdf?.pageKeys ?? []; track key) {
+      @for (key of pdf?.pageKeys ?? []; track key; let pageIndex = $index) {
         <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
           <canvas #canvas></canvas>
+          <div class="pdf-viewer__highlights" aria-hidden="true">
+            @for (highlight of highlightsByPage().get(pageIndex + 1); track highlight.id) {
+              @for (rect of highlight.rects; track $index) {
+                <span
+                  class="pdf-viewer__highlight"
+                  [style.left.%]="rect.x"
+                  [style.top.%]="rect.y"
+                  [style.width.%]="rect.width"
+                  [style.height.%]="rect.height"></span>
+              }
+            }
+          </div>
           <div #textLayer class="textLayer"></div>
         </div>
       }
@@ -78,6 +92,19 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
         display: block;
         width: 100%;
         height: auto;
+      }
+
+      .pdf-viewer__highlights {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .pdf-viewer__highlight {
+        position: absolute;
+        background-color: rgba(var(--bs-warning-rgb), 0.45);
+        mix-blend-mode: multiply;
+        border-radius: 0.125rem;
       }
 
       .textLayer {
@@ -127,13 +154,22 @@ export class PdfViewer {
   readonly src = input.required<string>();
   readonly zoom = input(1);
   readonly initialPage = input(1);
+  readonly highlights = input<PdfHighlight[]>([]);
   readonly positionChanged = output<PdfPosition>();
+  readonly selected = output<PdfHighlightDraft | null>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
   private readonly canvases = viewChildren<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly textLayers = viewChildren<ElementRef<HTMLElement>>('textLayer');
   readonly #injector = inject(Injector);
+  protected readonly highlightsByPage = computed(() =>
+    this.highlights().reduce(
+      (pages, highlight) =>
+        pages.set(highlight.page, [...(pages.get(highlight.page) ?? []), highlight]),
+      new Map<number, PdfHighlight[]>(),
+    ),
+  );
   #loadingTask: PDFDocumentLoadingTask | null = null;
   #document: PDFDocumentProxy | null = null;
   #observers: IntersectionObserver[] = [];
@@ -225,6 +261,34 @@ export class PdfViewer {
       container: textLayer,
       viewport: page.getViewport({ scale }),
     }).render();
+  }
+
+  protected readSelection(): void {
+    const selection = getSelection();
+    const range = selection?.rangeCount && !selection.isCollapsed ? selection.getRangeAt(0) : null;
+    const pageIndex = range
+      ? this.pages().findIndex(({ nativeElement }) =>
+          nativeElement.contains(range.commonAncestorContainer),
+        )
+      : -1;
+    if (!range || pageIndex === -1) {
+      this.selected.emit(null);
+      return;
+    }
+    const page = this.pages()[pageIndex].nativeElement.getBoundingClientRect();
+    const toPercent = (value: number, size: number): number => (value / size) * 100;
+    this.selected.emit({
+      page: pageIndex + 1,
+      text: range.toString().trim(),
+      rects: [...range.getClientRects()]
+        .filter(({ width, height }) => width > 1 && height > 1)
+        .map(({ left, top, width, height }) => ({
+          x: toPercent(left - page.left, page.width),
+          y: toPercent(top - page.top, page.height),
+          width: toPercent(width, page.width),
+          height: toPercent(height, page.height),
+        })),
+    });
   }
 
   #disconnect(): void {
