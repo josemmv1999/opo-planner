@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudySchedule } from '../../common/models/onboarding.model';
 import { PlannerEntry, PlannerWeek, TaskDraft } from '../../common/models/planner.model';
 import { PlannerService } from '../services/planner.service';
@@ -49,6 +49,8 @@ describe('PlannerStore', () => {
   let requestedWeeks: string[];
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-11T12:00:00'));
     requestedWeeks = [];
     TestBed.configureTestingModule({
       providers: [
@@ -79,6 +81,8 @@ describe('PlannerStore', () => {
     });
     store = TestBed.inject(PlannerStore);
   });
+
+  afterEach(() => vi.useRealTimers());
 
   it('places each entry in its day and cascades the overlapping ones', () => {
     store.load('2026-11-09');
