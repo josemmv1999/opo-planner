@@ -33,8 +33,10 @@ const BASE_WIDTH_REM = 52;
 const toBytes = (dataUrl: string): Uint8Array =>
   Uint8Array.from(atob(dataUrl.split(',')[1] ?? ''), (char) => char.charCodeAt(0));
 
+const loadPdfjs = () => import('pdfjs-dist');
+
 export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingTask> => {
-  const pdfjs = await import('pdfjs-dist');
+  const pdfjs = await loadPdfjs();
   pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC;
   return pdfjs.getDocument({ data: toBytes(dataUrl) });
 };
@@ -49,6 +51,7 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
       @for (key of pdf?.pageKeys ?? []; track key) {
         <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
           <canvas #canvas></canvas>
+          <div #textLayer class="textLayer"></div>
         </div>
       }
     </div>
@@ -64,6 +67,7 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
     }
 
     .pdf-viewer__page {
+      position: relative;
       width: 100%;
       background-color: var(--bs-white);
       border: 2px solid var(--bs-dark);
@@ -74,6 +78,46 @@ export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingT
         display: block;
         width: 100%;
         height: auto;
+      }
+
+      .textLayer {
+        position: absolute;
+        inset: 0;
+        overflow: clip;
+        line-height: 1;
+        text-align: initial;
+        transform-origin: 0 0;
+        --scale-round-x: 1px;
+        --scale-round-y: 1px;
+        --min-font-size: 1;
+        --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+        --min-font-size-inv: calc(1 / var(--min-font-size));
+
+        :is(span, br) {
+          position: absolute;
+          color: transparent;
+          white-space: pre;
+          cursor: text;
+          transform-origin: 0% 0%;
+        }
+
+        > :not(.markedContent),
+        .markedContent span:not(.markedContent) {
+          --font-height: 0;
+          --scale-x: 1;
+          --rotate: 0deg;
+          font-size: calc(var(--text-scale-factor) * var(--font-height));
+          transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+        }
+
+        .markedContent {
+          display: contents;
+        }
+
+        ::selection {
+          color: transparent;
+          background: rgba(var(--bs-primary-rgb), 0.3);
+        }
       }
     }
   `,
@@ -88,6 +132,7 @@ export class PdfViewer {
   protected readonly layout = signal<PdfLayout | null>(null);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
   private readonly canvases = viewChildren<ElementRef<HTMLCanvasElement>>('canvas');
+  private readonly textLayers = viewChildren<ElementRef<HTMLElement>>('textLayer');
   readonly #injector = inject(Injector);
   #loadingTask: PDFDocumentLoadingTask | null = null;
   #document: PDFDocumentProxy | null = null;
@@ -164,15 +209,22 @@ export class PdfViewer {
 
   async #paint(number: number, baseWidth: number, painted: Set<number>): Promise<void> {
     const canvas = this.canvases()[number - 1]?.nativeElement;
-    if (!this.#document || !canvas || painted.has(number)) return;
+    const textLayer = this.textLayers()[number - 1]?.nativeElement;
+    if (!this.#document || !canvas || !textLayer || painted.has(number)) return;
     painted.add(number);
     const page = await this.#document.getPage(number);
-    const viewport = page.getViewport({
-      scale: (canvas.clientWidth / baseWidth) * devicePixelRatio,
-    });
+    const scale = canvas.clientWidth / baseWidth;
+    const viewport = page.getViewport({ scale: scale * devicePixelRatio });
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     await page.render({ canvas, viewport }).promise;
+    const { TextLayer } = await loadPdfjs();
+    textLayer.style.setProperty('--total-scale-factor', String(scale));
+    await new TextLayer({
+      textContentSource: page.streamTextContent(),
+      container: textLayer,
+      viewport: page.getViewport({ scale }),
+    }).render();
   }
 
   #disconnect(): void {
