@@ -14,13 +14,16 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChainedCommands, Editor } from '@tiptap/core';
+import Highlight from '@tiptap/extension-highlight';
 import StarterKit from '@tiptap/starter-kit';
+import { Icon } from '../../../common/components/icon/icon';
 
 interface FormatAction {
   name: string;
   attributes?: Record<string, unknown>;
   labelKey: string;
   text: string;
+  icon?: string;
   apply: (chain: ChainedCommands) => ChainedCommands;
 }
 
@@ -51,6 +54,13 @@ const FORMAT_ACTIONS: FormatAction[] = [
     apply: (chain) => chain.setParagraph(),
   },
   {
+    name: 'highlight',
+    labelKey: 'notes.editor.highlight',
+    text: '',
+    icon: 'highlight',
+    apply: (chain) => chain.toggleHighlight(),
+  },
+  {
     name: 'bulletList',
     labelKey: 'notes.editor.list',
     text: '•',
@@ -68,7 +78,7 @@ let nextId = 0;
 
 @Component({
   selector: 'app-note-editor',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Icon],
   host: { class: 'note-editor' },
   encapsulation: ViewEncapsulation.None,
   template: `
@@ -87,7 +97,11 @@ let nextId = 0;
           [disabled]="isDisabled()"
           (mousedown)="$event.preventDefault()"
           (click)="format(action)">
-          {{ action.text }}
+          @if (action.icon) {
+            <app-icon [name]="action.icon" />
+          } @else {
+            {{ action.text }}
+          }
         </button>
       }
     </div>
@@ -185,7 +199,7 @@ export class NoteEditor implements ControlValueAccessor {
   #createEditor(): Editor {
     return new Editor({
       element: this.area().nativeElement,
-      extensions: [StarterKit.configure({ heading: { levels: [2] } })],
+      extensions: [StarterKit.configure({ heading: { levels: [2] } }), Highlight],
       content: this.#value,
       editable: !this.isDisabled(),
       editorProps: {
