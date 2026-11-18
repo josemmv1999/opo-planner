@@ -95,7 +95,28 @@
   },
   "admin": {
     "badge": "Modo administrador",
-    "intro": "Desde aquí gestionas el contenido de la app: los exámenes oficiales y sus preguntas."
+    "intro": "Desde aquí gestionas el contenido de la app: los exámenes oficiales y sus preguntas.",
+    "import": {
+      "title": "Importar un examen oficial",
+      "hint": "Sube el cuestionario y la plantilla de respuestas tal como los publica el INAP. Antes de importar podrás revisar las preguntas.",
+      "name": "Nombre",
+      "namePlaceholder": "Por ejemplo: Convocatoria 2025",
+      "questionnaire": "Cuestionario (PDF)",
+      "answerKey": "Plantilla de respuestas (PDF)",
+      "read": "Leer PDF",
+      "readError": "No se han podido leer los PDF. Comprueba que son los archivos correctos.",
+      "summary": "Listo para importar: {{questions}} preguntas y {{reserve}} de reserva. {{voided}} anuladas no se usarán.",
+      "errorsTitle": "Hay {{count}} errores. Corrige los PDF y vuelve a subirlos.",
+      "errors": {
+        "missingAnswer": "{{section}}, pregunta {{number}} {{reserve}}: no tiene respuesta en la plantilla.",
+        "optionCount": "{{section}}, pregunta {{number}} {{reserve}}: no tiene 4 opciones.",
+        "missingQuestion": "{{section}}, pregunta {{number}} {{reserve}}: está en la plantilla pero no en el cuestionario."
+      },
+      "reserve": "reserva",
+      "voided": "anulada",
+      "import": "Importar",
+      "imported": "Examen importado. Ya aparece en Exámenes."
+    }
   },
   "notifications": {
     "close": "Cerrar"
