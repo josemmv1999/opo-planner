@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { NAV_ITEMS } from '../../constants/nav-items';
+import { navItemsFor } from '../../constants/nav-items';
 import { User } from '../../models/user.model';
 import { InitialsPipe } from '../../pipes/initials.pipe';
 import { Icon } from '../icon/icon';
@@ -14,7 +14,7 @@ import { Icon } from '../icon/icon';
     <nav
       class="bottom-nav__items d-flex align-items-center h-100"
       [attr.aria-label]="'appLayout.navLabel' | translate">
-      @for (item of navItems; track item.path) {
+      @for (item of navItems(); track item.path) {
         <a
           class="bottom-nav__link d-flex flex-column align-items-center justify-content-center"
           [routerLink]="item.path"
@@ -93,5 +93,5 @@ import { Icon } from '../icon/icon';
 export class BottomNav {
   readonly user = input<User | null>(null);
 
-  protected readonly navItems = NAV_ITEMS;
+  protected readonly navItems = computed(() => navItemsFor(this.user()?.isAdmin));
 }
