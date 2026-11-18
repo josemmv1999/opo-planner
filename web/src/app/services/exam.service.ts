@@ -8,9 +8,12 @@ import {
   ExamQuestion,
   OfficialExam,
 } from '../../common/models/exam.model';
+import { ImportedExam, ParsedQuestion } from '../../common/models/exam-import.model';
 import { readJson, writeJson } from './mock-storage';
 
 const HISTORY_KEY = 'mockExamHistory';
+const IMPORTED_KEY = 'mockImportedExams';
+const FIRST_IMPORTED_ID = 1000;
 
 interface BankQuestion extends Omit<ExamQuestion, 'id'> {
   topicId: number;
@@ -62,28 +65,65 @@ const toQuestions = (bank: BankQuestion[], count: number): ExamQuestion[] =>
     return { id: i + 1, statement, options, correctOption, block };
   });
 
+const toImportedQuestions = (questions: ParsedQuestion[]): ExamQuestion[] =>
+  questions
+    .filter(({ isReserve, isVoided }) => !isReserve && !isVoided)
+    .map(({ statement, options, correctOption, section }, i) => ({
+      id: i + 1,
+      statement,
+      options,
+      correctOption: correctOption ?? 0,
+      block: section,
+    }));
+
 @Injectable({ providedIn: 'root' })
 export class ExamService {
   #history: ExamAttempt[] = readJson<ExamAttempt[]>(HISTORY_KEY) ?? [];
+  #imported: ImportedExam[] = readJson<ImportedExam[]>(IMPORTED_KEY) ?? [];
 
   getOfficialExams(): Observable<OfficialExam[]> {
-    return of(
-      OFFICIAL_YEARS.map((year) => {
+    return of([
+      ...this.#imported.map(({ id, name, questions }) => ({
+        id,
+        name,
+        questionCount: toImportedQuestions(questions).length,
+        minutes: EXAM_MINUTES,
+        lastPercentage: this.#lastPercentage(name),
+      })),
+      ...OFFICIAL_YEARS.map((year) => {
         const name = `Convocatoria ${year}`;
         return {
           id: year,
           name,
           questionCount: EXAM_QUESTIONS,
           minutes: EXAM_MINUTES,
-          lastPercentage:
-            [...this.#history].reverse().find((attempt) => attempt.name === name)?.percentage ??
-            null,
+          lastPercentage: this.#lastPercentage(name),
         };
       }),
-    ).pipe(delay(300));
+    ]).pipe(delay(300));
+  }
+
+  importOfficialExam(name: string, questions: ParsedQuestion[]): Observable<ImportedExam> {
+    const exam: ImportedExam = {
+      id: Math.max(FIRST_IMPORTED_ID - 1, ...this.#imported.map(({ id }) => id)) + 1,
+      name,
+      importedAt: new Date().toISOString(),
+      questions,
+    };
+    this.#imported = [exam, ...this.#imported];
+    writeJson(IMPORTED_KEY, this.#imported);
+    return of(exam).pipe(delay(300));
   }
 
   getExam(examId: string): Observable<ExamDetail> {
+    const imported = this.#imported.find(({ id }) => id === Number(examId));
+    if (imported)
+      return of<ExamDetail>({
+        id: examId,
+        name: imported.name,
+        minutes: EXAM_MINUTES,
+        questions: toImportedQuestions(imported.questions),
+      }).pipe(delay(300));
     return of<ExamDetail>({
       id: examId,
       name: examId === 'mixed' ? 'Batiburrillo' : `Convocatoria ${examId}`,
@@ -107,6 +147,12 @@ export class ExamService {
       minutes: questionCount,
       questions: toQuestions(bank, questionCount),
     }).pipe(delay(300));
+  }
+
+  #lastPercentage(name: string): number | null {
+    return (
+      [...this.#history].reverse().find((attempt) => attempt.name === name)?.percentage ?? null
+    );
   }
 
   getHistory(): Observable<ExamAttempt[]> {
