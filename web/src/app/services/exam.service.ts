@@ -115,6 +115,16 @@ export class ExamService {
     return of(exam).pipe(delay(300));
   }
 
+  getImportedExams(): Observable<ImportedExam[]> {
+    return of(this.#imported).pipe(delay(300));
+  }
+
+  deleteImportedExam(examId: number): Observable<void> {
+    this.#imported = this.#imported.filter(({ id }) => id !== examId);
+    writeJson(IMPORTED_KEY, this.#imported);
+    return of(undefined).pipe(delay(300));
+  }
+
   getExam(examId: string): Observable<ExamDetail> {
     const imported = this.#imported.find(({ id }) => id === Number(examId));
     if (imported)

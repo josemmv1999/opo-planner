@@ -116,6 +116,17 @@
       "voided": "anulada",
       "import": "Importar",
       "imported": "Examen importado. Ya aparece en Exámenes."
+    },
+    "imported": {
+      "title": "Exámenes importados",
+      "loading": "Cargando exámenes importados",
+      "loadError": "No se han podido cargar los exámenes importados.",
+      "empty": "Todavía no has importado ningún examen.",
+      "meta": "{{count}} preguntas · importado el {{date}}",
+      "delete": "Borrar examen",
+      "deleteTitle": "Borrar examen importado",
+      "deleteMessage": "Se borrará «{{name}}» y dejará de aparecer en Exámenes.",
+      "deleted": "Examen borrado."
     }
   },
   "notifications": {

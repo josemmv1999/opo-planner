@@ -35,12 +35,22 @@ describe('AdminStore', () => {
     await vi.waitFor(() => expect(store.isReading()).toBe(false));
   };
 
+  const deleteImportedExam = vi.fn(() => of(undefined));
+  const getImportedExams = () =>
+    of([
+      { id: 1000, name: 'A', importedAt: '', questions: [] },
+      { id: 1001, name: 'B', importedAt: '', questions: [] },
+    ]);
+
   beforeEach(() => {
     importOfficialExam.mockClear();
     TestBed.configureTestingModule({
       providers: [
         AdminStore,
-        { provide: ExamService, useValue: { importOfficialExam } },
+        {
+          provide: ExamService,
+          useValue: { importOfficialExam, getImportedExams, deleteImportedExam },
+        },
         { provide: NotificationService, useValue: { success: vi.fn() } },
         { provide: READ_PDF_TEXT, useValue: (file: File) => file.text() },
       ],
@@ -65,5 +75,15 @@ describe('AdminStore', () => {
     store.importExam();
     expect(importOfficialExam).toHaveBeenCalledWith('Convocatoria 2025', expect.any(Array));
     expect(store.parsedExam()).toBeNull();
+  });
+
+  it('deletes the confirmed imported exam', async () => {
+    store.loadImported();
+    await vi.waitFor(() => expect(store.importedExams().length).toBe(2));
+    store.openDeleteModal(1000);
+    store.deleteExam();
+    expect(deleteImportedExam).toHaveBeenCalledWith(1000);
+    expect(store.importedExams().map(({ id }) => id)).toEqual([1001]);
+    expect(store.examToDelete()).toBeUndefined();
   });
 });
