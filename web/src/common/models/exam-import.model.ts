@@ -22,3 +22,15 @@ export interface ParsedExam {
   questions: ParsedQuestion[];
   errors: ImportError[];
 }
+
+export interface ExamImportFiles {
+  questionnaire: File;
+  answerKey: File;
+}
+
+export interface ImportedExam {
+  id: number;
+  name: string;
+  importedAt: string;
+  questions: ParsedQuestion[];
+}
