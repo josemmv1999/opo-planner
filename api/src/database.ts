@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { SYLLABUS_SEED_SQL } from './syllabus/syllabus-seed.ts';
+import { syllabusSeedSql } from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
 
@@ -63,7 +63,7 @@ const MIGRATIONS = [
     name TEXT NOT NULL,
     description TEXT NOT NULL
   )`,
-  SYLLABUS_SEED_SQL,
+  syllabusSeedSql(0, 5),
   `CREATE TABLE topic_results (
     id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -79,6 +79,7 @@ const MIGRATIONS = [
   `ALTER TABLE questions ADD COLUMN review_status TEXT NOT NULL DEFAULT 'approved'`,
   `ALTER TABLE questions ADD COLUMN explanation TEXT`,
   `ALTER TABLE questions ADD COLUMN source TEXT`,
+  syllabusSeedSql(5),
 ];
 
 const migrate = (database: DatabaseSync): void => {

@@ -7,7 +7,7 @@ const { request, signUp } = startTestServer();
 test('returns the syllabus blocks with their topics in order', async () => {
   const cookie = await signUp('ana@example.com');
   const blocks = await (await request('/api/syllabus', { cookie })).json();
-  assert.equal(blocks.length, 5);
+  assert.equal(blocks.length, 6);
   assert.deepEqual(
     { ...blocks[0], topics: blocks[0].topics.slice(0, 1) },
     {

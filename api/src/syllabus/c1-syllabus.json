@@ -213,5 +213,51 @@
         "name": "Gestión económica y financiera de los contratos del sector público"
       }
     ]
+  },
+  {
+    "label": "Bloque VI",
+    "name": "Informática básica y ofimática",
+    "topics": [
+      {
+        "number": 1,
+        "description": "Informática básica: conceptos fundamentales sobre el hardware y el software. Sistemas de almacenamiento de datos. Sistemas operativos. Nociones básicas de seguridad informática.",
+        "name": "Informática básica: conceptos fundamentales sobre el hardware y el software"
+      },
+      {
+        "number": 2,
+        "description": "Introducción al sistema operativo: el entorno Windows. Fundamentos. Trabajo en el entorno gráfico de Windows: ventanas, iconos, menús contextuales, cuadros de diálogo. El escritorio y sus elementos. El menú inicio. Copilot.",
+        "name": "Introducción al sistema operativo: el entorno Windows"
+      },
+      {
+        "number": 3,
+        "description": "El explorador de Windows. Gestión de carpetas y archivos. Operaciones de búsqueda. Herramientas “Este equipo” y “Acceso rápido”. Accesorios. Herramientas del sistema.",
+        "name": "El explorador de Windows"
+      },
+      {
+        "number": 4,
+        "description": "Procesadores de texto: Word 365. Principales funciones y utilidades. Creación y estructuración del documento. Gestión, grabación, recuperación e impresión de ficheros. Personalización del entorno de trabajo.",
+        "name": "Procesadores de texto: Word 365"
+      },
+      {
+        "number": 5,
+        "description": "Hojas de cálculo: Excel 365. Principales funciones y utilidades. Libros, hojas y celdas. Configuración. Introducción y edición de datos. Fórmulas y funciones. Gráficos. Gestión de datos. Personalización del entorno de trabajo.",
+        "name": "Hojas de cálculo: Excel 365"
+      },
+      {
+        "number": 6,
+        "description": "Bases de datos: Access 365. Principales funciones y utilidades. Tablas. Consultas. Formularios. Informes. Relaciones. Importación, vinculación y exportación de datos.",
+        "name": "Bases de datos: Access 365"
+      },
+      {
+        "number": 7,
+        "description": "Correo electrónico: Outlook 365. Conceptos elementales y funcionamiento. El entorno de trabajo. Enviar, recibir, responder y reenviar mensajes. Creación de mensajes. Reglas de mensaje. Libreta de direcciones.",
+        "name": "Correo electrónico: Outlook 365"
+      },
+      {
+        "number": 8,
+        "description": "La Red Internet: origen, evolución y estado actual. Conceptos elementales sobre protocolos y servicios en Internet. Funcionalidades básicas de los navegadores web.",
+        "name": "La Red Internet: origen, evolución y estado actual"
+      }
+    ]
   }
 ]

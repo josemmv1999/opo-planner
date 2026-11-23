@@ -58,6 +58,7 @@ test('seeds the official C1 syllabus', () => {
     { label: 'Bloque III', topics: 7 },
     { label: 'Bloque IV', topics: 9 },
     { label: 'Bloque V', topics: 6 },
+    { label: 'Bloque VI', topics: 8 },
   ]);
 });
 
