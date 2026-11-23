@@ -2,9 +2,8 @@ import { randomBytes } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import { Router, type Response } from 'express';
 import { hashPassword, verifyPassword } from '../password.ts';
+import { requireUser, SESSION_COOKIE, type AuthenticatedResponse } from './require-user.ts';
 import { toUser, type UserRow } from './user.ts';
-
-export const SESSION_COOKIE = 'session';
 
 const isFilled = (...values: unknown[]): boolean =>
   values.every((value) => typeof value === 'string' && value.trim() !== '');
@@ -15,6 +14,7 @@ export const authRoutes = (database: DatabaseSync): Router => {
     'INSERT INTO users (name, surname, email, password_hash) VALUES (?, ?, ?, ?) RETURNING *',
   );
   const insertSession = database.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)');
+  const deleteSession = database.prepare('DELETE FROM sessions WHERE token = ?');
 
   const startSession = (res: Response, user: UserRow): void => {
     const token = randomBytes(32).toString('hex');
@@ -44,5 +44,12 @@ export const authRoutes = (database: DatabaseSync): Router => {
         return void res.sendStatus(401);
       startSession(res, user);
       res.json(toUser(user));
+    })
+    .get('/me', requireUser(database), (_req, res: AuthenticatedResponse) => {
+      res.json(toUser(res.locals.user));
+    })
+    .post('/logout', requireUser(database), (_req, res: AuthenticatedResponse) => {
+      deleteSession.run(res.locals.token);
+      res.clearCookie(SESSION_COOKIE).sendStatus(204);
     });
 };
