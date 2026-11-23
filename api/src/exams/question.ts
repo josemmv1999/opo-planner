@@ -7,6 +7,7 @@ export interface ParsedQuestion {
   options: string[];
   correctOption: number | null;
   isVoided: boolean;
+  topicId: number | null;
 }
 
 export interface QuestionRow {
@@ -32,6 +33,7 @@ export const toParsedQuestion = (row: QuestionRow): ParsedQuestion => ({
   options: JSON.parse(row.options) as string[],
   correctOption: row.correct_option,
   isVoided: !!row.is_voided,
+  topicId: row.topic_id,
 });
 
 export const isParsedQuestion = (value: unknown): value is ParsedQuestion => {
@@ -40,6 +42,7 @@ export const isParsedQuestion = (value: unknown): value is ParsedQuestion => {
     typeof question?.section === 'string' &&
     Number.isInteger(question.number) &&
     typeof question.statement === 'string' &&
+    (question.topicId == null || Number.isInteger(question.topicId)) &&
     Array.isArray(question.options) &&
     question.options.every((option) => typeof option === 'string')
   );

@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
+import { classifyQuestion } from '../syllabus/classify-question.ts';
 import { requireAdmin } from '../auth/require-admin.ts';
 import { requireUser } from '../auth/require-user.ts';
 import {
@@ -21,8 +22,8 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
   const insertExam = database.prepare('INSERT INTO exams (name) VALUES (?) RETURNING *');
   const insertQuestion = database.prepare(
     `INSERT INTO questions
-      (exam_id, section, number, is_reserve, case_text, statement, options, correct_option, is_voided)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (exam_id, section, number, is_reserve, case_text, statement, options, correct_option, is_voided, topic_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const deleteExam = database.prepare('DELETE FROM exams WHERE id = ?');
 
@@ -48,6 +49,7 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
           JSON.stringify(question.options),
           question.correctOption,
           question.isVoided ? 1 : 0,
+          question.topicId ?? null,
         ),
       );
       database.exec('COMMIT');
@@ -62,6 +64,17 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
     .use(requireUser(database), requireAdmin)
     .get('/', (_req, res) => {
       res.json((listExams.all() as unknown as ExamRow[]).map(toImportedExam));
+    })
+    .post('/classify', (req, res) => {
+      const { questions } = req.body ?? {};
+      if (!Array.isArray(questions)) return void res.sendStatus(400);
+      res.json(
+        questions.map(({ statement, options }: { statement?: unknown; options?: unknown }) =>
+          typeof statement === 'string'
+            ? classifyQuestion(statement, Array.isArray(options) ? options : [])
+            : null,
+        ),
+      );
     })
     .post('/', (req, res) => {
       const { name, questions } = req.body ?? {};
