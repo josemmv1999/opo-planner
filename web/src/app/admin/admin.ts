@@ -1,13 +1,24 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ConfirmContent } from '../../common/components/confirm-content/confirm-content';
 import { Icon } from '../../common/components/icon/icon';
+import { Modal } from '../../common/components/modal/modal';
 import { AdminStore } from './admin.store';
 import { ExamImportForm } from './exam-import-form/exam-import-form';
 import { ExamImportReview } from './exam-import-review/exam-import-review';
+import { ImportedExamList } from './imported-exam-list/imported-exam-list';
 
 @Component({
   selector: 'app-admin',
-  imports: [TranslatePipe, Icon, ExamImportForm, ExamImportReview],
+  imports: [
+    TranslatePipe,
+    Icon,
+    Modal,
+    ConfirmContent,
+    ExamImportForm,
+    ExamImportReview,
+    ImportedExamList,
+  ],
   providers: [AdminStore],
   template: `
     <section class="card card--teal">
@@ -39,6 +50,45 @@ import { ExamImportReview } from './exam-import-review/exam-import-review';
         }
       </div>
     </section>
+
+    <section class="card card--teal">
+      <div class="card-body d-flex flex-column gap-3">
+        <h2 class="h5 mb-0">{{ 'admin.imported.title' | translate }}</h2>
+        @if (store.isLoadingImported()) {
+          <div class="d-flex justify-content-center py-3">
+            <span class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">{{ 'admin.imported.loading' | translate }}</span>
+            </span>
+          </div>
+        } @else if (store.error() === 'loadingImported') {
+          <p class="alert alert-danger mb-0" role="alert">
+            {{ 'admin.imported.loadError' | translate }}
+          </p>
+        } @else if (store.importedExams().length) {
+          <app-imported-exam-list
+            [exams]="store.importedExams()"
+            (deleted)="store.openDeleteModal($event)" />
+        } @else {
+          <p class="text-body-secondary mb-0">{{ 'admin.imported.empty' | translate }}</p>
+        }
+      </div>
+    </section>
+
+    <app-modal
+      [isOpen]="!!store.examToDelete()"
+      [label]="'admin.imported.deleteTitle' | translate"
+      (closed)="store.closeDeleteModal()">
+      <ng-template>
+        <app-confirm-content
+          [title]="'admin.imported.deleteTitle' | translate"
+          [message]="
+            'admin.imported.deleteMessage' | translate: { name: store.examToDelete()?.name }
+          "
+          [isDanger]="true"
+          (confirm)="store.deleteExam()"
+          (cancelAction)="store.closeDeleteModal()" />
+      </ng-template>
+    </app-modal>
   `,
   host: { class: 'd-flex flex-column gap-3' },
   styles: `
@@ -55,4 +105,8 @@ import { ExamImportReview } from './exam-import-review/exam-import-review';
 })
 export class Admin {
   protected readonly store = inject(AdminStore);
+
+  constructor() {
+    this.store.loadImported();
+  }
 }
