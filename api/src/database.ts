@@ -1,9 +1,10 @@
 import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { syllabusSeedSql } from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
+export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? join(dirname(DB_FILE), 'uploads');
 
 const MIGRATIONS = [
   `CREATE TABLE users (
@@ -80,6 +81,18 @@ const MIGRATIONS = [
   `ALTER TABLE questions ADD COLUMN explanation TEXT`,
   `ALTER TABLE questions ADD COLUMN source TEXT`,
   syllabusSeedSql(5),
+  `CREATE TABLE notes (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    topic_id INTEGER NOT NULL REFERENCES topics (id),
+    title TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    content TEXT,
+    file_name TEXT,
+    mime_type TEXT,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX notes_user_id ON notes (user_id)`,
 ];
 
 const migrate = (database: DatabaseSync): void => {

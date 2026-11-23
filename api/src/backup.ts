@@ -1,4 +1,4 @@
-import { mkdir, readdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { backup, type DatabaseSync } from 'node:sqlite';
 
@@ -20,10 +20,14 @@ export const backupDatabase = async (
   return file;
 };
 
-export const scheduleBackups = (database: DatabaseSync, dir: string): void => {
+export const backupUploads = (uploadsDir: string, dir: string): Promise<void> =>
+  cp(uploadsDir, join(dir, 'uploads'), { recursive: true, force: false });
+
+export const scheduleBackups = (database: DatabaseSync, dir: string, uploadsDir: string): void => {
   const run = () =>
     backupDatabase(database, dir)
       .then((file) => console.log(`Database backup saved to ${file}`))
+      .then(() => backupUploads(uploadsDir, dir))
       .catch((error: unknown) => console.error('Database backup failed', error));
   run();
   setInterval(run, DAY_MS).unref();
