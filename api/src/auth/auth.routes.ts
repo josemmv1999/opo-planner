@@ -2,11 +2,9 @@ import { randomBytes } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import { Router, type Response } from 'express';
 import { hashPassword, verifyPassword } from '../password.ts';
+import { isFilled } from '../validation.ts';
 import { requireUser, SESSION_COOKIE, type AuthenticatedResponse } from './require-user.ts';
 import { toUser, type UserRow } from './user.ts';
-
-const isFilled = (...values: unknown[]): boolean =>
-  values.every((value) => typeof value === 'string' && value.trim() !== '');
 
 export const authRoutes = (database: DatabaseSync): Router => {
   const findUser = database.prepare('SELECT * FROM users WHERE email = ?');
