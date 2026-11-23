@@ -106,7 +106,9 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
                 : ('topicQuiz.wrong' | translate: { letter: letters[question().correctOption] })
             }}
           </p>
-          <p class="mb-0">{{ question().reasoning }}</p>
+          @if (question().reasoning) {
+            <p class="mb-0">{{ question().reasoning }}</p>
+          }
         </div>
       }
 

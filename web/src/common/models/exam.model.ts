@@ -38,6 +38,11 @@ export interface ExamQuestion {
   block: string;
 }
 
+export interface TopicQuestion extends ExamQuestion {
+  topicId: number;
+  caseText: string | null;
+}
+
 export interface ExamDetail {
   id: string;
   name: string;

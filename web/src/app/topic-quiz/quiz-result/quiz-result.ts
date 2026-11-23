@@ -23,9 +23,11 @@ import { QuizQuestion } from '../../../common/models/quiz.model';
             @for (question of wrongQuestions(); track question.id) {
               <li class="quiz-result__wrong">
                 <p class="fw-bold mb-1">{{ question.statement }}</p>
-                <p class="quiz-result__reasoning text-body-secondary mb-0">
-                  {{ question.reasoning }}
-                </p>
+                @if (question.reasoning) {
+                  <p class="quiz-result__reasoning text-body-secondary mb-0">
+                    {{ question.reasoning }}
+                  </p>
+                }
               </li>
             }
           </ul>
