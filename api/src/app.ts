@@ -3,6 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import express from 'express';
 import { authRoutes } from './auth/auth.routes.ts';
 import { adminExamsRoutes } from './exams/admin-exams.routes.ts';
+import { examsRoutes } from './exams/exams.routes.ts';
 
 export const createApp = (database: DatabaseSync, webDir?: string) => {
   const app = express();
@@ -12,6 +13,7 @@ export const createApp = (database: DatabaseSync, webDir?: string) => {
   });
   app.use('/api/auth', authRoutes(database));
   app.use('/api/admin/exams', adminExamsRoutes(database));
+  app.use('/api/exams', examsRoutes(database));
   if (webDir) {
     app.use(express.static(webDir));
     app.use((req, res, next) =>
