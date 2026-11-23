@@ -12,6 +12,8 @@ import { ProfileForm } from './profile-form/profile-form';
 import { ProfileStore } from './profile.store';
 
 import { SessionService } from '../../common/services/session.service';
+import { AccountService } from '../services/account.service';
+import { finalize } from 'rxjs';
 @Component({
   selector: 'app-profile',
   imports: [
@@ -235,6 +237,7 @@ export class Profile {
   protected readonly profile = inject(ProfileStore);
   readonly #router = inject(Router);
   readonly #session = inject(SessionService);
+  readonly #accountService = inject(AccountService);
 
   constructor() {
     this.profile.loadOppositions();
@@ -247,7 +250,14 @@ export class Profile {
   }
 
   protected logout(): void {
-    this.#session.end();
-    this.#router.navigate(['/login']);
+    this.#accountService
+      .logout()
+      .pipe(
+        finalize(() => {
+          this.#session.end();
+          this.#router.navigate(['/login']);
+        }),
+      )
+      .subscribe();
   }
 }

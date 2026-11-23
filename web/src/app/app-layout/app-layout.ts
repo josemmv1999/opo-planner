@@ -9,7 +9,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, map } from 'rxjs';
+import { filter, finalize, map } from 'rxjs';
 import { Icon } from '../../common/components/icon/icon';
 import { Modal } from '../../common/components/modal/modal';
 import { BottomNav } from '../../common/components/bottom-nav/bottom-nav';
@@ -31,6 +31,7 @@ const deepestChild = (route: ActivatedRoute): ActivatedRoute =>
   route.firstChild ? deepestChild(route.firstChild) : route;
 
 import { SessionService } from '../../common/services/session.service';
+import { AccountService } from '../services/account.service';
 @Component({
   selector: 'app-layout',
   imports: [RouterOutlet, RouterLink, Modal, Icon, TranslatePipe, Sidebar, BottomNav, PageHeader],
@@ -166,6 +167,7 @@ export class AppLayout {
   protected readonly isTouchLayout = inject(InterfaceModeService).isTouchLayout;
   readonly #router = inject(Router);
   readonly #session = inject(SessionService);
+  readonly #accountService = inject(AccountService);
   readonly #route = inject(ActivatedRoute);
 
   protected readonly pageTitleKey = toSignal(
@@ -189,7 +191,14 @@ export class AppLayout {
   }
 
   protected logout(): void {
-    this.#session.end();
-    this.#router.navigate(['/login']);
+    this.#accountService
+      .logout()
+      .pipe(
+        finalize(() => {
+          this.#session.end();
+          this.#router.navigate(['/login']);
+        }),
+      )
+      .subscribe();
   }
 }
