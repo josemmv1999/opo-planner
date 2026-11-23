@@ -7,6 +7,7 @@ export interface ParsedQuestion {
   options: string[];
   correctOption: number | null;
   isVoided: boolean;
+  topicId: number | null;
 }
 
 export type ImportErrorKind = 'missingAnswer' | 'optionCount' | 'missingQuestion';

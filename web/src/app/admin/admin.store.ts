@@ -8,10 +8,13 @@ import { NotificationService } from '../../common/services/notification.service'
 import { parseOfficialExam } from '../../common/utils/parse-official-exam';
 import { READ_PDF_TEXT } from '../../common/utils/read-pdf-text';
 import { ExamService } from '../services/exam.service';
+import { SyllabusService } from '../services/syllabus.service';
+import { SyllabusBlock } from '../../common/models/syllabus.model';
 
 interface AdminState {
   examName: string;
   parsedExam: ParsedExam | null;
+  syllabusBlocks: SyllabusBlock[];
   isReading: boolean;
   isImporting: boolean;
   importedExams: ImportedExam[];
@@ -25,6 +28,7 @@ export const AdminStore = signalStore(
   withState<AdminState>({
     examName: '',
     parsedExam: null,
+    syllabusBlocks: [],
     isReading: false,
     isImporting: false,
     importedExams: [],
@@ -41,6 +45,7 @@ export const AdminStore = signalStore(
         questions: questions.filter(({ isReserve }) => !isReserve).length,
         reserve: questions.filter(({ isReserve }) => isReserve).length,
         voided: questions.filter(({ isVoided }) => isVoided).length,
+        withoutTopic: questions.filter(({ topicId }) => topicId === null).length,
       };
     }),
     canImport: computed(() => !!parsedExam()?.questions.length && !parsedExam()?.errors.length),
@@ -49,6 +54,7 @@ export const AdminStore = signalStore(
     (
       store,
       examService = inject(ExamService),
+      syllabusService = inject(SyllabusService),
       notificationService = inject(NotificationService),
       readPdfText = inject(READ_PDF_TEXT),
     ) => ({
@@ -62,8 +68,26 @@ export const AdminStore = signalStore(
               map(([questionnaireText, answerKeyText]) =>
                 parseOfficialExam(questionnaireText, answerKeyText),
               ),
+              switchMap((parsedExam) =>
+                forkJoin([
+                  examService.classifyQuestions(parsedExam.questions),
+                  syllabusService.getBlocks(),
+                ]).pipe(
+                  map(([topicIds, syllabusBlocks]) => ({
+                    syllabusBlocks,
+                    parsedExam: {
+                      ...parsedExam,
+                      questions: parsedExam.questions.map((question, i) => ({
+                        ...question,
+                        topicId: topicIds[i] ?? null,
+                      })),
+                    },
+                  })),
+                ),
+              ),
               tapResponse({
-                next: (parsedExam) => patchState(store, { parsedExam, isReading: false }),
+                next: ({ parsedExam, syllabusBlocks }) =>
+                  patchState(store, { parsedExam, syllabusBlocks, isReading: false }),
                 error: () => patchState(store, { isReading: false, error: 'reading' }),
               }),
             ),
@@ -135,6 +159,18 @@ export const AdminStore = signalStore(
       },
       closeDeleteModal(): void {
         patchState(store, { examToDeleteId: null });
+      },
+      setQuestionTopic({ index, topicId }: { index: number; topicId: number | null }): void {
+        const parsedExam = store.parsedExam();
+        if (!parsedExam) return;
+        patchState(store, {
+          parsedExam: {
+            ...parsedExam,
+            questions: parsedExam.questions.map((question, i) =>
+              i === index ? { ...question, topicId } : question,
+            ),
+          },
+        });
       },
       discard(): void {
         patchState(store, { parsedExam: null, examName: '', error: null });

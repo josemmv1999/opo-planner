@@ -73,6 +73,12 @@ export class ExamService {
     return this.#http.post<ImportedExam>('/api/admin/exams', { name, questions });
   }
 
+  classifyQuestions(questions: ParsedQuestion[]): Observable<(number | null)[]> {
+    return this.#http.post<(number | null)[]>('/api/admin/exams/classify', {
+      questions: questions.map(({ statement, options }) => ({ statement, options })),
+    });
+  }
+
   deleteImportedExam(examId: number): Observable<void> {
     return this.#http.delete<void>(`/api/admin/exams/${examId}`);
   }

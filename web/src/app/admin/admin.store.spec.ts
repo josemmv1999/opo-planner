@@ -4,6 +4,7 @@ import { ParsedQuestion } from '../../common/models/exam-import.model';
 import { NotificationService } from '../../common/services/notification.service';
 import { READ_PDF_TEXT } from '../../common/utils/read-pdf-text';
 import { ExamService } from '../services/exam.service';
+import { SyllabusService } from '../services/syllabus.service';
 import { AdminStore } from './admin.store';
 
 const QUESTIONNAIRE = `PRIMERA PARTE
@@ -36,6 +37,7 @@ describe('AdminStore', () => {
   };
 
   const deleteImportedExam = vi.fn(() => of(undefined));
+  const classifyQuestions = (questions: ParsedQuestion[]) => of(questions.map(() => 3));
   const getImportedExams = () =>
     of([
       { id: 1000, name: 'A', importedAt: '', questions: [] },
@@ -49,8 +51,9 @@ describe('AdminStore', () => {
         AdminStore,
         {
           provide: ExamService,
-          useValue: { importOfficialExam, getImportedExams, deleteImportedExam },
+          useValue: { importOfficialExam, getImportedExams, deleteImportedExam, classifyQuestions },
         },
+        { provide: SyllabusService, useValue: { getBlocks: () => of([]) } },
         { provide: NotificationService, useValue: { success: vi.fn() } },
         { provide: READ_PDF_TEXT, useValue: (file: File) => file.text() },
       ],
@@ -60,7 +63,7 @@ describe('AdminStore', () => {
 
   it('reads both PDFs and summarises the exam', async () => {
     await read('Primera parte\n1. a\n2. ANULADA\nPreguntas de reserva\n1. a');
-    expect(store.importSummary()).toEqual({ questions: 2, reserve: 1, voided: 1 });
+    expect(store.importSummary()).toEqual({ questions: 2, reserve: 1, voided: 1, withoutTopic: 0 });
     expect(store.canImport()).toBe(true);
   });
 
@@ -85,5 +88,13 @@ describe('AdminStore', () => {
     expect(deleteImportedExam).toHaveBeenCalledWith(1000);
     expect(store.importedExams().map(({ id }) => id)).toEqual([1001]);
     expect(store.examToDelete()).toBeUndefined();
+  });
+
+  it('suggests a topic for each question and lets the admin change it', async () => {
+    await read('Primera parte\n1. a\n2. b\nPreguntas de reserva\n1. a');
+    expect(store.parsedExam()?.questions.map(({ topicId }) => topicId)).toEqual([3, 3, 3]);
+    store.setQuestionTopic({ index: 1, topicId: null });
+    expect(store.parsedExam()?.questions[1].topicId).toBeNull();
+    expect(store.importSummary().withoutTopic).toBe(1);
   });
 });
