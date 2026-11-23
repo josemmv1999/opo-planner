@@ -2,6 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
 import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
 import type { QuestionRow } from './question.ts';
+import { shuffleOptions } from './shuffle-options.ts';
 
 const MIXED_EXAM = { id: 'mixed', name: 'Batiburrillo', minutes: 60, questionCount: 60 };
 const USABLE = 'is_reserve = 0 AND is_voided = 0 AND correct_option IS NOT NULL';
@@ -9,8 +10,7 @@ const USABLE = 'is_reserve = 0 AND is_voided = 0 AND correct_option IS NOT NULL'
 const toExamQuestion = ({ id, statement, options, correct_option, section }: QuestionRow) => ({
   id,
   statement,
-  options: JSON.parse(options) as string[],
-  correctOption: correct_option,
+  ...shuffleOptions(JSON.parse(options) as string[], correct_option),
   block: section,
 });
 
