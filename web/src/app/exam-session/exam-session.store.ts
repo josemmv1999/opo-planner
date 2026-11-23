@@ -37,6 +37,7 @@ interface ExamSessionState {
   isReviewing: boolean;
   isSubmitModalOpen: boolean;
   isExitModalOpen: boolean;
+  isChoosingCase: boolean;
   isLoading: boolean;
   error: 'loading' | null;
 }
@@ -52,6 +53,7 @@ export const ExamSessionStore = signalStore(
     isReviewing: false,
     isSubmitModalOpen: false,
     isExitModalOpen: false,
+    isChoosingCase: false,
     isLoading: false,
     error: null,
   }),
@@ -64,6 +66,9 @@ export const ExamSessionStore = signalStore(
     return {
       total,
       currentQuestion: computed(() => exam()?.questions[index()] ?? null),
+      hasPendingCase: computed(
+        () => !!exam()?.cases?.length && !exam()?.questions.some(({ caseText }) => caseText),
+      ),
       currentAnswer: computed(() => answers()[index()] ?? null),
       isCurrentFlagged: computed(() => flaggedIndexes().includes(index())),
       flaggedSet: computed(() => new Set(flaggedIndexes())),
@@ -114,6 +119,7 @@ export const ExamSessionStore = signalStore(
                   secondsLeft: exam.minutes * 60,
                   hasSubmitted: false,
                   isReviewing: false,
+                  isChoosingCase: false,
                   isLoading: false,
                 }),
               error: () => patchState(store, { isLoading: false, error: 'loading' }),
@@ -148,8 +154,27 @@ export const ExamSessionStore = signalStore(
       }));
     },
     goTo(index: number): void {
+      if (index === store.total() && store.hasPendingCase() && !store.hasSubmitted())
+        return patchState(store, { isChoosingCase: true });
       if (index < 0 || index >= store.total()) return;
-      patchState(store, { index });
+      patchState(store, { index, isChoosingCase: false });
+    },
+    chooseCase(section: string): void {
+      const exam = store.exam();
+      const examCase = exam?.cases?.find((candidate) => candidate.section === section);
+      if (!exam || !examCase) return;
+      patchState(store, ({ answers }) => ({
+        exam: {
+          ...exam,
+          questions: [
+            ...exam.questions,
+            ...examCase.questions.map((question) => ({ ...question, caseText: examCase.text })),
+          ],
+        },
+        answers: [...answers, ...examCase.questions.map(() => null)],
+        index: answers.length,
+        isChoosingCase: false,
+      }));
     },
     openSubmitModal(): void {
       patchState(store, { isSubmitModalOpen: true });
@@ -161,7 +186,7 @@ export const ExamSessionStore = signalStore(
       patchState(store, { hasSubmitted: true, isSubmitModalOpen: false });
     },
     startReview(): void {
-      patchState(store, { isReviewing: true, index: 0 });
+      patchState(store, { isReviewing: true, isChoosingCase: false, index: 0 });
     },
     closeReview(): void {
       patchState(store, { isReviewing: false });

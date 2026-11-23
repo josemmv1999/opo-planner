@@ -41,6 +41,13 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
           }
         </div>
 
+        @if (question().caseText; as caseText) {
+          <details class="exam-question__case" open>
+            <summary class="exam-question__meta">{{ 'examSession.caseText' | translate }}</summary>
+            <p class="exam-question__case-text mt-2 mb-0">{{ caseText }}</p>
+          </details>
+        }
+
         <h1 #statement class="exam-question__statement mb-0" tabindex="-1">
           {{ question().statement }}
         </h1>
@@ -83,7 +90,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
             variant="outline-primary"
             type="button"
             class="d-flex align-items-center"
-            [disabled]="index() === total() - 1"
+            [disabled]="index() === total() - 1 && !hasNextStep()"
             (click)="moved.emit(index() + 1)">
             {{ 'actions.next' | translate }}
             <app-icon class="ms-2" name="chevron-right" />
@@ -100,6 +107,19 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
     .exam-question__meta {
       font-size: 0.875rem;
       font-weight: 800;
+    }
+
+    .exam-question__case {
+      padding: 0.75rem 1rem;
+      background-color: var(--bs-white);
+      border: 2px solid rgba(var(--bs-dark-rgb), 0.14);
+      border-radius: var(--bs-border-radius-lg);
+    }
+
+    .exam-question__case-text {
+      max-height: 14rem;
+      overflow-y: auto;
+      white-space: pre-line;
     }
 
     .exam-question__flag {
@@ -190,6 +210,7 @@ export class ExamQuestionCard {
   readonly answer = input<number | null>(null);
   readonly isFlagged = input(false);
   readonly correctOption = input<number | null>(null);
+  readonly hasNextStep = input(false);
   readonly answered = output<number>();
   readonly flagToggled = output();
   readonly moved = output<number>();

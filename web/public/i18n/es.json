@@ -390,6 +390,11 @@
   "examSession": {
     "loading": "Cargando el examen",
     "loadError": "No hemos podido cargar el examen.",
+    "chooseCase": "Elige un supuesto práctico",
+    "chooseCaseHint": "Lee los supuestos y elige uno. Solo responderás las preguntas del que elijas.",
+    "chooseThisCase": "Elegir este supuesto ({{count}} preguntas)",
+    "caseText": "Texto del supuesto",
+    "caseNotChosen": "Todavía no has elegido un supuesto práctico: sus preguntas no contarán.",
     "exit": "Salir",
     "exitTitle": "¿Salir del examen?",
     "exitText": "Perderás las respuestas de este intento.",

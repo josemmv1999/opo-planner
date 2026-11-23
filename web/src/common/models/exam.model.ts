@@ -36,6 +36,13 @@ export interface ExamQuestion {
   options: string[];
   correctOption: number;
   block: string;
+  caseText?: string | null;
+}
+
+export interface ExamCase {
+  section: string;
+  text: string;
+  questions: ExamQuestion[];
 }
 
 export interface TopicQuestion extends ExamQuestion {
@@ -48,6 +55,7 @@ export interface ExamDetail {
   name: string;
   minutes: number;
   questions: ExamQuestion[];
+  cases?: ExamCase[];
 }
 
 export interface WeakBlock {

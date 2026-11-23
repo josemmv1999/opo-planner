@@ -6,6 +6,7 @@ import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../common/components/modal/modal';
 import { ExamBar } from './exam-bar/exam-bar';
+import { ExamCaseChooser } from './exam-case-chooser/exam-case-chooser';
 import { ExamNavigator } from './exam-navigator/exam-navigator';
 import { ExamQuestionCard } from './exam-question/exam-question';
 import { ExamResult } from './exam-result/exam-result';
@@ -22,6 +23,7 @@ const FLAG_KEY = 'm';
     Icon,
     Modal,
     ExamBar,
+    ExamCaseChooser,
     ExamQuestionCard,
     ExamNavigator,
     ExamResult,
@@ -71,7 +73,12 @@ const FLAG_KEY = 'm';
 
       @if (!store.hasSubmitted() || store.isReviewing()) {
         <div class="exam-session__body">
-          @if (store.currentQuestion(); as question) {
+          @if (store.isChoosingCase()) {
+            <app-exam-case-chooser
+              [cases]="exam.cases ?? []"
+              (chosen)="store.chooseCase($event)"
+              (back)="store.goTo(store.total() - 1)" />
+          } @else if (store.currentQuestion(); as question) {
             <app-exam-question
               [question]="question"
               [index]="store.index()"
@@ -79,6 +86,7 @@ const FLAG_KEY = 'm';
               [answer]="store.currentAnswer()"
               [isFlagged]="store.isCurrentFlagged()"
               [correctOption]="store.isReviewing() ? question.correctOption : null"
+              [hasNextStep]="store.hasPendingCase() && !store.isReviewing()"
               (answered)="store.answer($event)"
               (flagToggled)="store.toggleFlag()"
               (moved)="store.goTo($event)" />
@@ -115,6 +123,9 @@ const FLAG_KEY = 'm';
                 | translate: { blank: store.blankCount(), flagged: store.flaggedIndexes().length }
             }}
           </p>
+          @if (store.hasPendingCase()) {
+            <p class="text-danger fw-bold mb-0">{{ 'examSession.caseNotChosen' | translate }}</p>
+          }
           <div class="d-flex flex-wrap justify-content-end gap-2">
             <button
               app-button
@@ -220,6 +231,7 @@ export class ExamSession {
       (!isAnswering && !this.store.isReviewing()) ||
       this.store.isSubmitModalOpen() ||
       this.store.isExitModalOpen() ||
+      this.store.isChoosingCase() ||
       event.ctrlKey ||
       event.metaKey ||
       event.altKey ||
