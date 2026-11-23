@@ -59,6 +59,7 @@ describe('parseOfficialExam', () => {
       ],
       correctOption: 3,
       isVoided: false,
+      topicId: null,
     });
     expect(questions[1].options[2]).toBe(
       'Diecinueve objetivos, según la resolución de Naciones Unidas.',

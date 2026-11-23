@@ -55,6 +55,7 @@ export const parseQuestionnaire = (text: string): ParsedQuestion[] => {
         options: [],
         correctOption: null,
         isVoided: false,
+        topicId: null,
       };
       questions.push(current);
     } else if (current && OPTION.test(line)) {

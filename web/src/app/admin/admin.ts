@@ -37,10 +37,12 @@ import { ImportedExamList } from './imported-exam-list/imported-exam-list';
           <app-exam-import-review
             [parsedExam]="parsedExam"
             [summary]="store.importSummary()"
+            [syllabusBlocks]="store.syllabusBlocks()"
             [canImport]="store.canImport()"
             [isImporting]="store.isImporting()"
             (imported)="store.importExam()"
-            (discarded)="store.discard()" />
+            (discarded)="store.discard()"
+            (topicChanged)="store.setQuestionTopic($event)" />
         } @else {
           <p class="text-body-secondary mb-0">{{ 'admin.import.hint' | translate }}</p>
           <app-exam-import-form

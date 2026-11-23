@@ -105,7 +105,9 @@
       "answerKey": "Plantilla de respuestas (PDF)",
       "read": "Leer PDF",
       "readError": "No se han podido leer los PDF. Comprueba que son los archivos correctos.",
-      "summary": "Listo para importar: {{questions}} preguntas y {{reserve}} de reserva. {{voided}} anuladas no se usarán.",
+      "summary": "Listo para importar: {{questions}} preguntas y {{reserve}} de reserva. {{voided}} anuladas no se usarán. {{withoutTopic}} sin tema: revísalas antes de importar.",
+      "topic": "Tema de la pregunta",
+      "withoutTopic": "Sin tema",
       "errorsTitle": "Hay {{count}} errores. Corrige los PDF y vuelve a subirlos.",
       "errors": {
         "missingAnswer": "{{section}}, pregunta {{number}} {{reserve}}: no tiene respuesta en la plantilla.",

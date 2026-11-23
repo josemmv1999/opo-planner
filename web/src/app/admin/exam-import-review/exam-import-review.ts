@@ -2,11 +2,18 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from '../../../common/components/button/button';
 import { ParsedExam } from '../../../common/models/exam-import.model';
+import { SyllabusBlock } from '../../../common/models/syllabus.model';
 
 interface ImportSummary {
   questions: number;
   reserve: number;
   voided: number;
+  withoutTopic: number;
+}
+
+export interface QuestionTopicChange {
+  index: number;
+  topicId: number | null;
 }
 
 @Component({
@@ -53,6 +60,24 @@ interface ImportSummary {
             }
           </p>
           <p class="mb-1">{{ question.statement }}</p>
+          <select
+            class="form-select form-select-sm mb-2"
+            [class.border-warning]="question.topicId === null"
+            [attr.aria-label]="'admin.import.topic' | translate"
+            (change)="changeTopic($index, $event)">
+            <option value="" [selected]="question.topicId === null">
+              {{ 'admin.import.withoutTopic' | translate }}
+            </option>
+            @for (block of syllabusBlocks(); track block.id) {
+              <optgroup [label]="block.label + ' · ' + block.name">
+                @for (topic of block.topics; track topic.id) {
+                  <option [value]="topic.id" [selected]="topic.id === question.topicId">
+                    {{ topic.number }}. {{ topic.name }}
+                  </option>
+                }
+              </optgroup>
+            }
+          </select>
           <ol class="exam-import-review__options mb-0" type="a">
             @for (option of question.options; track $index) {
               <li
@@ -112,8 +137,15 @@ interface ImportSummary {
 export class ExamImportReview {
   readonly parsedExam = input.required<ParsedExam>();
   readonly summary = input.required<ImportSummary>();
+  readonly syllabusBlocks = input.required<SyllabusBlock[]>();
   readonly canImport = input.required<boolean>();
   readonly isImporting = input.required<boolean>();
   readonly imported = output();
   readonly discarded = output();
+  readonly topicChanged = output<QuestionTopicChange>();
+
+  protected changeTopic(index: number, event: Event): void {
+    const { value } = event.target as HTMLSelectElement;
+    this.topicChanged.emit({ index, topicId: value ? Number(value) : null });
+  }
 }
