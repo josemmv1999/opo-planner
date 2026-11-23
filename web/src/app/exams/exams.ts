@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Modal } from '../../common/components/modal/modal';
 import { CUSTOM_EXAM_ID, CustomExamConfig } from '../../common/models/exam.model';
@@ -11,7 +12,16 @@ import { ExamsStore } from './exams.store';
 
 @Component({
   selector: 'app-exams',
-  imports: [Button, RouterLink, TranslatePipe, Icon, FormatDatePipe, Modal, CustomTestForm],
+  imports: [
+    Button,
+    NgTemplateOutlet,
+    RouterLink,
+    TranslatePipe,
+    Icon,
+    FormatDatePipe,
+    Modal,
+    CustomTestForm,
+  ],
   providers: [ExamsStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -26,7 +36,8 @@ import { ExamsStore } from './exams.store';
           app-button
           type="button"
           class="align-self-start mt-auto"
-          (click)="scrollToOfficialList()"
+          [disabled]="store.isLoading()"
+          (click)="store.openOfficialModal()"
           icon="tests">
           {{ 'exams.official.choose' | translate }}
         </button>
@@ -58,6 +69,49 @@ import { ExamsStore } from './exams.store';
       </section>
     </div>
 
+    <ng-template #officialExams>
+      <ul class="list-unstyled mb-0">
+        @for (exam of store.officialExams(); track exam.id) {
+          <li class="exams__row d-flex align-items-center gap-3">
+            <span class="d-flex flex-column flex-grow-1 overflow-hidden">
+              <span class="fw-bold">{{ exam.name }}</span>
+              <span class="exams__meta text-body-secondary">
+                {{
+                  'exams.official.meta'
+                    | translate: { questions: exam.questionCount, minutes: exam.minutes }
+                }}
+                ·
+                {{
+                  exam.lastPercentage === null
+                    ? ('exams.official.notTaken' | translate)
+                    : ('exams.official.lastAttempt'
+                      | translate: { percentage: exam.lastPercentage })
+                }}
+              </span>
+            </span>
+            <a class="btn btn-outline-primary btn-sm" [routerLink]="['/exams', exam.id]">
+              {{
+                (exam.lastPercentage === null ? 'exams.official.take' : 'exams.official.retake')
+                  | translate
+              }}
+            </a>
+          </li>
+        }
+      </ul>
+    </ng-template>
+
+    <app-modal
+      [isOpen]="store.isOfficialModalOpen()"
+      [label]="'exams.official.listTitle' | translate"
+      (closed)="store.closeOfficialModal()">
+      <ng-template>
+        <div class="d-flex flex-column gap-3">
+          <h2 class="h5 mb-0">{{ 'exams.official.listTitle' | translate }}</h2>
+          <ng-container [ngTemplateOutlet]="officialExams" />
+        </div>
+      </ng-template>
+    </app-modal>
+
     <app-modal
       size="lg"
       [isOpen]="store.isCustomModalOpen()"
@@ -81,39 +135,10 @@ import { ExamsStore } from './exams.store';
       <div class="alert alert-danger mb-0" role="alert">{{ 'exams.loadError' | translate }}</div>
     } @else {
       <div class="exams__lists">
-        <section #officialList class="card card--cyan">
+        <section class="card card--cyan">
           <div class="card-body d-flex flex-column gap-3">
             <h2 class="exams__section mb-0">{{ 'exams.official.listTitle' | translate }}</h2>
-            <ul class="list-unstyled mb-0">
-              @for (exam of store.officialExams(); track exam.id) {
-                <li class="exams__row d-flex align-items-center gap-3">
-                  <span class="d-flex flex-column flex-grow-1 overflow-hidden">
-                    <span class="fw-bold">{{ exam.name }}</span>
-                    <span class="exams__meta text-body-secondary">
-                      {{
-                        'exams.official.meta'
-                          | translate: { questions: exam.questionCount, minutes: exam.minutes }
-                      }}
-                      ·
-                      {{
-                        exam.lastPercentage === null
-                          ? ('exams.official.notTaken' | translate)
-                          : ('exams.official.lastAttempt'
-                            | translate: { percentage: exam.lastPercentage })
-                      }}
-                    </span>
-                  </span>
-                  <a class="btn btn-outline-primary btn-sm" [routerLink]="['/exams', exam.id]">
-                    {{
-                      (exam.lastPercentage === null
-                        ? 'exams.official.take'
-                        : 'exams.official.retake'
-                      ) | translate
-                    }}
-                  </a>
-                </li>
-              }
-            </ul>
+            <ng-container [ngTemplateOutlet]="officialExams" />
           </div>
         </section>
 
@@ -244,7 +269,6 @@ import { ExamsStore } from './exams.store';
 export class Exams {
   protected readonly store = inject(ExamsStore);
   readonly #router = inject(Router);
-  private readonly officialList = viewChild<ElementRef<HTMLElement>>('officialList');
 
   constructor() {
     this.store.load();
@@ -259,9 +283,5 @@ export class Exams {
         officialOnly: isOfficialOnly,
       },
     });
-  }
-
-  protected scrollToOfficialList(): void {
-    this.officialList()?.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
 }
