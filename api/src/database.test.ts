@@ -24,3 +24,22 @@ test('runs each migration only once', () => {
   openDatabase(file).close();
   assert.doesNotThrow(() => openDatabase(file).close());
 });
+
+test('deletes the questions of a deleted exam', () => {
+  const database = openDatabase(':memory:');
+  const { id } = database
+    .prepare("INSERT INTO exams (name) VALUES ('2025') RETURNING id")
+    .get() as {
+    id: number;
+  };
+  database
+    .prepare(
+      "INSERT INTO questions (exam_id, section, number, statement, options) VALUES (?, 'PRIMERA PARTE', 1, '¿?', '[]')",
+    )
+    .run(id);
+  database.prepare('DELETE FROM exams WHERE id = ?').run(id);
+  assert.deepEqual(
+    { ...database.prepare('SELECT COUNT(*) AS count FROM questions').get() },
+    { count: 0 },
+  );
+});
