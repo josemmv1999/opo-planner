@@ -28,7 +28,7 @@ export const examsRoutes = (database: DatabaseSync): Router => {
     `SELECT * FROM questions WHERE exam_id = ? AND ${USABLE} ORDER BY id`,
   );
   const randomQuestions = database.prepare(
-    `SELECT * FROM questions WHERE ${USABLE} ORDER BY RANDOM() LIMIT ?`,
+    `SELECT * FROM questions WHERE ${USABLE} AND case_text IS NULL ORDER BY RANDOM() LIMIT ?`,
   );
 
   return Router()

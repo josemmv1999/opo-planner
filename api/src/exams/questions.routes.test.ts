@@ -16,6 +16,12 @@ before(async () => {
   insert.run(1, 'Tema 1 anulada', null, 1);
   insert.run(2, 'Tema 2', 2, 0);
   insert.run(null, 'Sin tema', 3, 0);
+  database
+    .prepare(
+      `INSERT INTO questions (topic_id, section, number, case_text, statement, options, correct_option)
+        VALUES (1, 'SUPUESTO I', 1, 'Caso', 'Tema 1 supuesto', '["a","b","c","d"]', 0)`,
+    )
+    .run();
   cookie = await signUp('ana@example.com');
 });
 
@@ -24,7 +30,7 @@ const statements = async (query: string): Promise<string[]> => {
   return questions.map(({ statement }: { statement: string }) => statement).sort();
 };
 
-test('returns usable questions of the chosen topics', async () => {
+test('returns usable test questions of the chosen topics, never case questions', async () => {
   assert.deepEqual(await statements('topicIds=1&count=10'), ['Tema 1 A', 'Tema 1 B']);
   assert.deepEqual(await statements('topicIds=1,2&count=10'), ['Tema 1 A', 'Tema 1 B', 'Tema 2']);
 });
