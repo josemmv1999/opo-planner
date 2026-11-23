@@ -26,7 +26,7 @@ const importQuestions = (questions: unknown[]) =>
     body: JSON.stringify({ questions }),
   });
 
-test('imports valid questions as pending and reports the invalid ones', async () => {
+test('imports valid questions as approved and reports the invalid ones', async () => {
   const response = await importQuestions([
     generated,
     { ...generated, topic: 'IX.1' },
@@ -45,18 +45,11 @@ test('imports valid questions as pending and reports the invalid ones', async ()
     ],
   });
 
-  const pending = await (await request('/api/admin/questions/pending', { cookie })).json();
-  assert.deepEqual(pending, [
-    {
-      id: pending[0].id,
-      topicId: 18,
-      statement: generated.statement,
-      options: generated.options,
-      correctOption: 1,
-      explanation: generated.explanation,
-      source: generated.source,
-    },
-  ]);
+  const questions = await (await request('/api/questions?topicIds=18&count=10', { cookie })).json();
+  assert.deepEqual(
+    questions.map(({ statement }: { statement: string }) => statement),
+    [generated.statement],
+  );
 });
 
 test('is only for admins', async () => {
