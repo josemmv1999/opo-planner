@@ -35,6 +35,18 @@ test('returns usable test questions of the chosen topics, never case questions',
   assert.deepEqual(await statements('topicIds=1,2&count=10'), ['Tema 1 A', 'Tema 1 B', 'Tema 2']);
 });
 
+test('sends the explanation and source of each question', async () => {
+  database
+    .prepare(
+      `INSERT INTO questions (topic_id, section, number, statement, options, correct_option, explanation, source)
+        VALUES (3, 'GENERADA', 0, 'Generada', '["a","b","c","d"]', 0, '«Cita»', 'Ley 39/2015, art. 1')`,
+    )
+    .run();
+  const [question] = await (await request('/api/questions?topicIds=3&count=1', { cookie })).json();
+  assert.equal(question.explanation, '«Cita»');
+  assert.equal(question.source, 'Ley 39/2015, art. 1');
+});
+
 test('limits the number of questions', async () => {
   assert.equal((await statements('topicIds=1,2&count=2')).length, 2);
 });

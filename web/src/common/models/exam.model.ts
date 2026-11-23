@@ -48,6 +48,8 @@ export interface ExamCase {
 export interface TopicQuestion extends ExamQuestion {
   topicId: number;
   caseText: string | null;
+  explanation: string | null;
+  source: string | null;
 }
 
 export interface ExamDetail {
