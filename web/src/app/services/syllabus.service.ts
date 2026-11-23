@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, delay, map, of, switchMap } from 'rxjs';
+import { Observable, delay, forkJoin, map, of, switchMap } from 'rxjs';
 import { SyllabusBlock, SyllabusTopicDetail, TopicLaw } from '../../common/models/syllabus.model';
 import { NotesService } from './notes.service';
 
@@ -52,9 +52,11 @@ export class SyllabusService {
   readonly #notesService = inject(NotesService);
 
   getBlocks(): Observable<SyllabusBlock[]> {
-    return this.#http.get<ApiSyllabusBlock[]>('/api/syllabus').pipe(
-      map((blocks) => {
-        const counts = this.#notesService.countByTopic();
+    return forkJoin([
+      this.#http.get<ApiSyllabusBlock[]>('/api/syllabus'),
+      this.#notesService.countByTopic(),
+    ]).pipe(
+      map(([blocks, counts]) => {
         return blocks.map(({ id, label, name, topics }) => ({
           id,
           label,

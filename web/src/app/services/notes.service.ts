@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { formatISO } from 'date-fns';
-import { Observable, delay, from, map, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map } from 'rxjs';
 import {
   NoteDetail,
   NoteDraft,
@@ -8,58 +8,46 @@ import {
   PdfHighlightDraft,
   TopicNote,
 } from '../../common/models/syllabus.model';
+import { removeStorage } from '../../common/utils/storage';
 import { readJson, writeJson } from './mock-storage';
 
-const STORAGE_KEY = 'mockNotes';
-const PAGES_KEY = 'mockNotePages';
-const HIGHLIGHTS_KEY = 'mockPdfHighlights';
-const DELAY_MS = 300;
+const PAGES_KEY = 'notePages';
+const URL = '/api/notes';
+const HIGHLIGHT_COLOR = 'yellow';
+const OLD_KEYS = ['mockNotes', 'mockPdfHighlights', 'mockNotePages'];
 
-const today = (): string => formatISO(new Date(), { representation: 'date' });
+interface ApiHighlight extends PdfHighlightDraft {
+  id: number;
+  kind: 'highlight';
+  comment: string;
+}
 
-const PREVIEW_LENGTH = 220;
-
-const textPreview = (html: string | null): string =>
-  (
-    new DOMParser().parseFromString((html ?? '').replace(/<\/(h\d|p|li)>/g, '$& '), 'text/html')
-      .body.textContent ?? ''
-  ).slice(0, PREVIEW_LENGTH);
-
-const toSummary = ({ id, title, kind, updatedAt, content, fileUrl }: NoteDetail): TopicNote => ({
+const toHighlight = ({ id, page, text, rects, comment }: ApiHighlight): PdfHighlight => ({
   id,
-  title,
-  kind,
-  updatedAt,
-  preview: kind === 'text' ? textPreview(content) : fileUrl,
+  page,
+  text,
+  rects,
+  note: comment,
 });
-
-const readAsDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
 
 @Injectable({ providedIn: 'root' })
 export class NotesService {
-  #notes: NoteDetail[] = readJson<NoteDetail[]>(STORAGE_KEY) ?? [];
-  #nextId = Math.max(0, ...this.#notes.map(({ id }) => id)) + 1;
+  readonly #http = inject(HttpClient);
 
-  getTopicNotes(topicId: number): Observable<TopicNote[]> {
-    return of(this.#notes.filter((note) => note.topicId === topicId).map(toSummary));
+  constructor() {
+    OLD_KEYS.forEach(removeStorage);
   }
 
-  countByTopic(): Record<number, number> {
-    return this.#notes.reduce<Record<number, number>>(
-      (counts, { topicId }) => ({ ...counts, [topicId]: (counts[topicId] ?? 0) + 1 }),
-      {},
-    );
+  getTopicNotes(topicId: number): Observable<TopicNote[]> {
+    return this.#http.get<TopicNote[]>(URL, { params: { topicId } });
+  }
+
+  countByTopic(): Observable<Record<number, number>> {
+    return this.#http.get<Record<number, number>>(`${URL}/counts`);
   }
 
   getNote(noteId: number): Observable<NoteDetail> {
-    const note = this.#notes.find(({ id }) => id === noteId);
-    return note ? of(note).pipe(delay(DELAY_MS)) : throwError(() => new Error('Note not found'));
+    return this.#http.get<NoteDetail>(`${URL}/${noteId}`);
   }
 
   saveTextNote(
@@ -67,46 +55,20 @@ export class NotesService {
     noteId: number | null,
     { title, content }: NoteDraft,
   ): Observable<NoteDetail> {
-    const note: NoteDetail = {
-      id: noteId ?? this.#nextId++,
-      topicId,
-      title,
-      kind: 'text',
-      updatedAt: today(),
-      content,
-      fileUrl: null,
-    };
-    this.#notes = noteId
-      ? this.#notes.map((current) => (current.id === noteId ? note : current))
-      : [...this.#notes, note];
-    this.#save();
-    return of(note).pipe(delay(DELAY_MS));
+    return noteId === null
+      ? this.#http.post<NoteDetail>(URL, { topicId, title, content })
+      : this.#http.put<NoteDetail>(`${URL}/${noteId}`, { title, content });
   }
 
   uploadFile(topicId: number, file: File): Observable<TopicNote> {
-    return from(readAsDataUrl(file)).pipe(
-      map((fileUrl) => {
-        const note: NoteDetail = {
-          id: this.#nextId++,
-          topicId,
-          title: file.name.replace(/\.[^.]+$/, ''),
-          kind: file.type.startsWith('image/') ? 'image' : 'pdf',
-          updatedAt: today(),
-          content: null,
-          fileUrl,
-        };
-        this.#notes = [...this.#notes, note];
-        this.#save();
-        return toSummary(note);
-      }),
-      delay(DELAY_MS),
-    );
+    return this.#http.post<TopicNote>(`${URL}/file`, file, {
+      params: { topicId, name: file.name },
+      headers: { 'Content-Type': file.type },
+    });
   }
 
   deleteNote(noteId: number): Observable<number> {
-    this.#notes = this.#notes.filter(({ id }) => id !== noteId);
-    this.#save();
-    return of(noteId).pipe(delay(DELAY_MS));
+    return this.#http.delete<void>(`${URL}/${noteId}`).pipe(map(() => noteId));
   }
 
   getLastPage(noteId: number): number {
@@ -118,49 +80,36 @@ export class NotesService {
   }
 
   getHighlights(noteId: number): Observable<PdfHighlight[]> {
-    return of(this.#readHighlights()[noteId] ?? []).pipe(delay(DELAY_MS));
+    return this.#http
+      .get<(ApiHighlight | { kind: 'margin' })[]>(`${URL}/${noteId}/annotations`)
+      .pipe(
+        map((annotations) =>
+          annotations
+            .filter((annotation): annotation is ApiHighlight => annotation.kind === 'highlight')
+            .map(toHighlight),
+        ),
+      );
   }
 
   addHighlight(noteId: number, draft: PdfHighlightDraft): Observable<PdfHighlight> {
-    const all = this.#readHighlights();
-    const highlights = all[noteId] ?? [];
-    const highlight = {
-      ...draft,
-      id: Math.max(0, ...highlights.map(({ id }) => id)) + 1,
-      note: '',
-    };
-    writeJson(HIGHLIGHTS_KEY, { ...all, [noteId]: [...highlights, highlight] });
-    return of(highlight).pipe(delay(DELAY_MS));
+    return this.#http
+      .post<ApiHighlight>(`${URL}/${noteId}/annotations`, {
+        ...draft,
+        kind: 'highlight',
+        color: HIGHLIGHT_COLOR,
+      })
+      .pipe(map(toHighlight));
   }
 
   updateHighlightNote(noteId: number, highlightId: number, note: string): Observable<PdfHighlight> {
-    const highlights = (this.#readHighlights()[noteId] ?? []).map((highlight) =>
-      highlight.id === highlightId ? { ...highlight, note } : highlight,
-    );
-    this.#writeHighlights(noteId, highlights);
-    const updated = highlights.find(({ id }) => id === highlightId);
-    return updated
-      ? of(updated).pipe(delay(DELAY_MS))
-      : throwError(() => new Error('Highlight not found'));
+    return this.#http
+      .put<ApiHighlight>(`${URL}/${noteId}/annotations/${highlightId}`, { comment: note })
+      .pipe(map(toHighlight));
   }
 
   deleteHighlight(noteId: number, highlightId: number): Observable<number> {
-    this.#writeHighlights(
-      noteId,
-      (this.#readHighlights()[noteId] ?? []).filter(({ id }) => id !== highlightId),
-    );
-    return of(highlightId).pipe(delay(DELAY_MS));
-  }
-
-  #writeHighlights(noteId: number, highlights: PdfHighlight[]): void {
-    writeJson(HIGHLIGHTS_KEY, { ...this.#readHighlights(), [noteId]: highlights });
-  }
-
-  #readHighlights(): Record<number, PdfHighlight[]> {
-    return readJson<Record<number, PdfHighlight[]>>(HIGHLIGHTS_KEY) ?? {};
-  }
-
-  #save(): void {
-    writeJson(STORAGE_KEY, this.#notes);
+    return this.#http
+      .delete<void>(`${URL}/${noteId}/annotations/${highlightId}`)
+      .pipe(map(() => highlightId));
   }
 }
