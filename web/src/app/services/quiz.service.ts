@@ -13,14 +13,16 @@ export class QuizService {
       .get<TopicQuestion[]>('/api/questions', { params: { topicIds: topicId, count } })
       .pipe(
         map((questions) =>
-          questions.map(({ id, caseText, statement, options, correctOption }) => ({
-            id,
-            caseText,
-            statement,
-            options,
-            correctOption,
-            reasoning: '',
-          })),
+          questions.map(
+            ({ id, caseText, statement, options, correctOption, explanation, source }) => ({
+              id,
+              caseText,
+              statement,
+              options,
+              correctOption,
+              reasoning: [source, explanation].filter(Boolean).join(': '),
+            }),
+          ),
         ),
       );
   }

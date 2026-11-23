@@ -35,6 +35,8 @@ export const questionsRoutes = (database: DatabaseSync): Router => {
           statement: row.statement,
           ...shuffleOptions(JSON.parse(row.options) as string[], row.correct_option),
           block: row.section,
+          explanation: row.explanation,
+          source: row.source,
         })),
       );
     });
