@@ -64,6 +64,17 @@ const MIGRATIONS = [
     description TEXT NOT NULL
   )`,
   SYLLABUS_SEED_SQL,
+  `CREATE TABLE topic_results (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    topic_id INTEGER NOT NULL REFERENCES topics (id),
+    date TEXT NOT NULL,
+    percentage INTEGER NOT NULL,
+    mistakes TEXT NOT NULL,
+    correct_question_ids TEXT NOT NULL,
+    is_review INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE INDEX topic_results_user_id ON topic_results (user_id)`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
