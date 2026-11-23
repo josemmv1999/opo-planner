@@ -187,6 +187,26 @@ const KEYWORDS: [topicId: number, pattern: RegExp][] = [
   ],
   [36, /anticipos? de caja fija|pagos? a justificar|justificacion de libramientos/],
   [37, /gestion economica/],
+  [41, /\bword\b/],
+  [42, /\bexcel\b|power query|tabla dinamica/],
+  [43, /\baccess\b/],
+  [44, /outlook|buzon de correo/],
+  [
+    39,
+    /escritorio|menu inicio|barra de tareas|pantallas|copilot|menus? contextual|cuadros? de dialogo/,
+  ],
+  [
+    40,
+    /explorador de windows|este equipo|acceso rapido|accesorio|administrador de tareas|visor de eventos|herramienta recortes|grabacion de acciones/,
+  ],
+  [
+    45,
+    /internet|navegador|paginas? web|sitios? web|tipos de web|nombres? de dominio|inteligencia artificial|chatgpt|javascript/,
+  ],
+  [
+    38,
+    /hardware|software|\bprocesador\b|memoria ram|\bcpu\b|periferico|sistemas? operativos?|antivirus|malware|cortafuegos|ofimatica|cuant[oa]s (kb|mb|gb|bytes)/,
+  ],
 ];
 
 const normalize = (text: string): string => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();

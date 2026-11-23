@@ -69,5 +69,5 @@ test('suggests a topic for each question', async () => {
       ],
     }),
   });
-  assert.deepEqual(await response.json(), [3, null]);
+  assert.deepEqual(await response.json(), [3, 42]);
 });
