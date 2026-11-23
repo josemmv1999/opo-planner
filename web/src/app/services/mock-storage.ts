@@ -1,10 +1,7 @@
 import { readStorage, writeStorage } from '../../common/utils/storage';
 
-export const MOCK_ONBOARDING_KEY = 'mockHasCompletedOnboarding';
 export const MOCK_OPPOSITION_IDS_KEY = 'mockOppositionIds';
 export const MOCK_ACTIVE_OPPOSITION_KEY = 'mockActiveOppositionId';
-
-export const readMockFlag = (key: string): boolean => readStorage(key) === 'true';
 
 export const readJson = <T>(key: string): T | null => {
   try {
