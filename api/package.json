@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node src/server.ts",
     "serve": "npm --prefix ../web run build && node src/server.ts",
+    "make-admin": "node src/make-admin.ts",
     "dev": "node --watch src/server.ts",
     "test": "node --test",
     "typecheck": "tsc"
