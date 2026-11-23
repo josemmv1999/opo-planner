@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readdirSync } from 'node:fs';
+import { mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { test } from 'node:test';
-import { backupDatabase } from './backup.ts';
+import { backupDatabase, backupUploads } from './backup.ts';
 import { openDatabase } from './database.ts';
 
 test('copies the database and keeps only the newest backups', async () => {
@@ -29,4 +29,14 @@ test('copies the database and keeps only the newest backups', async () => {
     { email: 'ana@example.com' },
   );
   copy.close();
+});
+
+test('copies uploaded files into the backup folder without touching existing ones', async () => {
+  const uploads = mkdtempSync(join(tmpdir(), 'opo-uploads-'));
+  const dir = mkdtempSync(join(tmpdir(), 'opo-backups-'));
+  writeFileSync(join(uploads, 'a'), 'A');
+  await backupUploads(uploads, dir);
+  writeFileSync(join(uploads, 'b'), 'B');
+  await backupUploads(uploads, dir);
+  assert.deepEqual(readdirSync(join(dir, 'uploads')).sort(), ['a', 'b']);
 });

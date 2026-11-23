@@ -1,4 +1,7 @@
+import { mkdtempSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import { after } from 'node:test';
 import { createApp } from './app.ts';
@@ -13,16 +16,19 @@ export interface TestServer {
 
 export const startTestServer = (): TestServer => {
   const database = openDatabase(':memory:');
-  const server = createApp(database).listen(0);
+  const server = createApp(database, undefined, mkdtempSync(join(tmpdir(), 'opo-uploads-'))).listen(
+    0,
+  );
   after(() => server.close());
   const baseUrl = `http://localhost:${(server.address() as AddressInfo).port}`;
 
-  const request: TestServer['request'] = (path, { cookie, body, ...init } = {}) =>
+  const request: TestServer['request'] = (path, { cookie, body, headers, ...init } = {}) =>
     fetch(`${baseUrl}${path}`, {
       ...init,
       body,
       headers: {
         ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...(headers as Record<string, string>),
         ...(cookie ? { cookie } : {}),
       },
     });

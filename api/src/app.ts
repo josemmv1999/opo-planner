@@ -10,8 +10,10 @@ import { examsRoutes } from './exams/exams.routes.ts';
 import { topicResultsRoutes } from './progress/topic-results.routes.ts';
 import { syllabusRoutes } from './syllabus/syllabus.routes.ts';
 import { questionsRoutes } from './exams/questions.routes.ts';
+import { UPLOADS_DIR } from './database.ts';
+import { notesRoutes } from './notes/notes.routes.ts';
 
-export const createApp = (database: DatabaseSync, webDir?: string) => {
+export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = UPLOADS_DIR) => {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.get('/api/health', (_req, res) => {
@@ -26,6 +28,7 @@ export const createApp = (database: DatabaseSync, webDir?: string) => {
   app.use('/api/syllabus', syllabusRoutes(database));
   app.use('/api/questions', questionsRoutes(database));
   app.use('/api/topic-results', topicResultsRoutes(database));
+  app.use('/api/notes', notesRoutes(database, uploadsDir));
   if (webDir) {
     app.use(express.static(webDir));
     app.use((req, res, next) =>
