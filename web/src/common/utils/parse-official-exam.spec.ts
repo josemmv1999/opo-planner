@@ -94,4 +94,56 @@ describe('parseOfficialExam', () => {
       isReserve: false,
     });
   });
+
+  it('reads the formats of older exams', () => {
+    const older = parseOfficialExam(
+      `1. No abra este cuestionario hasta que se le indique.
+PRIMERA PARTE
+1. ¿Qué devuelve =MAX(77,81)?
+a) 77 b)Error
+c) 81 d)23
+SUPUESTO I
+Hechos del caso:
+16. Posteriormente, se le ofreció un puesto que no aceptó.
+1. ¿Qué plazo tiene?
+a) Diez días. b) Quince días.
+c) Un mes. d) Dos meses.
+Reserva
+1. ¿Quién resuelve?
+a) El Ministro. b) El Subsecretario.
+c) El Director. d) El Secretario.`,
+      `PRIMERA PARTE
+1. C
+Supuesto I
+1. a Modificada
+Reserva
+1. b`,
+    );
+    expect(older.errors).toEqual([]);
+    expect(
+      older.questions.map(({ number, isReserve, options, correctOption }) => ({
+        number,
+        isReserve,
+        options,
+        correctOption,
+      })),
+    ).toEqual([
+      { number: 1, isReserve: false, options: ['77', 'Error', '81', '23'], correctOption: 2 },
+      {
+        number: 1,
+        isReserve: false,
+        options: ['Diez días.', 'Quince días.', 'Un mes.', 'Dos meses.'],
+        correctOption: 0,
+      },
+      {
+        number: 1,
+        isReserve: true,
+        options: ['El Ministro.', 'El Subsecretario.', 'El Director.', 'El Secretario.'],
+        correctOption: 1,
+      },
+    ]);
+    expect(older.questions[1].caseText).toBe(
+      'Hechos del caso: 16. Posteriormente, se le ofreció un puesto que no aceptó.',
+    );
+  });
 });

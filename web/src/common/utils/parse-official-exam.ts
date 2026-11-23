@@ -7,13 +7,13 @@ interface Answer extends QuestionKey {
 }
 
 const SECTION = /^(primera parte|segunda parte|tercera parte|supuesto [ivx]+)$/i;
-const RESERVE = /^preguntas de reserva$/i;
+const RESERVE = /^(preguntas de )?reserva$/i;
 const PAGE_HEADER = /página \d+ de \d+$/i;
 const CASE_INTRO = /^se plantean las siguientes cuestiones:?$/i;
 const QUESTION = /^(\d+)\.\s+(.+)$/;
 const OPTION = /^[a-d]\)\s*/;
-const NEXT_OPTION = /\s+(?=[b-d]\)\s)/;
-const ANSWER = /^(\d+)\.\s*([a-d]|anulada)$/i;
+const NEXT_OPTION = /\s+(?=[b-d]\))/;
+const ANSWER = /^(\d+)\.\s*([a-d]|anulada)\b/i;
 
 const toLines = (text: string): string[] =>
   text
@@ -31,6 +31,7 @@ export const parseQuestionnaire = (text: string): ParsedQuestion[] => {
   let section = '';
   let isReserve = false;
   let caseText: string | null = null;
+  let lastNumber = 0;
   let current: ParsedQuestion | null = null;
 
   for (const line of toLines(text)) {
@@ -38,14 +39,21 @@ export const parseQuestionnaire = (text: string): ParsedQuestion[] => {
     if (SECTION.test(line)) {
       section = line;
       isReserve = false;
+      lastNumber = 0;
       caseText = /^supuesto/i.test(line) ? '' : null;
       current = null;
     } else if (RESERVE.test(line)) {
       isReserve = true;
+      lastNumber = 0;
       current = null;
     } else if (CASE_INTRO.test(line)) {
       current = null;
-    } else if (number && (!current || current.options.length)) {
+    } else if (
+      section &&
+      Number(number) === lastNumber + 1 &&
+      (!current || current.options.length)
+    ) {
+      lastNumber++;
       current = {
         section,
         number: Number(number),
