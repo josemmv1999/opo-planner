@@ -11,6 +11,7 @@ import { topicResultsRoutes } from './progress/topic-results.routes.ts';
 import { syllabusRoutes } from './syllabus/syllabus.routes.ts';
 import { questionsRoutes } from './exams/questions.routes.ts';
 import { UPLOADS_DIR } from './database.ts';
+import { annotationsRoutes } from './notes/annotations.routes.ts';
 import { notesRoutes } from './notes/notes.routes.ts';
 
 export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = UPLOADS_DIR) => {
@@ -28,6 +29,7 @@ export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = 
   app.use('/api/syllabus', syllabusRoutes(database));
   app.use('/api/questions', questionsRoutes(database));
   app.use('/api/topic-results', topicResultsRoutes(database));
+  app.use('/api/notes/:noteId/annotations', annotationsRoutes(database));
   app.use('/api/notes', notesRoutes(database, uploadsDir));
   if (webDir) {
     app.use(express.static(webDir));
