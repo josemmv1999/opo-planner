@@ -22,6 +22,10 @@ export interface QuestionRow {
   options: string;
   correct_option: number | null;
   is_voided: number;
+  is_official: number;
+  review_status: 'approved' | 'pending';
+  explanation: string | null;
+  source: string | null;
 }
 
 export const toParsedQuestion = (row: QuestionRow): ParsedQuestion => ({

@@ -75,6 +75,10 @@ const MIGRATIONS = [
     is_review INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX topic_results_user_id ON topic_results (user_id)`,
+  `ALTER TABLE questions ADD COLUMN is_official INTEGER NOT NULL DEFAULT 1`,
+  `ALTER TABLE questions ADD COLUMN review_status TEXT NOT NULL DEFAULT 'approved'`,
+  `ALTER TABLE questions ADD COLUMN explanation TEXT`,
+  `ALTER TABLE questions ADD COLUMN source TEXT`,
 ];
 
 const migrate = (database: DatabaseSync): void => {

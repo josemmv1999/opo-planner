@@ -60,3 +60,16 @@ test('seeds the official C1 syllabus', () => {
     { label: 'Bloque V', topics: 6 },
   ]);
 });
+
+test('marks existing and imported questions as official and approved', () => {
+  const database = openDatabase(':memory:');
+  database
+    .prepare(
+      "INSERT INTO questions (section, number, statement, options) VALUES ('PRIMERA PARTE', 1, '¿?', '[]')",
+    )
+    .run();
+  assert.deepEqual(
+    { ...database.prepare('SELECT is_official, review_status, explanation FROM questions').get() },
+    { is_official: 1, review_status: 'approved', explanation: null },
+  );
+});
