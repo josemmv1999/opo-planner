@@ -4,6 +4,7 @@ import express from 'express';
 import { accountRoutes } from './auth/account.routes.ts';
 import { authRoutes } from './auth/auth.routes.ts';
 import { adminExamsRoutes } from './exams/admin-exams.routes.ts';
+import { adminQuestionsRoutes } from './exams/admin-questions.routes.ts';
 import { examAttemptsRoutes } from './exams/exam-attempts.routes.ts';
 import { examsRoutes } from './exams/exams.routes.ts';
 import { topicResultsRoutes } from './progress/topic-results.routes.ts';
@@ -19,6 +20,7 @@ export const createApp = (database: DatabaseSync, webDir?: string) => {
   app.use('/api/auth', authRoutes(database));
   app.use('/api/account', accountRoutes(database));
   app.use('/api/admin/exams', adminExamsRoutes(database));
+  app.use('/api/admin/questions', adminQuestionsRoutes(database));
   app.use('/api/exams', examsRoutes(database));
   app.use('/api/exam-attempts', examAttemptsRoutes(database));
   app.use('/api/syllabus', syllabusRoutes(database));
