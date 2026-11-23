@@ -8,7 +8,7 @@ const MAX_COUNT = 100;
 export const questionsRoutes = (database: DatabaseSync): Router => {
   const randomTopicQuestions = database.prepare(
     `SELECT * FROM questions
-      WHERE is_reserve = 0 AND is_voided = 0 AND correct_option IS NOT NULL
+      WHERE is_reserve = 0 AND is_voided = 0 AND correct_option IS NOT NULL AND case_text IS NULL
         AND topic_id IN (SELECT value FROM json_each(?))
       ORDER BY RANDOM() LIMIT ?`,
   );

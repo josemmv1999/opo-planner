@@ -68,7 +68,13 @@ test('returns an exam without reserve or voided questions', async () => {
   assert.equal((await request('/api/exams/999', { cookie })).status, 404);
 });
 
-test('builds a mixed exam from all usable questions', async () => {
+test('builds a mixed exam from all usable test questions', async () => {
+  database
+    .prepare(
+      `INSERT INTO questions (section, number, case_text, statement, options, correct_option)
+        VALUES ('SUPUESTO I', 1, 'Caso', 'Supuesto', '["a","b","c","d"]', 0)`,
+    )
+    .run();
   const exam = await (await request('/api/exams/mixed', { cookie })).json();
   assert.equal(exam.name, 'Batiburrillo');
   assert.equal(exam.questions.length, 2);
