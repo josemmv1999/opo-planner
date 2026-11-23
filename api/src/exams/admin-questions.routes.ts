@@ -19,7 +19,7 @@ export const adminQuestionsRoutes = (database: DatabaseSync): Router => {
   const insertQuestion = database.prepare(
     `INSERT INTO questions
       (topic_id, section, number, statement, options, correct_option, explanation, source, is_official, review_status)
-      VALUES (?, '${GENERATED_SECTION}', 0, ?, ?, ?, ?, ?, 0, 'pending')`,
+      VALUES (?, '${GENERATED_SECTION}', 0, ?, ?, ?, ?, ?, 0, 'approved')`,
   );
   const listPending = database.prepare(
     "SELECT * FROM questions WHERE review_status = 'pending' ORDER BY id",
