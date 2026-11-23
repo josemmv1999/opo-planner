@@ -34,9 +34,8 @@ export const LoginStore = signalStore(
         pipe(
           tap(() => patchState(store, { isLoggingIn: true, error: null })),
           switchMap((credentials) =>
-            accountService.getToken(credentials).pipe(
-              tap((token) => session.start(token)),
-              switchMap(() => accountService.getCurrentUser()),
+            accountService.login(credentials).pipe(
+              tap(() => session.start()),
               tapResponse({
                 next: (currentUser) => {
                   patchState(store, { currentUser, isLoggingIn: false, hasLoggedIn: true });

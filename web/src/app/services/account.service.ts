@@ -1,28 +1,34 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, delay, map, of, throwError } from 'rxjs';
 import { Credentials } from '../../common/models/credentials.model';
 import { RegisterData } from '../../common/models/register-data.model';
 import { PasswordChange, ProfileData, User } from '../../common/models/user.model';
 import { MOCK_ONBOARDING_KEY, readMockFlag } from './mock-storage';
 
+const withMockOnboarding = (user: User): User => ({
+  ...user,
+  hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
+});
+
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  getToken(credentials: Credentials): Observable<string> {
-    return of(`mock-token-${credentials.email}`).pipe(delay(800));
+  readonly #http = inject(HttpClient);
+
+  login(credentials: Credentials): Observable<User> {
+    return this.#http.post<User>('/api/auth/login', credentials).pipe(map(withMockOnboarding));
   }
 
-  register(data: RegisterData): Observable<RegisterData> {
-    return of(data).pipe(delay(800));
+  register(data: RegisterData): Observable<User> {
+    return this.#http.post<User>('/api/auth/register', data);
   }
 
-  #profile: ProfileData = { name: 'Alba', surname: 'Ruiz Ocaña', email: 'alba@example.com' };
+  logout(): Observable<void> {
+    return this.#http.post<void>('/api/auth/logout', null);
+  }
 
   getCurrentUser(): Observable<User> {
-    return of({
-      ...this.#profile,
-      hasCompletedOnboarding: readMockFlag(MOCK_ONBOARDING_KEY),
-      isAdmin: true,
-    }).pipe(delay(800));
+    return this.#http.get<User>('/api/auth/me').pipe(map(withMockOnboarding));
   }
 
   changePassword({ currentPassword }: PasswordChange): Observable<void> {
@@ -32,7 +38,6 @@ export class AccountService {
   }
 
   updateProfile(profile: ProfileData): Observable<ProfileData> {
-    this.#profile = profile;
     return of(profile).pipe(delay(600));
   }
 }
