@@ -128,4 +128,54 @@ describe('ExamSessionStore', () => {
       expect.objectContaining({ kind: 'exam', name: 'Batiburrillo', percentage: 33 }),
     );
   });
+  describe('with cases', () => {
+    const CASE_QUESTIONS = [{ ...EXAM.questions[0], id: 10, statement: 'Case question' }];
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          ExamSessionStore,
+          {
+            provide: ExamService,
+            useValue: {
+              getExam: () =>
+                of({
+                  ...EXAM,
+                  cases: [
+                    { section: 'SUPUESTO I', text: 'Case I', questions: CASE_QUESTIONS },
+                    { section: 'SUPUESTO II', text: 'Case II', questions: CASE_QUESTIONS },
+                  ],
+                }),
+              getCustomExam,
+            },
+          },
+          { provide: PlannerService, useValue: { logRecord } },
+        ],
+      });
+      store = TestBed.inject(ExamSessionStore);
+      store.load({
+        examId: '1',
+        custom: { topicIds: [], questionCount: 0, isOfficialOnly: false },
+      });
+    });
+
+    it('opens the case choice after the last test question', () => {
+      expect(store.hasPendingCase()).toBe(true);
+      store.goTo(3);
+      expect(store.isChoosingCase()).toBe(true);
+      expect(store.index()).toBe(0);
+    });
+
+    it('adds the chosen case questions with their text', () => {
+      store.goTo(3);
+      store.chooseCase('SUPUESTO II');
+      expect(store.isChoosingCase()).toBe(false);
+      expect(store.hasPendingCase()).toBe(false);
+      expect(store.total()).toBe(4);
+      expect(store.index()).toBe(3);
+      expect(store.currentQuestion()).toEqual({ ...CASE_QUESTIONS[0], caseText: 'Case II' });
+      expect(store.answers()).toEqual([null, null, null, null]);
+    });
+  });
 });
