@@ -20,6 +20,36 @@ const MIGRATIONS = [
     user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE exams (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    minutes INTEGER NOT NULL DEFAULT 60,
+    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE questions (
+    id INTEGER PRIMARY KEY,
+    exam_id INTEGER REFERENCES exams (id) ON DELETE CASCADE,
+    topic_id INTEGER,
+    section TEXT NOT NULL,
+    number INTEGER NOT NULL,
+    is_reserve INTEGER NOT NULL DEFAULT 0,
+    case_text TEXT,
+    statement TEXT NOT NULL,
+    options TEXT NOT NULL,
+    correct_option INTEGER,
+    is_voided INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE INDEX questions_exam_id ON questions (exam_id)`,
+  `CREATE TABLE exam_attempts (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    date TEXT NOT NULL,
+    minutes_taken INTEGER NOT NULL,
+    percentage INTEGER NOT NULL
+  )`,
+  `CREATE INDEX exam_attempts_user_id ON exam_attempts (user_id)`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
