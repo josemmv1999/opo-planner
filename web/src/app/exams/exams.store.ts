@@ -13,6 +13,7 @@ interface ExamsState {
   history: ExamAttempt[];
   blocks: SyllabusBlock[];
   isCustomModalOpen: boolean;
+  isOfficialModalOpen: boolean;
   isLoading: boolean;
   error: 'loading' | null;
 }
@@ -23,6 +24,7 @@ export const ExamsStore = signalStore(
     history: [],
     blocks: [],
     isCustomModalOpen: false,
+    isOfficialModalOpen: false,
     isLoading: false,
     error: null,
   }),
@@ -46,6 +48,12 @@ export const ExamsStore = signalStore(
           ),
         ),
       ),
+      openOfficialModal(): void {
+        patchState(store, { isOfficialModalOpen: true });
+      },
+      closeOfficialModal(): void {
+        patchState(store, { isOfficialModalOpen: false });
+      },
       openCustomModal(): void {
         patchState(store, { isCustomModalOpen: true });
       },
