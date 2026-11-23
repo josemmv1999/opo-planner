@@ -14,6 +14,26 @@ const toExamQuestion = ({ id, statement, options, correct_option, section }: Que
   block: section,
 });
 
+interface ExamCase {
+  section: string;
+  text: string;
+  questions: ReturnType<typeof toExamQuestion>[];
+}
+
+const toCases = (rows: QuestionRow[]): ExamCase[] => [
+  ...rows
+    .reduce((cases, row) => {
+      const examCase = cases.get(row.section) ?? {
+        section: row.section,
+        text: row.case_text ?? '',
+        questions: [],
+      };
+      examCase.questions.push(toExamQuestion(row));
+      return cases.set(row.section, examCase);
+    }, new Map<string, ExamCase>())
+    .values(),
+];
+
 export const examsRoutes = (database: DatabaseSync): Router => {
   const listExams = database.prepare(
     `SELECT exams.id, exams.name, exams.minutes, COUNT(questions.id) AS questionCount,
@@ -45,7 +65,12 @@ export const examsRoutes = (database: DatabaseSync): Router => {
       const exam = findExam.get(Number(req.params.id)) as
         { id: number; name: string; minutes: number } | undefined;
       if (!exam) return void res.sendStatus(404);
-      const questions = listQuestions.all(exam.id) as unknown as QuestionRow[];
-      res.json({ ...exam, id: String(exam.id), questions: questions.map(toExamQuestion) });
+      const rows = listQuestions.all(exam.id) as unknown as QuestionRow[];
+      res.json({
+        ...exam,
+        id: String(exam.id),
+        questions: rows.filter((row) => !row.case_text).map(toExamQuestion),
+        cases: toCases(rows.filter((row) => row.case_text)),
+      });
     });
 };

@@ -30,6 +30,9 @@ before(async () => {
       question(2),
       question(3, { isVoided: true }),
       question(1, { isReserve: true }),
+      question(1, { section: 'SUPUESTO I', caseText: 'Caso I' }),
+      question(2, { section: 'SUPUESTO I', caseText: 'Caso I' }),
+      question(1, { section: 'SUPUESTO II', caseText: 'Caso II' }),
     ],
   });
   ({ id: examId } = await (
@@ -48,11 +51,11 @@ test('lists exams with their usable question count and last result', async () =>
     )
     .run(user.id);
   assert.deepEqual(await (await request('/api/exams', { cookie })).json(), [
-    { id: examId, name: 'Convocatoria 2025', minutes: 60, questionCount: 2, lastPercentage: 75 },
+    { id: examId, name: 'Convocatoria 2025', minutes: 60, questionCount: 5, lastPercentage: 75 },
   ]);
 });
 
-test('returns an exam without reserve or voided questions', async () => {
+test('returns an exam without reserve or voided questions, with its cases apart', async () => {
   const exam = await (await request(`/api/exams/${examId}`, { cookie })).json();
   assert.equal(exam.id, String(examId));
   assert.deepEqual(
@@ -63,6 +66,19 @@ test('returns an exam without reserve or voided questions', async () => {
     [
       ['Pregunta 1', 'PRIMERA PARTE'],
       ['Pregunta 2', 'PRIMERA PARTE'],
+    ],
+  );
+  assert.deepEqual(
+    exam.cases.map(
+      ({ section, text, questions }: { section: string; text: string; questions: unknown[] }) => [
+        section,
+        text,
+        questions.length,
+      ],
+    ),
+    [
+      ['SUPUESTO I', 'Caso I', 2],
+      ['SUPUESTO II', 'Caso II', 1],
     ],
   );
   assert.equal((await request('/api/exams/999', { cookie })).status, 404);
