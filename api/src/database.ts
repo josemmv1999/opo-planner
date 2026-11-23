@@ -13,6 +13,11 @@ const MIGRATIONS = [
     has_completed_onboarding INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
