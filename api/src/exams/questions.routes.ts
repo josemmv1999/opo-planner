@@ -2,6 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
 import { requireUser } from '../auth/require-user.ts';
 import type { QuestionRow } from './question.ts';
+import { shuffleOptions } from './shuffle-options.ts';
 
 const MAX_COUNT = 100;
 
@@ -32,8 +33,7 @@ export const questionsRoutes = (database: DatabaseSync): Router => {
           topicId: row.topic_id,
           caseText: row.case_text,
           statement: row.statement,
-          options: JSON.parse(row.options) as string[],
-          correctOption: row.correct_option,
+          ...shuffleOptions(JSON.parse(row.options) as string[], row.correct_option),
           block: row.section,
         })),
       );
