@@ -93,6 +93,19 @@ const MIGRATIONS = [
     updated_at TEXT NOT NULL
   )`,
   `CREATE INDEX notes_user_id ON notes (user_id)`,
+  `CREATE TABLE annotations (
+    id INTEGER PRIMARY KEY,
+    note_id INTEGER NOT NULL REFERENCES notes (id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    page INTEGER NOT NULL,
+    text TEXT,
+    rects TEXT,
+    y REAL,
+    side TEXT,
+    color TEXT NOT NULL,
+    comment TEXT NOT NULL DEFAULT ''
+  )`,
+  `CREATE INDEX annotations_note_id ON annotations (note_id)`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
