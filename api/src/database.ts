@@ -2,6 +2,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
+export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
+
 const MIGRATIONS = [
   `CREATE TABLE users (
     id INTEGER PRIMARY KEY,
