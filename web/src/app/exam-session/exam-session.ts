@@ -194,16 +194,16 @@ const FLAG_KEY = 'm';
 })
 export class ExamSession {
   readonly examId = input.required<string>();
-  readonly topics = input('');
-  readonly count = input('');
-  readonly officialOnly = input('');
+  readonly topics = input<string>();
+  readonly count = input<string>();
+  readonly officialOnly = input<string>();
 
   protected readonly store = inject(ExamSessionStore);
   readonly #router = inject(Router);
   readonly #request = computed<ExamRequest>(() => ({
     examId: this.examId(),
     custom: {
-      topicIds: this.topics().split(',').map(Number).filter(Boolean),
+      topicIds: this.topics()?.split(',').map(Number).filter(Boolean) ?? [],
       questionCount: Number(this.count()),
       isOfficialOnly: this.officialOnly() === 'true',
     },
