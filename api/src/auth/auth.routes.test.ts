@@ -49,3 +49,30 @@ test('logs in only with the right password', async () => {
   assert.equal((await post('/login', { email: ana.email, password: 'wrong' })).status, 401);
   assert.equal((await post('/login', { email: 'nobody@example.com', password: 'x' })).status, 401);
 });
+
+const sessionCookie = async (): Promise<string> => {
+  const response = await post('/login', { email: ana.email, password: ana.password });
+  return (response.headers.get('set-cookie') ?? '').split(';')[0];
+};
+
+test('returns the current user only with a valid session', async () => {
+  const cookie = await sessionCookie();
+  const response = await fetch(`${baseUrl}/api/auth/me`, { headers: { cookie } });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).email, ana.email);
+  assert.equal((await fetch(`${baseUrl}/api/auth/me`)).status, 401);
+  assert.equal(
+    (await fetch(`${baseUrl}/api/auth/me`, { headers: { cookie: 'session=fake' } })).status,
+    401,
+  );
+});
+
+test('logs out and closes the session', async () => {
+  const cookie = await sessionCookie();
+  const response = await fetch(`${baseUrl}/api/auth/logout`, {
+    method: 'POST',
+    headers: { cookie },
+  });
+  assert.equal(response.status, 204);
+  assert.equal((await fetch(`${baseUrl}/api/auth/me`, { headers: { cookie } })).status, 401);
+});
