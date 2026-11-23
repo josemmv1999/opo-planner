@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { SYLLABUS_SEED_SQL } from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
 
@@ -50,6 +51,19 @@ const MIGRATIONS = [
     percentage INTEGER NOT NULL
   )`,
   `CREATE INDEX exam_attempts_user_id ON exam_attempts (user_id)`,
+  `CREATE TABLE syllabus_blocks (
+    id INTEGER PRIMARY KEY,
+    label TEXT NOT NULL,
+    name TEXT NOT NULL
+  )`,
+  `CREATE TABLE topics (
+    id INTEGER PRIMARY KEY,
+    block_id INTEGER NOT NULL REFERENCES syllabus_blocks (id),
+    number INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL
+  )`,
+  SYLLABUS_SEED_SQL,
 ];
 
 const migrate = (database: DatabaseSync): void => {

@@ -43,3 +43,20 @@ test('deletes the questions of a deleted exam', () => {
     { count: 0 },
   );
 });
+
+test('seeds the official C1 syllabus', () => {
+  const database = openDatabase(':memory:');
+  const blocks = database
+    .prepare(
+      'SELECT label, COUNT(topics.id) AS topics FROM syllabus_blocks JOIN topics ON topics.block_id = syllabus_blocks.id GROUP BY syllabus_blocks.id ORDER BY syllabus_blocks.id',
+    )
+    .all()
+    .map((row) => ({ ...row }));
+  assert.deepEqual(blocks, [
+    { label: 'Bloque I', topics: 11 },
+    { label: 'Bloque II', topics: 4 },
+    { label: 'Bloque III', topics: 7 },
+    { label: 'Bloque IV', topics: 9 },
+    { label: 'Bloque V', topics: 6 },
+  ]);
+});
