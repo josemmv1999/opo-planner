@@ -6,10 +6,10 @@
     "node": ">=24"
   },
   "scripts": {
-    "start": "node src/server.ts",
-    "serve": "npm --prefix ../web run build && node src/server.ts",
-    "make-admin": "node src/make-admin.ts",
-    "dev": "node --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env src/server.ts",
+    "serve": "npm --prefix ../web run build && node --env-file-if-exists=.env src/server.ts",
+    "make-admin": "node --env-file-if-exists=.env src/make-admin.ts",
+    "dev": "node --env-file-if-exists=.env --watch src/server.ts",
     "test": "node --test",
     "typecheck": "tsc"
   },
