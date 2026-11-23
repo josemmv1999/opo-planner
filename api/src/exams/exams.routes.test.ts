@@ -14,6 +14,7 @@ const question = (number: number, overrides: Partial<ParsedQuestion> = {}): Pars
   options: ['a', 'b', 'c', 'd'],
   correctOption: 1,
   isVoided: false,
+  topicId: null,
   ...overrides,
 });
 

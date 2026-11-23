@@ -14,6 +14,7 @@ const question: ParsedQuestion = {
   options: ['El Rey', 'El Gobierno', 'El Congreso', 'El Senado'],
   correctOption: 0,
   isVoided: false,
+  topicId: 3,
 };
 
 const importExam = (cookie: string, body: object) =>
@@ -51,4 +52,22 @@ test('rejects an exam without name or questions', async () => {
     (await importExam(cookie, { name: '2025', questions: [{ ...question, options: 'a' }] })).status,
     400,
   );
+});
+
+test('suggests a topic for each question', async () => {
+  const cookie = await signUp('admin3@example.com', { isAdmin: true });
+  const response = await request('/api/admin/exams/classify', {
+    method: 'POST',
+    cookie,
+    body: JSON.stringify({
+      questions: [
+        {
+          statement: 'De acuerdo con el artículo 67 de la Constitución Española de 1978:',
+          options: [],
+        },
+        { statement: '¿Qué función de Excel 365 invierte un valor lógico?', options: ['NO', 'SI'] },
+      ],
+    }),
+  });
+  assert.deepEqual(await response.json(), [3, null]);
 });
