@@ -32,17 +32,14 @@ interface PdfLayout {
 const WORKER_SRC = '/pdfjs/pdf.worker.min.mjs';
 const BASE_WIDTH_REM = 52;
 
-const toBytes = (dataUrl: string): Uint8Array =>
-  Uint8Array.from(atob(dataUrl.split(',')[1] ?? ''), (char) => char.charCodeAt(0));
-
 const loadPdfjs = () => import('pdfjs-dist');
 
 const toPercent = (value: number, size: number): number => (value / size) * 100;
 
-export const startLoading = async (dataUrl: string): Promise<PDFDocumentLoadingTask> => {
+export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask> => {
   const pdfjs = await loadPdfjs();
   pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC;
-  return pdfjs.getDocument({ data: toBytes(dataUrl) });
+  return pdfjs.getDocument({ url });
 };
 
 @Component({

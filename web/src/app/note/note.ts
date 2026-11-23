@@ -26,13 +26,6 @@ const EMPTY_DRAFT = { title: '', content: '' };
 const ZOOM_LEVELS = [0.75, 1, 1.25, 1.5, 2];
 const DEFAULT_ZOOM_INDEX = 1;
 
-const toObjectUrl = (dataUrl: string): string => {
-  const [header, base64] = dataUrl.split(',');
-  const type = /data:(.*?);/.exec(header)?.[1] ?? 'application/octet-stream';
-  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
-  return URL.createObjectURL(new Blob([bytes], { type }));
-};
-
 @Component({
   selector: 'app-note',
   imports: [
@@ -457,10 +450,7 @@ export class Note {
     const error = this.store.error();
     return error === 'saving' || error === 'deleting' ? error : null;
   });
-  protected readonly fileUrl = computed(() => {
-    const fileUrl = this.store.note()?.fileUrl;
-    return fileUrl ? toObjectUrl(fileUrl) : null;
-  });
+  protected readonly fileUrl = computed(() => this.store.note()?.fileUrl ?? null);
   protected readonly safeFileUrl = computed(() => {
     const url = this.fileUrl();
     return url ? this.#sanitizer.bypassSecurityTrustUrl(url) : null;
