@@ -6,6 +6,8 @@ import { filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs';
 import {
   NoteDetail,
   NoteDraft,
+  HighlightChange,
+  HighlightColor,
   PdfHighlight,
   PdfHighlightDraft,
   TopicNote,
@@ -23,6 +25,7 @@ interface NoteState {
   note: NoteDetail | null;
   siblings: TopicNote[];
   highlights: PdfHighlight[];
+  highlightColor: HighlightColor;
   selection: PdfHighlightDraft | null;
   openedHighlightId: number | null;
   initialPage: number;
@@ -43,6 +46,7 @@ export const NoteStore = signalStore(
     note: null,
     siblings: [],
     highlights: [],
+    highlightColor: 'yellow',
     selection: null,
     openedHighlightId: null,
     initialPage: 1,
@@ -98,6 +102,9 @@ export const NoteStore = signalStore(
       select(selection: PdfHighlightDraft | null): void {
         patchState(store, { selection });
       },
+      setHighlightColor(highlightColor: HighlightColor): void {
+        patchState(store, { highlightColor });
+      },
       highlight: rxMethod<void>(
         pipe(
           map(() => ({ noteId: store.note()?.id, selection: store.selection() })),
@@ -107,7 +114,7 @@ export const NoteStore = signalStore(
           ),
           tap(() => patchState(store, { isHighlighting: true, error: null })),
           switchMap(({ noteId, selection }) =>
-            notesService.addHighlight(noteId, selection).pipe(
+            notesService.addHighlight(noteId, selection, store.highlightColor()).pipe(
               tapResponse({
                 next: (highlight) =>
                   patchState(store, ({ highlights }) => ({
@@ -130,20 +137,20 @@ export const NoteStore = signalStore(
       closeHighlight(): void {
         patchState(store, { openedHighlightId: null });
       },
-      saveHighlightNote: rxMethod<string>(
+      saveHighlight: rxMethod<HighlightChange>(
         pipe(
-          map((note) => ({
+          map((change) => ({
             noteId: store.note()?.id,
             highlightId: store.openedHighlightId(),
-            note,
+            change,
           })),
           filter(
-            (update): update is { noteId: number; highlightId: number; note: string } =>
+            (update): update is { noteId: number; highlightId: number; change: HighlightChange } =>
               update.noteId !== undefined && update.highlightId !== null,
           ),
           tap(() => patchState(store, { isSavingHighlight: true, error: null })),
-          switchMap(({ noteId, highlightId, note }) =>
-            notesService.updateHighlightNote(noteId, highlightId, note).pipe(
+          switchMap(({ noteId, highlightId, change }) =>
+            notesService.updateHighlight(noteId, highlightId, change).pipe(
               tapResponse({
                 next: (updated) =>
                   patchState(store, ({ highlights }) => ({

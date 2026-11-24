@@ -489,6 +489,14 @@
     "openPdf": "Abrir en otra pestaña",
     "saved": "Hemos guardado el apunte.",
     "highlight": "Subrayar",
+    "highlightColor": "Color",
+    "colors": {
+      "yellow": "Amarillo",
+      "green": "Verde",
+      "blue": "Azul",
+      "pink": "Rosa",
+      "orange": "Naranja"
+    },
     "highlightTitle": "Subrayado",
     "highlightNote": "Tu nota",
     "highlightNotePlaceholder": "Por ejemplo: esto cae siempre en el examen",

@@ -53,9 +53,19 @@ export interface PdfHighlightDraft {
   rects: HighlightRect[];
 }
 
+export const HIGHLIGHT_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange'] as const;
+
+export type HighlightColor = (typeof HIGHLIGHT_COLORS)[number];
+
 export interface PdfHighlight extends PdfHighlightDraft {
   id: number;
   note: string;
+  color: HighlightColor;
+}
+
+export interface HighlightChange {
+  note: string;
+  color: HighlightColor;
 }
 
 export interface NoteDraft {
