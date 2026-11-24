@@ -20,7 +20,7 @@ const streakOf = (studiedDays: Set<string>, now: Date): number => {
 };
 
 export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new Date()): Router => {
-  const findUser = database.prepare('SELECT created_at FROM users WHERE id = ?');
+  const findUser = database.prepare('SELECT created_at, exam_date FROM users WHERE id = ?');
   const listActivity = database.prepare(
     `SELECT date FROM topic_results WHERE user_id = ?
       UNION ALL SELECT date FROM exam_attempts WHERE user_id = ?`,
@@ -51,11 +51,15 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
     .get('/', (_req, res: AuthenticatedResponse) => {
       const userId = res.locals.user.id;
       const today = now();
-      const { created_at } = findUser.get(userId) as { created_at: string };
+      const { created_at, exam_date } = findUser.get(userId) as {
+        created_at: string;
+        exam_date: string | null;
+      };
       const studiedDays = new Set(
         (listActivity.all(userId, userId) as { date: string }[]).map(({ date }) => localDate(date)),
       );
       res.json({
+        examDate: exam_date,
         studyStartDate: localDate(`${created_at.replace(' ', 'T')}Z`),
         streakDays: streakOf(studiedDays, today),
         lastSevenDays: Array.from({ length: DAYS_SHOWN }, (_, i) => {

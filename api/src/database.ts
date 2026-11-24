@@ -116,6 +116,18 @@ const MIGRATIONS = [
     question_id INTEGER NOT NULL REFERENCES questions (id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, question_id)
   )`,
+  `CREATE TABLE planner_entries (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    is_done INTEGER NOT NULL DEFAULT 0,
+    is_record INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE INDEX planner_entries_user_start ON planner_entries (user_id, start)`,
+  `ALTER TABLE users ADD COLUMN exam_date TEXT`,
+  `ALTER TABLE users ADD COLUMN study_schedule TEXT`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
