@@ -18,6 +18,7 @@ import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { Modal } from '../../common/components/modal/modal';
 import { ColorPicker } from './color-picker/color-picker';
 import { HighlightForm } from './highlight-form/highlight-form';
+import { MarginNoteForm } from './margin-note-form/margin-note-form';
 import { NoteForm } from './note-form/note-form';
 import { NoteStore } from './note.store';
 import { PdfPosition, PdfViewer } from './pdf-viewer/pdf-viewer';
@@ -40,6 +41,7 @@ const DEFAULT_ZOOM_INDEX = 1;
     Modal,
     ColorPicker,
     HighlightForm,
+    MarginNoteForm,
   ],
   providers: [NoteStore],
   host: { class: 'd-flex flex-column', '(document:click)': 'closeMenu($event)' },
@@ -194,7 +196,11 @@ const DEFAULT_ZOOM_INDEX = 1;
                 [highlights]="store.highlights()"
                 (positionChanged)="onPosition($event)"
                 (selected)="store.select($event)"
-                (highlightOpened)="store.openHighlight($event)" />
+                (highlightOpened)="store.openHighlight($event)"
+                [marginNotes]="store.marginNotes()"
+                [marginHint]="'notes.addMarginNote' | translate"
+                (marginAdded)="store.startMarginNote($event)"
+                (marginNoteOpened)="store.openMarginNote($event)" />
             }
           }
           @case ('image') {
@@ -255,6 +261,21 @@ const DEFAULT_ZOOM_INDEX = 1;
             (deleted)="store.deleteHighlight()"
             (cancelled)="store.closeHighlight()" />
         }
+      </ng-template>
+    </app-modal>
+
+    <app-modal
+      [isOpen]="store.isMarginFormOpen()"
+      [label]="'notes.marginTitle' | translate"
+      (closed)="store.closeMarginNote()">
+      <ng-template>
+        <app-margin-note-form
+          [marginNote]="store.openedMarginNote()"
+          [isSaving]="store.isSavingMarginNote()"
+          [isDeleting]="store.isDeletingMarginNote()"
+          (saved)="store.saveMarginNote($event)"
+          (deleted)="store.deleteMarginNote()"
+          (cancelled)="store.closeMarginNote()" />
       </ng-template>
     </app-modal>
   `,

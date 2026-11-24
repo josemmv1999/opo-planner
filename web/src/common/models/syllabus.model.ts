@@ -68,6 +68,28 @@ export interface HighlightChange {
   color: HighlightColor;
 }
 
+export type MarginSide = 'left' | 'right';
+
+export interface MarginNoteDraft {
+  page: number;
+  y: number;
+  side: MarginSide;
+}
+
+export interface MarginNoteChange {
+  text: string;
+  color: HighlightColor;
+}
+
+export interface MarginNote extends MarginNoteDraft, MarginNoteChange {
+  id: number;
+}
+
+export interface NoteAnnotations {
+  highlights: PdfHighlight[];
+  marginNotes: MarginNote[];
+}
+
 export interface NoteDraft {
   title: string;
   content: string;

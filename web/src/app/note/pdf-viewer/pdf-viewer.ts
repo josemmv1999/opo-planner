@@ -16,7 +16,14 @@ import {
   viewChildren,
 } from '@angular/core';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
-import { PdfHighlight, PdfHighlightDraft } from '../../../common/models/syllabus.model';
+import {
+  MarginNote,
+  MarginNoteDraft,
+  MarginSide,
+  PdfHighlight,
+  PdfHighlightDraft,
+} from '../../../common/models/syllabus.model';
+import { PdfMargin } from '../pdf-margin/pdf-margin';
 
 export interface PdfPosition {
   page: number;
@@ -44,6 +51,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
 @Component({
   selector: 'app-pdf-viewer',
+  imports: [PdfMargin],
   host: {
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
@@ -54,23 +62,37 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
     @let pdf = layout();
     <div class="pdf-viewer__pages d-flex flex-column align-items-center" [style.width]="pdf?.width">
       @for (key of pdf?.pageKeys ?? []; track key; let pageIndex = $index) {
-        <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
-          <canvas #canvas></canvas>
-          <div class="pdf-viewer__highlights" aria-hidden="true">
-            @for (highlight of highlightsByPage().get(pageIndex + 1); track highlight.id) {
-              @for (rect of highlight.rects; track $index) {
-                <span
-                  class="pdf-viewer__highlight"
-                  [class.pdf-viewer__highlight--noted]="highlight.note"
-                  [style.--highlight-color]="'var(--bs-' + highlight.color + ')'"
-                  [style.left.%]="rect.x"
-                  [style.top.%]="rect.y"
-                  [style.width.%]="rect.width"
-                  [style.height.%]="rect.height"></span>
+        <div class="pdf-viewer__row d-flex w-100">
+          <app-pdf-margin
+            side="left"
+            [notes]="marginNotesOf(pageIndex + 1, 'left')"
+            [hint]="marginHint()"
+            (added)="marginAdded.emit({ page: pageIndex + 1, side: 'left', y: $event })"
+            (opened)="marginNoteOpened.emit($event)" />
+          <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
+            <canvas #canvas></canvas>
+            <div class="pdf-viewer__highlights" aria-hidden="true">
+              @for (highlight of highlightsByPage().get(pageIndex + 1); track highlight.id) {
+                @for (rect of highlight.rects; track $index) {
+                  <span
+                    class="pdf-viewer__highlight"
+                    [class.pdf-viewer__highlight--noted]="highlight.note"
+                    [style.--highlight-color]="'var(--bs-' + highlight.color + ')'"
+                    [style.left.%]="rect.x"
+                    [style.top.%]="rect.y"
+                    [style.width.%]="rect.width"
+                    [style.height.%]="rect.height"></span>
+                }
               }
-            }
+            </div>
+            <div #textLayer class="textLayer"></div>
           </div>
-          <div #textLayer class="textLayer"></div>
+          <app-pdf-margin
+            side="right"
+            [notes]="marginNotesOf(pageIndex + 1, 'right')"
+            [hint]="marginHint()"
+            (added)="marginAdded.emit({ page: pageIndex + 1, side: 'right', y: $event })"
+            (opened)="marginNoteOpened.emit($event)" />
         </div>
       }
     </div>
@@ -79,6 +101,11 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
     .pdf-viewer {
       display: flex;
       justify-content: safe center;
+      container-type: inline-size;
+    }
+
+    .pdf-viewer__row {
+      align-items: stretch;
     }
 
     .pdf-viewer__pages {
@@ -87,7 +114,8 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
     .pdf-viewer__page {
       position: relative;
-      width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
       background-color: var(--bs-white);
       border: 2px solid var(--bs-dark);
       border-radius: 0.25rem;
@@ -167,6 +195,10 @@ export class PdfViewer {
   readonly positionChanged = output<PdfPosition>();
   readonly selected = output<PdfHighlightDraft | null>();
   readonly highlightOpened = output<number>();
+  readonly marginNotes = input<MarginNote[]>([]);
+  readonly marginHint = input('');
+  readonly marginAdded = output<MarginNoteDraft>();
+  readonly marginNoteOpened = output<number>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
@@ -179,6 +211,12 @@ export class PdfViewer {
         pages.set(highlight.page, [...(pages.get(highlight.page) ?? []), highlight]),
       new Map<number, PdfHighlight[]>(),
     ),
+  );
+  readonly #marginNotesByKey = computed(() =>
+    this.marginNotes().reduce((groups, note) => {
+      const key = `${note.page}-${note.side}`;
+      return groups.set(key, [...(groups.get(key) ?? []), note]);
+    }, new Map<string, MarginNote[]>()),
   );
   #loadingTask: PDFDocumentLoadingTask | null = null;
   #document: PDFDocumentProxy | null = null;
@@ -271,6 +309,10 @@ export class PdfViewer {
       container: textLayer,
       viewport: page.getViewport({ scale }),
     }).render();
+  }
+
+  protected marginNotesOf(page: number, side: MarginSide): MarginNote[] {
+    return this.#marginNotesByKey().get(`${page}-${side}`) ?? [];
   }
 
   protected readSelection(): void {

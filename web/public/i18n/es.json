@@ -490,6 +490,11 @@
     "saved": "Hemos guardado el apunte.",
     "highlight": "Subrayar",
     "highlightColor": "Color",
+    "marginTitle": "Nota al margen",
+    "marginText": "Texto",
+    "marginPlaceholder": "Escribe tu nota…",
+    "addMarginNote": "Haz clic para añadir una nota al margen",
+    "removeMarginNote": "Borrar nota",
     "colors": {
       "yellow": "Amarillo",
       "green": "Verde",

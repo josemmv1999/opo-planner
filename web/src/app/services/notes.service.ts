@@ -4,6 +4,10 @@ import { Observable, map } from 'rxjs';
 import {
   HighlightChange,
   HighlightColor,
+  MarginNote,
+  MarginNoteChange,
+  MarginNoteDraft,
+  NoteAnnotations,
   NoteDetail,
   NoteDraft,
   PdfHighlight,
@@ -16,6 +20,22 @@ import { readJson, writeJson } from './mock-storage';
 const PAGES_KEY = 'notePages';
 const URL = '/api/notes';
 const OLD_KEYS = ['mockNotes', 'mockPdfHighlights', 'mockNotePages'];
+
+interface ApiMarginNote extends MarginNoteDraft {
+  id: number;
+  kind: 'margin';
+  comment: string;
+  color: HighlightColor;
+}
+
+const toMarginNote = ({ id, page, y, side, comment, color }: ApiMarginNote): MarginNote => ({
+  id,
+  page,
+  y,
+  side,
+  text: comment,
+  color,
+});
 
 interface ApiHighlight extends PdfHighlightDraft {
   id: number;
@@ -82,16 +102,42 @@ export class NotesService {
     writeJson(PAGES_KEY, { ...readJson<Record<number, number>>(PAGES_KEY), [noteId]: page });
   }
 
-  getHighlights(noteId: number): Observable<PdfHighlight[]> {
+  getAnnotations(noteId: number): Observable<NoteAnnotations> {
+    return this.#http.get<(ApiHighlight | ApiMarginNote)[]>(`${URL}/${noteId}/annotations`).pipe(
+      map((annotations) => ({
+        highlights: annotations
+          .filter((annotation): annotation is ApiHighlight => annotation.kind === 'highlight')
+          .map(toHighlight),
+        marginNotes: annotations
+          .filter((annotation): annotation is ApiMarginNote => annotation.kind === 'margin')
+          .map(toMarginNote),
+      })),
+    );
+  }
+
+  addMarginNote(
+    noteId: number,
+    draft: MarginNoteDraft,
+    { text, color }: MarginNoteChange,
+  ): Observable<MarginNote> {
     return this.#http
-      .get<(ApiHighlight | { kind: 'margin' })[]>(`${URL}/${noteId}/annotations`)
-      .pipe(
-        map((annotations) =>
-          annotations
-            .filter((annotation): annotation is ApiHighlight => annotation.kind === 'highlight')
-            .map(toHighlight),
-        ),
-      );
+      .post<ApiMarginNote>(`${URL}/${noteId}/annotations`, {
+        ...draft,
+        kind: 'margin',
+        color,
+        comment: text,
+      })
+      .pipe(map(toMarginNote));
+  }
+
+  updateMarginNote(
+    noteId: number,
+    marginNoteId: number,
+    { text, color }: MarginNoteChange,
+  ): Observable<MarginNote> {
+    return this.#http
+      .put<ApiMarginNote>(`${URL}/${noteId}/annotations/${marginNoteId}`, { comment: text, color })
+      .pipe(map(toMarginNote));
   }
 
   addHighlight(
@@ -114,9 +160,9 @@ export class NotesService {
       .pipe(map(toHighlight));
   }
 
-  deleteHighlight(noteId: number, highlightId: number): Observable<number> {
+  deleteAnnotation(noteId: number, annotationId: number): Observable<number> {
     return this.#http
-      .delete<void>(`${URL}/${noteId}/annotations/${highlightId}`)
-      .pipe(map(() => highlightId));
+      .delete<void>(`${URL}/${noteId}/annotations/${annotationId}`)
+      .pipe(map(() => annotationId));
   }
 }
