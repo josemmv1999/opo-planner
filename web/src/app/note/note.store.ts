@@ -8,6 +8,9 @@ import {
   NoteDraft,
   HighlightChange,
   HighlightColor,
+  MarginNote,
+  MarginNoteChange,
+  MarginNoteDraft,
   PdfHighlight,
   PdfHighlightDraft,
   TopicNote,
@@ -26,6 +29,11 @@ interface NoteState {
   siblings: TopicNote[];
   highlights: PdfHighlight[];
   highlightColor: HighlightColor;
+  marginNotes: MarginNote[];
+  marginDraft: MarginNoteDraft | null;
+  openedMarginNoteId: number | null;
+  isSavingMarginNote: boolean;
+  isDeletingMarginNote: boolean;
   selection: PdfHighlightDraft | null;
   openedHighlightId: number | null;
   initialPage: number;
@@ -47,6 +55,11 @@ export const NoteStore = signalStore(
     siblings: [],
     highlights: [],
     highlightColor: 'yellow',
+    marginNotes: [],
+    marginDraft: null,
+    openedMarginNoteId: null,
+    isSavingMarginNote: false,
+    isDeletingMarginNote: false,
     selection: null,
     openedHighlightId: null,
     initialPage: 1,
@@ -60,11 +73,17 @@ export const NoteStore = signalStore(
     hasDeleted: false,
     error: null,
   }),
-  withComputed(({ highlights, openedHighlightId }) => ({
-    openedHighlight: computed(
-      () => highlights().find(({ id }) => id === openedHighlightId()) ?? null,
-    ),
-  })),
+  withComputed(
+    ({ highlights, openedHighlightId, marginNotes, openedMarginNoteId, marginDraft }) => ({
+      openedHighlight: computed(
+        () => highlights().find(({ id }) => id === openedHighlightId()) ?? null,
+      ),
+      openedMarginNote: computed(
+        () => marginNotes().find(({ id }) => id === openedMarginNoteId()) ?? null,
+      ),
+      isMarginFormOpen: computed(() => marginDraft() !== null || openedMarginNoteId() !== null),
+    }),
+  ),
   withMethods(
     (
       store,
@@ -80,14 +99,17 @@ export const NoteStore = signalStore(
             forkJoin({
               note: noteId === null ? of(null) : notesService.getNote(noteId),
               siblings: notesService.getTopicNotes(topicId),
-              highlights: noteId === null ? of([]) : notesService.getHighlights(noteId),
+              annotations:
+                noteId === null
+                  ? of({ highlights: [], marginNotes: [] })
+                  : notesService.getAnnotations(noteId),
             }).pipe(
               tapResponse({
-                next: ({ note, siblings, highlights }) =>
+                next: ({ note, siblings, annotations }) =>
                   patchState(store, {
                     note,
                     siblings,
-                    highlights,
+                    ...annotations,
                     selection: null,
                     initialPage: note ? notesService.getLastPage(note.id) : 1,
                     isEditing: note === null,
@@ -178,7 +200,7 @@ export const NoteStore = signalStore(
           ),
           tap(() => patchState(store, { isDeletingHighlight: true, error: null })),
           switchMap(({ noteId, highlightId }) =>
-            notesService.deleteHighlight(noteId, highlightId).pipe(
+            notesService.deleteAnnotation(noteId, highlightId).pipe(
               tapResponse({
                 next: () =>
                   patchState(store, ({ highlights }) => ({
@@ -188,6 +210,80 @@ export const NoteStore = signalStore(
                   })),
                 error: () => {
                   patchState(store, { isDeletingHighlight: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      startMarginNote(marginDraft: MarginNoteDraft): void {
+        patchState(store, { marginDraft, openedMarginNoteId: null });
+      },
+      openMarginNote(openedMarginNoteId: number): void {
+        patchState(store, { openedMarginNoteId, marginDraft: null });
+      },
+      closeMarginNote(): void {
+        patchState(store, { openedMarginNoteId: null, marginDraft: null });
+      },
+      saveMarginNote: rxMethod<MarginNoteChange>(
+        pipe(
+          map((change) => ({
+            noteId: store.note()?.id,
+            opened: store.openedMarginNoteId(),
+            draft: store.marginDraft(),
+            change,
+          })),
+          filter(
+            (save): save is typeof save & { noteId: number } =>
+              save.noteId !== undefined && (save.opened !== null || save.draft !== null),
+          ),
+          tap(() => patchState(store, { isSavingMarginNote: true, error: null })),
+          switchMap(({ noteId, opened, draft, change }) =>
+            (opened !== null
+              ? notesService.updateMarginNote(noteId, opened, change)
+              : notesService.addMarginNote(noteId, draft as MarginNoteDraft, change)
+            ).pipe(
+              tapResponse({
+                next: (saved) =>
+                  patchState(store, ({ marginNotes }) => ({
+                    marginNotes: marginNotes.some(({ id }) => id === saved.id)
+                      ? marginNotes.map((marginNote) =>
+                          marginNote.id === saved.id ? saved : marginNote,
+                        )
+                      : [...marginNotes, saved],
+                    openedMarginNoteId: null,
+                    marginDraft: null,
+                    isSavingMarginNote: false,
+                  })),
+                error: () => {
+                  patchState(store, { isSavingMarginNote: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      deleteMarginNote: rxMethod<void>(
+        pipe(
+          map(() => ({ noteId: store.note()?.id, marginNoteId: store.openedMarginNoteId() })),
+          filter(
+            (removal): removal is { noteId: number; marginNoteId: number } =>
+              removal.noteId !== undefined && removal.marginNoteId !== null,
+          ),
+          tap(() => patchState(store, { isDeletingMarginNote: true, error: null })),
+          switchMap(({ noteId, marginNoteId }) =>
+            notesService.deleteAnnotation(noteId, marginNoteId).pipe(
+              tapResponse({
+                next: () =>
+                  patchState(store, ({ marginNotes }) => ({
+                    marginNotes: marginNotes.filter(({ id }) => id !== marginNoteId),
+                    openedMarginNoteId: null,
+                    isDeletingMarginNote: false,
+                  })),
+                error: () => {
+                  patchState(store, { isDeletingMarginNote: false, error: 'highlighting' });
                   notificationService.error('notes.errors.highlighting');
                 },
               }),
