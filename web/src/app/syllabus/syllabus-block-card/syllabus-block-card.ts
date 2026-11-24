@@ -110,6 +110,19 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
               </span>
               <button
                 type="button"
+                class="syllabus-block-card__topic-studied d-flex align-items-center justify-content-center"
+                [class.syllabus-block-card__topic-studied--on]="topic.isStudied"
+                [attr.aria-pressed]="topic.isStudied"
+                [title]="
+                  (topic.isStudied ? 'syllabus.topicStudied' : 'syllabus.markTopicStudied')
+                    | translate: { number: topic.number }
+                "
+                [disabled]="isUpdating()"
+                (click)="topicStudiedToggled.emit(topic.id)">
+                <app-icon name="check" />
+              </button>
+              <button
+                type="button"
                 class="syllabus-block-card__practice btn btn-outline-primary btn-sm d-flex align-items-center"
                 (click)="practised.emit(topic.id)"
                 [attr.aria-label]="'syllabus.practiceTopic' | translate: { number: topic.number }">
@@ -188,6 +201,32 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
     .syllabus-block-card__practice {
       position: relative;
       z-index: 2;
+    }
+
+    .syllabus-block-card__topic-studied {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      width: 2.25rem;
+      height: 2.25rem;
+      color: transparent;
+      background-color: var(--bs-white);
+      border: 2px solid rgba(var(--bs-dark-rgb), 0.3);
+      border-radius: 0.5rem;
+
+      &:hover:not(:disabled) {
+        color: rgba(var(--bs-dark-rgb), 0.3);
+      }
+    }
+
+    .syllabus-block-card__topic-studied--on {
+      color: var(--bs-white);
+      background-color: var(--bs-success);
+      border-color: var(--bs-success);
+
+      &:hover:not(:disabled) {
+        color: var(--bs-white);
+      }
     }
 
     .syllabus-block-card__open {
@@ -344,6 +383,7 @@ export class SyllabusBlockCard {
   readonly reviewCount = input(0);
   readonly toggled = output();
   readonly studiedToggled = output();
+  readonly topicStudiedToggled = output<number>();
   readonly practised = output<number>();
   readonly reviewed = output();
 

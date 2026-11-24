@@ -7,6 +7,7 @@ import { adminExamsRoutes } from './exams/admin-exams.routes.ts';
 import { adminQuestionsRoutes } from './exams/admin-questions.routes.ts';
 import { examAttemptsRoutes } from './exams/exam-attempts.routes.ts';
 import { examsRoutes } from './exams/exams.routes.ts';
+import { studiedTopicsRoutes } from './progress/studied-topics.routes.ts';
 import { topicResultsRoutes } from './progress/topic-results.routes.ts';
 import { syllabusRoutes } from './syllabus/syllabus.routes.ts';
 import { questionsRoutes } from './exams/questions.routes.ts';
@@ -29,6 +30,7 @@ export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = 
   app.use('/api/syllabus', syllabusRoutes(database));
   app.use('/api/questions', questionsRoutes(database));
   app.use('/api/topic-results', topicResultsRoutes(database));
+  app.use('/api/studied-topics', studiedTopicsRoutes(database));
   app.use('/api/notes/:noteId/annotations', annotationsRoutes(database));
   app.use('/api/notes', notesRoutes(database, uploadsDir));
   if (webDir) {

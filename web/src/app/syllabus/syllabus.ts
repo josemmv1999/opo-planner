@@ -78,6 +78,7 @@ import { SyllabusStore } from './syllabus.store';
             [isUpdating]="store.updatingBlockIds().includes(block.id)"
             (toggled)="store.toggleExpanded(block.id)"
             (studiedToggled)="store.toggleStudied(block.id)"
+            (topicStudiedToggled)="store.toggleTopicStudied(block.id, $event)"
             (practised)="quiz.open($event)"
             (reviewed)="quiz.practiseBlock(review)" />
         } @empty {
