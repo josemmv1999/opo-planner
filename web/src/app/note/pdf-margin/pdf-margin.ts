@@ -39,11 +39,11 @@ export interface MarginNoteGrab {
   styles: `
     :host {
       position: relative;
-      flex: 0 0 1.75rem;
+      flex: 0 0 calc(1.75rem * var(--pdf-zoom, 1));
       cursor: copy;
 
       @container (min-width: 56rem) {
-        flex-basis: 10rem;
+        flex-basis: calc(10rem * var(--pdf-zoom, 1));
       }
     }
 
@@ -78,7 +78,7 @@ export interface MarginNoteGrab {
       @container (min-width: 56rem) {
         display: -webkit-box;
         overflow: hidden;
-        font-size: 0.75rem;
+        font-size: calc(0.75rem * var(--pdf-zoom, 1));
         line-height: 1.3;
         -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
