@@ -23,7 +23,9 @@ import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
           </div>
           <div class="exam-result__kpi d-flex flex-column">
             <strong>{{ wrong() }}</strong>
-            <span>{{ 'examResult.wrong' | translate }}</span>
+            <span>{{
+              (wrong() === 1 ? 'examResult.wrongOne' : 'examResult.wrong') | translate
+            }}</span>
           </div>
           <div class="exam-result__kpi d-flex flex-column">
             <strong>{{ blank() }}</strong>

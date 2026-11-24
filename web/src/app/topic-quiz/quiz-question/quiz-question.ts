@@ -114,7 +114,18 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <span class="quiz-question__meta text-body-secondary">
-          {{ 'topicQuiz.tally' | translate: { right: correctCount(), wrong: wrongCount() } }}
+          {{
+            'topicQuiz.tally'
+              | translate
+                : {
+                    right:
+                      (correctCount() === 1 ? 'topicQuiz.rightOne' : 'topicQuiz.rightCount')
+                      | translate: { count: correctCount() },
+                    wrong:
+                      (wrongCount() === 1 ? 'topicQuiz.wrongOne' : 'topicQuiz.wrongCount')
+                      | translate: { count: wrongCount() },
+                  }
+          }}
         </span>
         @if (answer() !== null) {
           <button

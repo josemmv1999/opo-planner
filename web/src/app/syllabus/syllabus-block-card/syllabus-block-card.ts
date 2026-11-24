@@ -80,7 +80,8 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
           @for (topic of block().topics; track topic.id) {
             <li class="syllabus-block-card__topic d-flex align-items-center">
               <span class="syllabus-block-card__number">{{ topic.number }}</span>
-              <span class="d-flex flex-column flex-grow-1 overflow-hidden">
+              <span
+                class="syllabus-block-card__text d-flex flex-column flex-grow-1 overflow-hidden">
                 <a
                   class="syllabus-block-card__topic-link stretched-link fw-bold"
                   [routerLink]="['/syllabus', topic.id]"
@@ -362,9 +363,15 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
         gap: 0.5rem !important;
 
         .btn {
+          order: 1;
           width: 100%;
           justify-content: center;
         }
+      }
+
+      .syllabus-block-card__text {
+        flex: 1 1 0;
+        min-width: 0;
       }
     }
 
