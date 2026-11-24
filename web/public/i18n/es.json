@@ -264,6 +264,8 @@
     "noData": "Sin datos todavía",
     "studied": "Estudiado",
     "markStudied": "Marcar como estudiado",
+    "markTopicStudied": "Marcar el tema {{number}} como estudiado",
+    "topicStudied": "Tema {{number}} estudiado: pulsa para desmarcarlo",
     "topicName": "Tema {{number}}. {{name}}",
     "notPractised": "Sin practicar",
     "notesCount": "{{count}} apuntes",

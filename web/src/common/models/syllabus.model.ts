@@ -4,6 +4,7 @@ export interface SyllabusTopic {
   name: string;
   correctPercentage: number | null;
   notesCount: number;
+  isStudied: boolean;
 }
 
 export interface SyllabusBlock {

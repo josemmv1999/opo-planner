@@ -106,6 +106,11 @@ const MIGRATIONS = [
     comment TEXT NOT NULL DEFAULT ''
   )`,
   `CREATE INDEX annotations_note_id ON annotations (note_id)`,
+  `CREATE TABLE studied_topics (
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    topic_id INTEGER NOT NULL REFERENCES topics (id),
+    PRIMARY KEY (user_id, topic_id)
+  )`,
 ];
 
 const migrate = (database: DatabaseSync): void => {

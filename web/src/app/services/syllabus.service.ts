@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, delay, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, forkJoin, map, switchMap } from 'rxjs';
 import { SyllabusBlock, SyllabusTopicDetail, TopicLaw } from '../../common/models/syllabus.model';
 import { NotesService } from './notes.service';
 
@@ -46,6 +46,16 @@ interface ApiSyllabusBlock {
   topics: { id: number; number: number; name: string }[];
 }
 
+const STUDIED_URL = '/api/studied-topics';
+
+export const withStudied = (blocks: SyllabusBlock[], studiedIds: number[]): SyllabusBlock[] => {
+  const studied = new Set(studiedIds);
+  return blocks.map((block) => {
+    const topics = block.topics.map((topic) => ({ ...topic, isStudied: studied.has(topic.id) }));
+    return { ...block, topics, isStudied: topics.length > 0 && topics.every((t) => t.isStudied) };
+  });
+};
+
 @Injectable({ providedIn: 'root' })
 export class SyllabusService {
   readonly #http = inject(HttpClient);
@@ -55,23 +65,28 @@ export class SyllabusService {
     return forkJoin([
       this.#http.get<ApiSyllabusBlock[]>('/api/syllabus'),
       this.#notesService.countByTopic(),
+      this.#http.get<number[]>(STUDIED_URL),
     ]).pipe(
-      map(([blocks, counts]) => {
-        return blocks.map(({ id, label, name, topics }) => ({
-          id,
-          label,
-          name,
-          correctPercentage: null,
-          isStudied: false,
-          topics: topics.map(({ id, number, name }) => ({
+      map(([blocks, counts, studiedIds]) =>
+        withStudied(
+          blocks.map(({ id, label, name, topics }) => ({
             id,
-            number,
+            label,
             name,
             correctPercentage: null,
-            notesCount: counts[id] ?? 0,
+            isStudied: false,
+            topics: topics.map(({ id, number, name }) => ({
+              id,
+              number,
+              name,
+              correctPercentage: null,
+              notesCount: counts[id] ?? 0,
+              isStudied: false,
+            })),
           })),
-        }));
-      }),
+          studiedIds,
+        ),
+      ),
     );
   }
 
@@ -105,10 +120,7 @@ export class SyllabusService {
     );
   }
 
-  setStudied(
-    blockId: number,
-    isStudied: boolean,
-  ): Observable<{ blockId: number; isStudied: boolean }> {
-    return of({ blockId, isStudied }).pipe(delay(300));
+  setStudied(topicIds: number[], isStudied: boolean): Observable<number[]> {
+    return this.#http.put<number[]>(STUDIED_URL, { topicIds, isStudied });
   }
 }

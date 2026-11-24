@@ -5,9 +5,15 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { concatMap, forkJoin, pipe, switchMap, tap } from 'rxjs';
 import { SyllabusBlock, SyllabusFilter, TopicResult } from '../../common/models/syllabus.model';
 import { pendingReview, toQuizQuestion } from '../../common/utils/pending-review';
-import { SyllabusService } from '../services/syllabus.service';
+import { SyllabusService, withStudied } from '../services/syllabus.service';
 import { TopicResultsService } from '../services/topic-results.service';
 import { BlockReview } from '../topic-quiz/topic-quiz.store';
+
+interface StudiedChange {
+  blockId: number;
+  topicIds: number[];
+  isStudied: boolean;
+}
 
 interface SyllabusState {
   blocks: SyllabusBlock[];
@@ -103,23 +109,20 @@ export const SyllabusStore = signalStore(
           ),
         ),
       ),
-      toggleStudied: rxMethod<number>(
+      updateStudied: rxMethod<StudiedChange>(
         pipe(
-          tap((blockId) =>
+          tap(({ blockId }) =>
             patchState(store, ({ updatingBlockIds }) => ({
               updatingBlockIds: [...updatingBlockIds, blockId],
               error: null,
             })),
           ),
-          concatMap((blockId) => {
-            const isStudied = !store.blocks().find(({ id }) => id === blockId)?.isStudied;
-            return syllabusService.setStudied(blockId, isStudied).pipe(
+          concatMap(({ blockId, topicIds, isStudied }) =>
+            syllabusService.setStudied(topicIds, isStudied).pipe(
               tapResponse({
-                next: () =>
+                next: (studiedIds) =>
                   patchState(store, ({ blocks, updatingBlockIds }) => ({
-                    blocks: blocks.map((block) =>
-                      block.id === blockId ? { ...block, isStudied } : block,
-                    ),
+                    blocks: withStudied(blocks, studiedIds),
                     updatingBlockIds: updatingBlockIds.filter((id) => id !== blockId),
                   })),
                 error: () =>
@@ -128,8 +131,8 @@ export const SyllabusStore = signalStore(
                     error: 'saving' as const,
                   })),
               }),
-            );
-          }),
+            ),
+          ),
         ),
       ),
       reloadResults: rxMethod<void>(
@@ -156,4 +159,23 @@ export const SyllabusStore = signalStore(
       },
     }),
   ),
+  withMethods((store) => ({
+    toggleStudied(blockId: number): void {
+      const block = store.blocks().find(({ id }) => id === blockId);
+      if (!block) return;
+      store.updateStudied({
+        blockId,
+        topicIds: block.topics.map(({ id }) => id),
+        isStudied: !block.isStudied,
+      });
+    },
+    toggleTopicStudied(blockId: number, topicId: number): void {
+      const topic = store
+        .blocks()
+        .find(({ id }) => id === blockId)
+        ?.topics.find(({ id }) => id === topicId);
+      if (!topic) return;
+      store.updateStudied({ blockId, topicIds: [topicId], isStudied: !topic.isStudied });
+    },
+  })),
 );

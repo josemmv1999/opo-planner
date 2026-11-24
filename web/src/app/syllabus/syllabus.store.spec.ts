@@ -23,6 +23,7 @@ const block = (
     name: `Topic ${i}`,
     correctPercentage: i === 0 ? correctPercentage : null,
     notesCount: i,
+    isStudied,
   })),
 });
 
@@ -58,9 +59,14 @@ const RESULTS: TopicResult[] = [
 
 describe('SyllabusStore', () => {
   let store: InstanceType<typeof SyllabusStore>;
-  const setStudied = vi.fn((blockId: number, isStudied: boolean) => of({ blockId, isStudied }));
+  let studied: Set<number>;
+  const setStudied = vi.fn((topicIds: number[], isStudied: boolean) => {
+    topicIds.forEach((id) => (isStudied ? studied.add(id) : studied.delete(id)));
+    return of([...studied]);
+  });
 
   beforeEach(() => {
+    studied = new Set([10, 11]);
     setStudied.mockClear();
     TestBed.configureTestingModule({
       providers: [
@@ -124,11 +130,21 @@ describe('SyllabusStore', () => {
 
   it('marks a block as studied and back', () => {
     store.toggleStudied(2);
-    expect(setStudied).toHaveBeenCalledWith(2, true);
+    expect(setStudied).toHaveBeenCalledWith([20, 21, 22], true);
     expect(store.blocks().find(({ id }) => id === 2)?.isStudied).toBe(true);
     store.toggleStudied(2);
     expect(store.blocks().find(({ id }) => id === 2)?.isStudied).toBe(false);
     expect(store.updatingBlockIds()).toEqual([]);
+  });
+
+  it('marks single topics and the block once all of them are studied', () => {
+    store.toggleTopicStudied(2, 20);
+    const blockTwo = () => store.blocks().find(({ id }) => id === 2);
+    expect(blockTwo()?.topics.map(({ isStudied }) => isStudied)).toEqual([true, false, false]);
+    expect(blockTwo()?.isStudied).toBe(false);
+    store.toggleTopicStudied(2, 21);
+    store.toggleTopicStudied(2, 22);
+    expect(blockTwo()?.isStudied).toBe(true);
   });
 
   it('keeps the block as it was when saving fails', () => {
