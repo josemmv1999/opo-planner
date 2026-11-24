@@ -73,7 +73,9 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
                 {{ statement.text }}
               </p>
             } @else {
-              <p class="true-false-game__asked text-body-secondary mb-0">{{ statement.text }}</p>
+              <p #asked class="true-false-game__asked text-body-secondary mb-0">
+                {{ statement.text }}
+              </p>
               <div class="d-flex align-items-center gap-3">
                 <p
                   class="true-false-game__status d-flex align-items-center gap-2 mb-0"
@@ -91,7 +93,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
                     }}
                   }
                 </p>
-                @if (isExplanationClamped()) {
+                @if (isTextClamped()) {
                   <button
                     app-button
                     variant="link"
@@ -421,6 +423,14 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 
     .true-false-game__answer {
       min-width: 8.5rem;
+
+      @media (hover: none) {
+        &:hover:not(:active) {
+          color: var(--bs-btn-color);
+          background-color: var(--bs-btn-bg);
+          border-color: var(--bs-btn-border-color);
+        }
+      }
     }
 
     @container (max-width: 30rem) {
@@ -470,7 +480,7 @@ export class TrueFalseGame {
   protected readonly results = signal<boolean[]>([]);
   protected readonly selectedAnswer = signal<boolean | null>(null);
   protected readonly isExplanationOpen = signal(false);
-  protected readonly isExplanationClamped = signal(false);
+  protected readonly isTextClamped = signal(false);
 
   protected readonly roundStatements = computed(() => {
     const statements = this.statements();
@@ -506,10 +516,11 @@ export class TrueFalseGame {
   private readonly nextButton = viewChild<ElementRef<HTMLButtonElement>>('nextButton');
   private readonly playAgainButton = viewChild<ElementRef<HTMLButtonElement>>('playAgainButton');
   private readonly explanation = viewChild<ElementRef<HTMLElement>>('explanation');
+  private readonly asked = viewChild<ElementRef<HTMLElement>>('asked');
   readonly #injector = inject(Injector);
 
   constructor() {
-    this.watchExplanationClamp();
+    this.watchTextClamp();
   }
 
   protected answer(value: boolean): void {
@@ -541,17 +552,20 @@ export class TrueFalseGame {
     afterNextRender(() => button()?.nativeElement.focus(), { injector: this.#injector });
   }
 
-  private watchExplanationClamp(): void {
-    const measure = () => {
-      const element = this.explanation()?.nativeElement;
-      this.isExplanationClamped.set(!!element && element.scrollHeight > element.clientHeight + 1);
-    };
+  private watchTextClamp(): void {
+    const isClamped = (element?: HTMLElement): boolean =>
+      !!element && element.scrollHeight > element.clientHeight + 1;
+    const measure = () =>
+      this.isTextClamped.set(
+        isClamped(this.explanation()?.nativeElement) || isClamped(this.asked()?.nativeElement),
+      );
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
     inject(DestroyRef).onDestroy(() => observer?.disconnect());
     afterRenderEffect(() => {
-      const element = this.explanation()?.nativeElement;
       observer?.disconnect();
-      if (element) observer?.observe(element);
+      [this.explanation(), this.asked()].forEach((element) => {
+        if (element) observer?.observe(element.nativeElement);
+      });
       measure();
     });
   }
