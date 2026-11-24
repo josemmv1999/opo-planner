@@ -292,12 +292,19 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
         font-size: clamp(0.9375rem, 16cqh, 1.25rem);
         -webkit-line-clamp: 4;
       }
+
+      .true-false-game__asked {
+        -webkit-line-clamp: 1;
+      }
+
+      .true-false-game__explanation-text {
+        -webkit-line-clamp: 4;
+      }
     }
 
     .true-false-game__asked {
       font-size: 0.8125rem;
       font-weight: 700;
-      -webkit-line-clamp: 1;
     }
 
     .true-false-game__status {
@@ -318,10 +325,6 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       line-height: 1.45;
       border-left: 0.25rem solid;
       border-radius: var(--bs-border-radius-sm);
-    }
-
-    .true-false-game__explanation-text {
-      -webkit-line-clamp: 4;
     }
 
     .true-false-game__explanation--correct {
