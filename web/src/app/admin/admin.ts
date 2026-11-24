@@ -6,6 +6,7 @@ import { Modal } from '../../common/components/modal/modal';
 import { AdminStore } from './admin.store';
 import { ExamImportForm } from './exam-import-form/exam-import-form';
 import { ExamImportReview } from './exam-import-review/exam-import-review';
+import { GeneratedImportForm } from './generated-import-form/generated-import-form';
 import { ImportedExamList } from './imported-exam-list/imported-exam-list';
 
 @Component({
@@ -17,6 +18,7 @@ import { ImportedExamList } from './imported-exam-list/imported-exam-list';
     ConfirmContent,
     ExamImportForm,
     ExamImportReview,
+    GeneratedImportForm,
     ImportedExamList,
   ],
   providers: [AdminStore],
@@ -50,6 +52,18 @@ import { ImportedExamList } from './imported-exam-list/imported-exam-list';
             [hasError]="store.error() === 'reading'"
             (submitted)="store.read($event)" />
         }
+      </div>
+    </section>
+
+    <section class="card card--yellow">
+      <div class="card-body d-flex flex-column gap-3">
+        <h2 class="h5 mb-0">{{ 'admin.generated.title' | translate }}</h2>
+        <p class="text-body-secondary mb-0">{{ 'admin.generated.hint' | translate }}</p>
+        <app-generated-import-form
+          [isImporting]="store.isImportingGenerated()"
+          [hasError]="store.error() === 'importingGenerated'"
+          [result]="store.generatedResult()"
+          (submitted)="store.importGenerated($event)" />
       </div>
     </section>
 

@@ -3,7 +3,12 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { filter, forkJoin, from, map, pipe, switchMap, tap } from 'rxjs';
-import { ExamImportFiles, ImportedExam, ParsedExam } from '../../common/models/exam-import.model';
+import {
+  ExamImportFiles,
+  GeneratedImportResult,
+  ImportedExam,
+  ParsedExam,
+} from '../../common/models/exam-import.model';
 import { NotificationService } from '../../common/services/notification.service';
 import { parseOfficialExam } from '../../common/utils/parse-official-exam';
 import { READ_PDF_TEXT } from '../../common/utils/read-pdf-text';
@@ -21,7 +26,9 @@ interface AdminState {
   isLoadingImported: boolean;
   examToDeleteId: number | null;
   isDeleting: boolean;
-  error: 'reading' | 'importing' | 'loadingImported' | 'deleting' | null;
+  generatedResult: GeneratedImportResult | null;
+  isImportingGenerated: boolean;
+  error: 'reading' | 'importing' | 'loadingImported' | 'deleting' | 'importingGenerated' | null;
 }
 
 export const AdminStore = signalStore(
@@ -35,6 +42,8 @@ export const AdminStore = signalStore(
     isLoadingImported: false,
     examToDeleteId: null,
     isDeleting: false,
+    generatedResult: null,
+    isImportingGenerated: false,
     error: null,
   }),
   withComputed(({ parsedExam, importedExams, examToDeleteId }) => ({
@@ -127,6 +136,25 @@ export const AdminStore = signalStore(
                   patchState(store, { importedExams, isLoadingImported: false }),
                 error: () =>
                   patchState(store, { isLoadingImported: false, error: 'loadingImported' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      importGenerated: rxMethod<File[]>(
+        pipe(
+          tap(() =>
+            patchState(store, { isImportingGenerated: true, generatedResult: null, error: null }),
+          ),
+          switchMap((files) =>
+            from(Promise.all(files.map((file) => file.text()))).pipe(
+              map((texts) => texts.flatMap((text) => JSON.parse(text) as unknown[])),
+              switchMap((questions) => examService.importGeneratedQuestions(questions)),
+              tapResponse({
+                next: (generatedResult) =>
+                  patchState(store, { generatedResult, isImportingGenerated: false }),
+                error: () =>
+                  patchState(store, { isImportingGenerated: false, error: 'importingGenerated' }),
               }),
             ),
           ),

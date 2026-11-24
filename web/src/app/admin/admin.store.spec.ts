@@ -21,6 +21,10 @@ c) El Senado. d) El Consejo de Ministros.`;
 
 const pdf = (text: string): File => new File([text], 'exam.pdf');
 
+const importGeneratedQuestions = vi.fn((questions: unknown[]) =>
+  of({ imported: questions.length - 1, errors: [{ index: 0, reason: 'duplicate' as const }] }),
+);
+
 describe('AdminStore', () => {
   let store: InstanceType<typeof AdminStore>;
   const importOfficialExam = vi.fn((name: string, questions: ParsedQuestion[]) =>
@@ -51,7 +55,13 @@ describe('AdminStore', () => {
         AdminStore,
         {
           provide: ExamService,
-          useValue: { importOfficialExam, getImportedExams, deleteImportedExam, classifyQuestions },
+          useValue: {
+            importOfficialExam,
+            getImportedExams,
+            deleteImportedExam,
+            classifyQuestions,
+            importGeneratedQuestions,
+          },
         },
         { provide: SyllabusService, useValue: { getBlocks: () => of([]) } },
         { provide: NotificationService, useValue: { success: vi.fn() } },
@@ -96,5 +106,27 @@ describe('AdminStore', () => {
     store.setQuestionTopic({ index: 1, topicId: null });
     expect(store.parsedExam()?.questions[1].topicId).toBeNull();
     expect(store.importSummary().withoutTopic).toBe(1);
+  });
+
+  it('imports the questions of every generated JSON file together', async () => {
+    const file = (questions: unknown[]) =>
+      new File([JSON.stringify(questions)], 'preguntas.json', { type: 'application/json' });
+    store.importGenerated([
+      file([{ statement: 'A' }]),
+      file([{ statement: 'B' }, { statement: 'C' }]),
+    ]);
+    await vi.waitFor(() => expect(store.generatedResult()).not.toBeNull());
+    expect(importGeneratedQuestions).toHaveBeenCalledWith([
+      { statement: 'A' },
+      { statement: 'B' },
+      { statement: 'C' },
+    ]);
+    expect(store.generatedResult()?.imported).toBe(2);
+  });
+
+  it('reports files that are not valid JSON', async () => {
+    store.importGenerated([new File(['no es json'], 'mal.json')]);
+    await vi.waitFor(() => expect(store.error()).toBe('importingGenerated'));
+    expect(store.isImportingGenerated()).toBe(false);
   });
 });

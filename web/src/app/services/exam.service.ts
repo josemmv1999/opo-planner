@@ -9,7 +9,11 @@ import {
   OfficialExam,
   TopicQuestion,
 } from '../../common/models/exam.model';
-import { ImportedExam, ParsedQuestion } from '../../common/models/exam-import.model';
+import {
+  GeneratedImportResult,
+  ImportedExam,
+  ParsedQuestion,
+} from '../../common/models/exam-import.model';
 
 @Injectable({ providedIn: 'root' })
 export class ExamService {
@@ -25,6 +29,10 @@ export class ExamService {
 
   importOfficialExam(name: string, questions: ParsedQuestion[]): Observable<ImportedExam> {
     return this.#http.post<ImportedExam>('/api/admin/exams', { name, questions });
+  }
+
+  importGeneratedQuestions(questions: unknown[]): Observable<GeneratedImportResult> {
+    return this.#http.post<GeneratedImportResult>('/api/admin/questions/import', { questions });
   }
 
   classifyQuestions(questions: ParsedQuestion[]): Observable<(number | null)[]> {

@@ -52,6 +52,15 @@ test('imports valid questions as approved and reports the invalid ones', async (
   );
 });
 
+test('skips questions that are already in the bank', async () => {
+  const repeated = [{ ...generated, statement: 'Repetida' }];
+  assert.equal((await (await importQuestions(repeated)).json()).imported, 1);
+  assert.deepEqual(await (await importQuestions(repeated)).json(), {
+    imported: 0,
+    errors: [{ index: 0, reason: 'duplicate' }],
+  });
+});
+
 test('is only for admins', async () => {
   const user = await signUp('user@example.com');
   assert.equal((await request('/api/admin/questions/pending', { cookie: user })).status, 403);

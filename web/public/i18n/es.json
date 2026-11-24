@@ -94,6 +94,19 @@
     "admin": "Admin"
   },
   "admin": {
+    "generated": {
+      "title": "Importar preguntas generadas",
+      "hint": "Sube los JSON del generador (puedes elegir varios). Las preguntas que ya estén en el banco se saltan, así que puedes volver a subir el mismo fichero cuando crezca.",
+      "files": "Ficheros JSON",
+      "import": "Importar preguntas",
+      "imported": "{{count}} preguntas importadas.",
+      "skipped": {
+        "duplicate": "{{count}} ya estaban en el banco.",
+        "topic": "{{count}} con un tema que no existe.",
+        "format": "{{count}} con formato incorrecto."
+      },
+      "error": "No se han podido importar. Comprueba que los ficheros son los JSON del generador."
+    },
     "badge": "Modo administrador",
     "intro": "Desde aquí gestionas el contenido de la app: los exámenes oficiales y sus preguntas.",
     "import": {

@@ -7,7 +7,7 @@ export interface GeneratedQuestion {
   source?: string;
 }
 
-export type GeneratedQuestionError = 'format' | 'topic';
+export type GeneratedQuestionError = 'format' | 'topic' | 'duplicate';
 
 const isText = (value: unknown): value is string =>
   typeof value === 'string' && value.trim() !== '';
