@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { PercentPipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '../../common/components/button/button';
@@ -42,6 +43,7 @@ const DEFAULT_ZOOM_INDEX = 1;
     ColorPicker,
     HighlightForm,
     MarginNoteForm,
+    PercentPipe,
   ],
   providers: [NoteStore],
   host: { class: 'd-flex flex-column', '(document:click)': 'closeMenu($event)' },
@@ -59,7 +61,7 @@ const DEFAULT_ZOOM_INDEX = 1;
         <span class="note__kind" [class]="'note__kind--' + note.kind">
           {{ 'notes.kind.' + note.kind | translate }}
         </span>
-        <span class="d-flex flex-column flex-grow-1 overflow-hidden">
+        <span class="note__title d-flex flex-column flex-grow-1 overflow-hidden">
           <strong class="text-truncate">{{ note.title }}</strong>
           <span class="note__meta text-body-secondary">
             {{ note.updatedAt | formatDate: 'd MMM yyyy' }}
@@ -83,25 +85,26 @@ const DEFAULT_ZOOM_INDEX = 1;
               {{ 'notes.highlight' | translate }}
             </button>
           }
+          @if (position(); as position) {
+            <span class="note__page">{{ 'notes.page' | translate: position }}</span>
+          }
           <span class="note__zoom d-flex align-items-center">
             <button
               type="button"
-              class="note__icon-button"
+              class="note__icon-button d-flex align-items-center justify-content-center"
               [title]="'notes.zoomOut' | translate"
               [disabled]="zoomIndex() === 0"
               (click)="changeZoom(-1)">
-              −
+              <app-icon name="zoom-out" />
             </button>
-            @if (position(); as position) {
-              <span class="note__page">{{ 'notes.page' | translate: position }}</span>
-            }
+            <span class="note__zoom-level">{{ zoomLevels[zoomIndex()] | percent }}</span>
             <button
               type="button"
-              class="note__icon-button"
+              class="note__icon-button d-flex align-items-center justify-content-center"
               [title]="'notes.zoomIn' | translate"
               [disabled]="zoomIndex() === zoomLevels.length - 1"
               (click)="changeZoom(1)">
-              +
+              <app-icon name="zoom-in" />
             </button>
           </span>
         } @else if (note.kind === 'text' && !store.isEditing()) {
@@ -285,10 +288,15 @@ const DEFAULT_ZOOM_INDEX = 1;
     }
 
     .note__bar {
+      flex-wrap: wrap;
       gap: 0.75rem;
       padding: 0.625rem 1rem;
       background-color: var(--bs-light);
       border-bottom: 2px solid var(--bs-dark);
+    }
+
+    .note__title {
+      flex-basis: 8rem;
     }
 
     .note__back {
@@ -334,6 +342,13 @@ const DEFAULT_ZOOM_INDEX = 1;
 
     .note__page {
       min-width: 7rem;
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .note__zoom-level {
+      min-width: 3rem;
       font-size: 0.8125rem;
       font-weight: 800;
       text-align: center;
