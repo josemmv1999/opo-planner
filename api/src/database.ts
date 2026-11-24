@@ -1,10 +1,10 @@
 import { mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { syllabusSeedSql } from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
-export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? join(dirname(DB_FILE), 'uploads');
+export const UPLOADS_DIR = resolve(process.env.UPLOADS_DIR ?? join(dirname(DB_FILE), 'uploads'));
 
 const MIGRATIONS = [
   `CREATE TABLE users (
