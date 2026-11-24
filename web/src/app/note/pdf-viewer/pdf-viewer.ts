@@ -109,6 +109,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
     }
 
     .pdf-viewer__pages {
+      flex-shrink: 0;
       gap: 1rem;
     }
 
