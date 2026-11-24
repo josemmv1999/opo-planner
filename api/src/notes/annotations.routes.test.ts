@@ -70,6 +70,12 @@ test('changes the color and the comment, and deletes', async () => {
     })
   ).json();
   assert.deepEqual([updated.color, updated.comment], ['pink', 'Nueva']);
+  const put = (body: unknown) =>
+    request(`${base}/${id}`, { method: 'PUT', cookie, body: JSON.stringify(body) });
+  const moved = await (await put({ y: 72.5, side: 'left' })).json();
+  assert.deepEqual([moved.y, moved.side, moved.comment], [72.5, 'left', 'Nueva']);
+  assert.equal((await put({ y: 120 })).status, 400);
+  assert.equal((await put({ side: 'top' })).status, 400);
   assert.equal((await request(`${base}/${id}`, { method: 'DELETE', cookie })).status, 204);
   assert.equal((await request(`${base}/${id}`, { method: 'DELETE', cookie })).status, 404);
 });

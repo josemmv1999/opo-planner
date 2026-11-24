@@ -9,6 +9,7 @@ import {
   HighlightColor,
   MarginNoteChange,
   MarginNoteDraft,
+  MarginNoteMove,
   PdfHighlightDraft,
 } from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
@@ -62,6 +63,10 @@ describe('NoteStore', () => {
               of({ ...draft, ...change, id: 5 }),
             updateMarginNote: (_: number, id: number, change: MarginNoteChange) =>
               of({ page: 1, y: 30, side: 'left', ...change, id }),
+            moveMarginNote: (_: number, move: MarginNoteMove) =>
+              move.y > 90
+                ? throwError(() => new Error('failed'))
+                : of({ page: 1, text: 'Ojo', color: 'blue', ...move }),
             addHighlight: (_: number, draft: PdfHighlightDraft, color: HighlightColor) =>
               of({ ...draft, id: 2, note: '', color }),
             updateHighlight: (_: number, id: number, change: HighlightChange) =>
@@ -69,7 +74,7 @@ describe('NoteStore', () => {
             deleteAnnotation: (_: number, id: number) => of(id),
           },
         },
-        { provide: NotificationService, useValue: { success: vi.fn() } },
+        { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn() } },
       ],
     });
     store = TestBed.inject(NoteStore);
@@ -115,6 +120,19 @@ describe('NoteStore', () => {
     store.openMarginNote(5);
     store.deleteMarginNote();
     expect(store.marginNotes()).toEqual([]);
+  });
+
+  it('moves a margin note and puts it back if the move fails', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.startMarginNote({ page: 1, y: 30, side: 'left' });
+    store.saveMarginNote({ text: 'Ojo', color: 'blue' });
+
+    store.moveMarginNote({ id: 5, y: 60, side: 'right' });
+    expect(store.marginNotes()[0]).toMatchObject({ y: 60, side: 'right', text: 'Ojo' });
+
+    store.moveMarginNote({ id: 5, y: 99, side: 'left' });
+    expect(store.marginNotes()[0]).toMatchObject({ y: 60, side: 'right' });
+    expect(store.error()).toBe('highlighting');
   });
 
   it('removes the opened highlight', () => {

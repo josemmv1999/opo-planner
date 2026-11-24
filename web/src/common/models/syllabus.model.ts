@@ -85,6 +85,12 @@ export interface MarginNote extends MarginNoteDraft, MarginNoteChange {
   id: number;
 }
 
+export interface MarginNoteMove {
+  id: number;
+  y: number;
+  side: MarginSide;
+}
+
 export interface NoteAnnotations {
   highlights: PdfHighlight[];
   marginNotes: MarginNote[];

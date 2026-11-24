@@ -203,7 +203,8 @@ const DEFAULT_ZOOM_INDEX = 1;
                 [marginNotes]="store.marginNotes()"
                 [marginHint]="'notes.addMarginNote' | translate"
                 (marginAdded)="store.startMarginNote($event)"
-                (marginNoteOpened)="store.openMarginNote($event)" />
+                (marginNoteOpened)="store.openMarginNote($event)"
+                (marginNoteMoved)="store.moveMarginNote($event)" />
             }
           }
           @case ('image') {
