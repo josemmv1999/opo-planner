@@ -29,6 +29,7 @@ describe('ProfileStore', () => {
           useValue: {
             getUserOppositionIds: () => of(['a']),
             addOppositions: (ids: string[]) => of(['a', ...ids]),
+            removeOpposition: () => of(['a']),
           },
         },
         { provide: AccountService, useValue: { changePassword } },
@@ -54,6 +55,17 @@ describe('ProfileStore', () => {
     store.addSelected();
     expect(store.oppositions().map(({ id }) => id)).toEqual(['a', 'b']);
     expect(store.isAddModalOpen()).toBe(false);
+  });
+
+  it('removes an opposition after confirming, but never the last one', () => {
+    store.toggleSelection('b');
+    store.addSelected();
+    expect(store.canRemoveOppositions()).toBe(true);
+    store.openRemoveModal('b');
+    store.removeOpposition();
+    expect(store.oppositionIds()).toEqual(['a']);
+    expect(store.oppositionToRemoveId()).toBeNull();
+    expect(store.canRemoveOppositions()).toBe(false);
   });
 
   it('resets the password form after a change and flags a wrong password', () => {

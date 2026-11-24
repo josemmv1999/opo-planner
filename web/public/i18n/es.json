@@ -546,6 +546,11 @@
     "add": "Añadir",
     "addError": "No hemos podido añadir las oposiciones. Inténtalo de nuevo.",
     "oppositionsAdded": "Hemos añadido las oposiciones.",
+    "removeOpposition": "Quitar {{name}}",
+    "removeOppositionTitle": "¿Quitar esta oposición?",
+    "removeOppositionMessage": "Dejarás de ver {{name}} en tus oposiciones. Puedes volver a añadirla cuando quieras.",
+    "removeError": "No hemos podido quitar la oposición. Inténtalo de nuevo.",
+    "oppositionRemoved": "Hemos quitado la oposición.",
     "menu": "Menú en este dispositivo",
     "menuAuto": "Automático según el dispositivo",
     "menuDetected": {

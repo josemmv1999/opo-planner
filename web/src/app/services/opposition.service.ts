@@ -51,6 +51,12 @@ export class OppositionService {
     return this.#get().pipe(map(({ ids }) => ids));
   }
 
+  removeOpposition(oppositionId: string): Observable<string[]> {
+    return this.getUserOppositionIds().pipe(
+      switchMap((ids) => this.saveOppositions(ids.filter((id) => id !== oppositionId))),
+    );
+  }
+
   addOppositions(oppositionIds: string[]): Observable<string[]> {
     return this.getUserOppositionIds().pipe(
       switchMap((ids) => this.saveOppositions([...ids, ...oppositionIds])),
