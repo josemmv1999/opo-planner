@@ -105,11 +105,12 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
                 }
               </div>
               <p
-                #explanation
                 class="true-false-game__explanation mb-0"
                 [class.true-false-game__explanation--correct]="isCorrect()"
                 [class.true-false-game__explanation--wrong]="!isCorrect()">
-                {{ statement.explanation }}
+                <span #explanation class="true-false-game__explanation-text">{{
+                  statement.explanation
+                }}</span>
               </p>
             }
           } @else {
@@ -265,7 +266,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 
     .true-false-game__statement,
     .true-false-game__asked,
-    .true-false-game__explanation {
+    .true-false-game__explanation-text {
       display: -webkit-box;
       overflow: hidden;
       -webkit-box-orient: vertical;
@@ -317,6 +318,9 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       line-height: 1.45;
       border-left: 0.25rem solid;
       border-radius: var(--bs-border-radius-sm);
+    }
+
+    .true-false-game__explanation-text {
       -webkit-line-clamp: 4;
     }
 
@@ -374,7 +378,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
     }
 
     @container true-false-main (max-height: 7.5rem) {
-      .true-false-game__explanation {
+      .true-false-game__explanation-text {
         -webkit-line-clamp: 2;
       }
 
@@ -413,6 +417,9 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       .true-false-game__explanation {
         padding: 0.25rem 0.625rem;
         font-size: 0.9375rem;
+      }
+
+      .true-false-game__explanation-text {
         -webkit-line-clamp: 1;
       }
     }
