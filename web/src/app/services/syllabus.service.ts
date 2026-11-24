@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, delay, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, forkJoin, map, switchMap } from 'rxjs';
 import { SyllabusBlock, SyllabusTopicDetail, TopicLaw } from '../../common/models/syllabus.model';
 import { NotesService } from './notes.service';
 
