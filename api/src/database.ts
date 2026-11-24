@@ -128,6 +128,8 @@ const MIGRATIONS = [
   `CREATE INDEX planner_entries_user_start ON planner_entries (user_id, start)`,
   `ALTER TABLE users ADD COLUMN exam_date TEXT`,
   `ALTER TABLE users ADD COLUMN study_schedule TEXT`,
+  `ALTER TABLE users ADD COLUMN opposition_ids TEXT`,
+  `ALTER TABLE users ADD COLUMN active_opposition_id TEXT`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
