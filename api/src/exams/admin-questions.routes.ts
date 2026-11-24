@@ -21,6 +21,7 @@ export const adminQuestionsRoutes = (database: DatabaseSync): Router => {
       (topic_id, section, number, statement, options, correct_option, explanation, source, is_official, review_status)
       VALUES (?, '${GENERATED_SECTION}', 0, ?, ?, ?, ?, ?, 0, 'approved')`,
   );
+  const findStatement = database.prepare('SELECT 1 FROM questions WHERE statement = ?');
   const listPending = database.prepare(
     "SELECT * FROM questions WHERE review_status = 'pending' ORDER BY id",
   );
@@ -57,6 +58,8 @@ export const adminQuestionsRoutes = (database: DatabaseSync): Router => {
         if (!isGeneratedQuestion(question)) return void errors.push({ index, reason: 'format' });
         const topicId = topicIdOf(question.topic);
         if (!topicId) return void errors.push({ index, reason: 'topic' });
+        if (findStatement.get(question.statement.trim()))
+          return void errors.push({ index, reason: 'duplicate' });
         insertQuestion.run(
           topicId,
           question.statement.trim(),

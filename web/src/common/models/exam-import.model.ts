@@ -35,3 +35,10 @@ export interface ImportedExam {
   importedAt: string;
   questions: ParsedQuestion[];
 }
+
+export type GeneratedImportErrorReason = 'format' | 'topic' | 'duplicate';
+
+export interface GeneratedImportResult {
+  imported: number;
+  errors: { index: number; reason: GeneratedImportErrorReason }[];
+}
