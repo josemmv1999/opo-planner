@@ -28,7 +28,8 @@ import { PlannerStore } from './planner.store';
   template: `
     <div class="planner__top">
       @if (store.examDate(); as examDate) {
-        <section class="card card--yellow planner__exam d-flex flex-row align-items-center">
+        <section
+          class="card card--yellow planner__exam d-flex flex-row flex-wrap align-items-center">
           <app-icon name="flag" />
           <span class="d-flex flex-column">
             <app-input
@@ -79,7 +80,7 @@ import { PlannerStore } from './planner.store';
           {{ store.weekStart() | formatDate: 'd MMM' }} –
           {{ store.weekEnd() | formatDate: 'd MMM yyyy' }}
         </h2>
-        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+        <div class="planner__actions d-flex flex-wrap align-items-center gap-2">
           <div
             class="planner__segmented d-flex"
             role="group"
@@ -236,6 +237,15 @@ import { PlannerStore } from './planner.store';
       background-color: var(--bs-warning);
       border: 2px solid var(--bs-dark);
       border-radius: var(--bs-border-radius-pill);
+    }
+
+    .planner__actions {
+      margin-left: auto;
+
+      @container (max-width: 60rem) {
+        flex-basis: 100%;
+        margin-left: 0;
+      }
     }
 
     .planner__icon-button {

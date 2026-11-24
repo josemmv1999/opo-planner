@@ -261,6 +261,7 @@ import { finalize } from 'rxjs';
     .profile__name {
       font-size: 1.375rem;
       font-weight: 900;
+      line-height: 1.3;
     }
 
     .profile__section {

@@ -184,11 +184,7 @@ import { ExamsStore } from './exams.store';
       display: grid;
       gap: 1rem;
 
-      @container (min-width: 40rem) {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      @container (min-width: 64rem) {
+      @container (min-width: 44rem) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
