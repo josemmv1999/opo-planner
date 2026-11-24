@@ -13,7 +13,7 @@ import { Icon } from '../icon/icon';
       @if (oppositionNameParts(); as name) {
         <button
           type="button"
-          class="page-header__selector text-start p-0 border-0 bg-transparent"
+          class="page-header__selector touch-target text-start px-0 border-0 bg-transparent"
           [title]="'appLayout.changeOpposition' | translate"
           (click)="oppositionClicked.emit()">
           {{ name.start

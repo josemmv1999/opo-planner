@@ -25,7 +25,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
           app-button
           variant="link"
           type="button"
-          class="quiz-question__exit d-flex align-items-center p-0"
+          class="quiz-question__exit touch-target d-flex align-items-center px-0"
           (click)="exited.emit()">
           <app-icon class="me-1" name="close" />
           {{ 'topicQuiz.exit' | translate }}

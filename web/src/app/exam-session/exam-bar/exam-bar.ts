@@ -13,7 +13,7 @@ import { CountdownPipe } from '../../../common/pipes/countdown.pipe';
         app-button
         variant="link"
         type="button"
-        class="exam-bar__exit d-flex align-items-center p-0"
+        class="exam-bar__exit touch-target d-flex align-items-center px-0"
         (click)="exited.emit()">
         <app-icon class="me-1" name="close" />
         {{ 'examSession.exit' | translate }}

@@ -18,7 +18,7 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
   host: { class: 'd-flex flex-column gap-4' },
   template: `
     <a
-      class="syllabus-topic__back d-inline-flex align-items-center align-self-start"
+      class="syllabus-topic__back touch-target d-inline-flex align-items-center align-self-start"
       routerLink="/syllabus">
       <app-icon class="me-1" name="chevron-left" />
       {{ 'syllabusTopic.back' | translate }}
@@ -125,7 +125,7 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
             </label>
           </div>
           <a
-            class="syllabus-topic__write align-self-center"
+            class="syllabus-topic__write touch-target align-self-center"
             [routerLink]="['/syllabus', topic.id, 'notes', 'new']">
             {{ 'syllabusTopic.writeNote' | translate }}
           </a>
