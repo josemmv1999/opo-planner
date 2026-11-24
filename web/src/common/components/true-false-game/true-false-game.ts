@@ -9,6 +9,7 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -461,6 +462,7 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
 })
 export class TrueFalseGame {
   readonly statements = input.required<TrueFalseStatement[]>();
+  readonly exhausted = output();
 
   protected readonly longStatementLength = LONG_STATEMENT_LENGTH;
   protected readonly roundStart = signal(0);
@@ -525,9 +527,10 @@ export class TrueFalseGame {
   }
 
   protected playAgain(): void {
-    this.roundStart.update(
-      (start) => (start + this.roundStatements().length) % this.statements().length,
-    );
+    const nextStart = this.roundStart() + this.roundStatements().length;
+    const isExhausted = nextStart >= this.statements().length;
+    this.roundStart.set(isExhausted ? 0 : nextStart);
+    if (isExhausted) this.exhausted.emit();
     this.currentIndex.set(0);
     this.results.set([]);
     this.selectedAnswer.set(null);

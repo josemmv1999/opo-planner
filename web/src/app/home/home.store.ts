@@ -76,6 +76,18 @@ export const HomeStore = signalStore(
           ),
         ),
       ),
+      loadMoreStatements: rxMethod<void>(
+        pipe(
+          switchMap(() =>
+            homeService.getFlashcards().pipe(
+              tapResponse({
+                next: (statements) => patchState(store, { statements }),
+                error: () => undefined,
+              }),
+            ),
+          ),
+        ),
+      ),
       toggleTask: rxMethod<number>(
         pipe(
           map((taskId) => store.tasks().find(({ id }) => id === taskId)),
