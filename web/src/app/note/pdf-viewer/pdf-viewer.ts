@@ -41,6 +41,19 @@ const WORKER_SRC = '/pdfjs/pdf.worker.min.mjs';
 const BASE_WIDTH_REM = 52;
 const DRAG_THRESHOLD_PX = 4;
 
+interface AnnotationPeek {
+  kind: 'highlight' | 'margin';
+  id: number;
+}
+
+interface PdfTooltip {
+  page: number;
+  text: string;
+  top: number;
+  left: number | null;
+  right: number | null;
+}
+
 const loadPdfjs = () => import('pdfjs-dist');
 
 const toPercent = (value: number, size: number): number => (value / size) * 100;
@@ -58,6 +71,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
     '(click)': 'openHighlightAt($event)',
+    '(document:click)': 'closeTooltipOutside($event)',
     '(document:pointerdown)': 'forgetDrag()',
     '(document:pointermove)': 'dragMarginNote($event)',
     '(document:pointerup)': 'dropMarginNote()',
@@ -66,7 +80,10 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
   encapsulation: ViewEncapsulation.None,
   template: `
     @let pdf = layout();
-    <div class="pdf-viewer__pages d-flex flex-column align-items-center" [style.width]="pdf?.width">
+    <div
+      class="pdf-viewer__pages d-flex flex-column align-items-center"
+      [style.width]="pdf?.width"
+      [style.--pdf-zoom]="zoom()">
       @for (key of pdf?.pageKeys ?? []; track key; let pageIndex = $index) {
         <div class="pdf-viewer__row d-flex w-100">
           <app-pdf-margin
@@ -93,6 +110,19 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
               }
             </div>
             <div #textLayer class="textLayer"></div>
+            @if (tooltip()?.page === pageIndex + 1) {
+              @let shown = tooltip()!;
+              <button
+                type="button"
+                class="pdf-viewer__tooltip d-flex flex-column text-start"
+                [style.left.%]="shown.left"
+                [style.right.%]="shown.right"
+                [style.top.%]="shown.top"
+                (click)="editTooltip($event)">
+                <span class="pdf-viewer__tooltip-text">{{ shown.text }}</span>
+                <span class="pdf-viewer__tooltip-hint">{{ editHint() }}</span>
+              </button>
+            }
           </div>
           <app-pdf-margin
             side="right"
@@ -150,7 +180,32 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
       }
 
       .pdf-viewer__highlight--noted {
-        border-bottom: 2px solid var(--highlight-color);
+        border-bottom: 3px solid var(--highlight-color);
+      }
+
+      .pdf-viewer__tooltip {
+        position: absolute;
+        z-index: 1;
+        max-width: min(18rem, 90%);
+        margin-top: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        color: var(--bs-white);
+        background-color: var(--bs-dark);
+        border: 0;
+        border-radius: 0.5rem;
+        box-shadow: 0.25rem 0.25rem 0 rgba(var(--bs-dark-rgb), 0.18);
+        cursor: pointer;
+      }
+
+      .pdf-viewer__tooltip-text {
+        font-size: 0.875rem;
+        white-space: pre-line;
+      }
+
+      .pdf-viewer__tooltip-hint {
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        opacity: 0.75;
       }
 
       .textLayer {
@@ -209,9 +264,38 @@ export class PdfViewer {
   readonly marginAdded = output<MarginNoteDraft>();
   readonly marginNoteOpened = output<number>();
   readonly marginNoteMoved = output<MarginNoteMove>();
+  readonly editHint = input('');
 
   protected readonly layout = signal<PdfLayout | null>(null);
   readonly #draggedNote = signal<MarginNoteMove | null>(null);
+  readonly #peek = signal<AnnotationPeek | null>(null);
+  protected readonly tooltip = computed((): PdfTooltip | null => {
+    const peek = this.#peek();
+    if (peek?.kind === 'margin') {
+      const note = this.marginNotes().find(({ id }) => id === peek.id);
+      return note
+        ? {
+            page: note.page,
+            text: note.text,
+            top: note.y,
+            left: note.side === 'left' ? 0 : null,
+            right: note.side === 'right' ? 0 : null,
+          }
+        : null;
+    }
+    const highlight = this.highlights().find(({ id }) => id === peek?.id);
+    const rect = highlight?.rects.at(-1);
+    if (!highlight || !rect) return null;
+    const isOnRightHalf = rect.x > 50;
+    return {
+      page: highlight.page,
+      text: highlight.note,
+      top: rect.y + rect.height,
+      left: isOnRightHalf ? null : rect.x,
+      right: isOnRightHalf ? 100 - rect.x - rect.width : null,
+    };
+  });
+  readonly #element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
   private readonly canvases = viewChildren<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly textLayers = viewChildren<ElementRef<HTMLElement>>('textLayer');
@@ -332,11 +416,26 @@ export class PdfViewer {
   }
 
   protected addMarginNote(draft: MarginNoteDraft): void {
+    this.#peek.set(null);
     if (!this.#hasDragged) this.marginAdded.emit(draft);
   }
 
   protected openMarginNote(id: number): void {
-    if (!this.#hasDragged) this.marginNoteOpened.emit(id);
+    if (this.#hasDragged) return;
+    const hasText = this.marginNotes().some((note) => note.id === id && note.text);
+    if (hasText) this.#peek.set({ kind: 'margin', id });
+    else this.marginNoteOpened.emit(id);
+  }
+
+  protected editTooltip(event: MouseEvent): void {
+    event.stopPropagation();
+    const peek = this.#peek();
+    this.#peek.set(null);
+    if (peek) (peek.kind === 'margin' ? this.marginNoteOpened : this.highlightOpened).emit(peek.id);
+  }
+
+  protected closeTooltipOutside({ target }: MouseEvent): void {
+    if (!this.#element.nativeElement.contains(target as Node)) this.#peek.set(null);
   }
 
   protected forgetDrag(): void {
@@ -344,6 +443,7 @@ export class PdfViewer {
   }
 
   protected grabMarginNote(page: number, grab: MarginNoteGrab): void {
+    this.#peek.set(null);
     this.#grab = { ...grab, page };
   }
 
@@ -418,7 +518,8 @@ export class PdfViewer {
             x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height,
         ),
       );
-    if (highlight) this.highlightOpened.emit(highlight.id);
+    this.#peek.set(highlight?.note ? { kind: 'highlight', id: highlight.id } : null);
+    if (highlight && !highlight.note) this.highlightOpened.emit(highlight.id);
   }
 
   #disconnect(): void {

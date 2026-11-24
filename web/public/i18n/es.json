@@ -507,6 +507,7 @@
     "marginText": "Texto",
     "marginPlaceholder": "Escribe tu nota…",
     "addMarginNote": "Haz clic para añadir una nota al margen",
+    "tapToEdit": "Pulsa para editar",
     "removeMarginNote": "Borrar nota",
     "colors": {
       "yellow": "Amarillo",

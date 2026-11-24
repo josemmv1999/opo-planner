@@ -202,6 +202,7 @@ const DEFAULT_ZOOM_INDEX = 1;
                 (highlightOpened)="store.openHighlight($event)"
                 [marginNotes]="store.marginNotes()"
                 [marginHint]="'notes.addMarginNote' | translate"
+                [editHint]="'notes.tapToEdit' | translate"
                 (marginAdded)="store.startMarginNote($event)"
                 (marginNoteOpened)="store.openMarginNote($event)"
                 (marginNoteMoved)="store.moveMarginNote($event)" />
