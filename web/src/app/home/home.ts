@@ -132,6 +132,7 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
       }
 
       .home__game {
+        --true-false-container-type: size;
         min-height: 0;
         contain: size;
       }

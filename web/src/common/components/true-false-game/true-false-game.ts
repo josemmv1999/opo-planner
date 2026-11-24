@@ -253,7 +253,8 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
       gap: 0.375rem;
       min-height: 0;
       overflow: hidden;
-      container: true-false-main / size;
+      container-name: true-false-main;
+      container-type: var(--true-false-container-type, normal);
       contain-intrinsic-size: auto 9rem;
     }
 
@@ -271,15 +272,25 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
     }
 
     .true-false-game__statement {
-      font-size: clamp(1rem, 22cqh, 1.5rem);
+      font-size: 1.25rem;
       font-weight: 800;
       line-height: 1.3;
-      -webkit-line-clamp: 3;
     }
 
     .true-false-game__statement--long {
-      font-size: clamp(0.9375rem, 16cqh, 1.25rem);
-      -webkit-line-clamp: 4;
+      font-size: 1.0625rem;
+    }
+
+    @container true-false-main (min-height: 0) {
+      .true-false-game__statement {
+        font-size: clamp(1rem, 22cqh, 1.5rem);
+        -webkit-line-clamp: 3;
+      }
+
+      .true-false-game__statement--long {
+        font-size: clamp(0.9375rem, 16cqh, 1.25rem);
+        -webkit-line-clamp: 4;
+      }
     }
 
     .true-false-game__asked {
@@ -330,9 +341,15 @@ type SegmentState = 'correct' | 'wrong' | 'current' | 'pending';
     }
 
     .true-false-game__final {
-      font-size: clamp(2.25rem, 40cqh, 3.5rem);
+      font-size: 3rem;
       font-weight: 900;
       line-height: 1;
+    }
+
+    @container true-false-main (min-height: 0) {
+      .true-false-game__final {
+        font-size: clamp(2.25rem, 40cqh, 3.5rem);
+      }
     }
 
     .true-false-game__recap {
