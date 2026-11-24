@@ -1,16 +1,19 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map, switchMap } from 'rxjs';
 import { OppositionOption } from '../../common/models/onboarding.model';
 import { Opposition } from '../../common/models/opposition.model';
-import {
-  MOCK_ACTIVE_OPPOSITION_KEY,
-  MOCK_OPPOSITION_IDS_KEY,
-  readJson,
-  writeJson,
-} from './mock-storage';
+import { removeStorage } from '../../common/utils/storage';
 import { OPPOSITION_CATALOG } from './mock-oppositions';
 
+const URL = '/api/account/oppositions';
 const DEFAULT_OPPOSITION_IDS = ['age-c2'];
+const OLD_KEYS = ['mockOppositionIds', 'mockActiveOppositionId'];
+
+interface UserOppositions {
+  ids: string[] | null;
+  activeId: string | null;
+}
 
 const toOpposition = ({ id, level, name }: OppositionOption): Opposition => ({
   id,
@@ -20,41 +23,63 @@ const toOpposition = ({ id, level, name }: OppositionOption): Opposition => ({
 
 @Injectable({ providedIn: 'root' })
 export class OppositionService {
+  readonly #http = inject(HttpClient);
+
+  constructor() {
+    OLD_KEYS.forEach(removeStorage);
+  }
+
   getActiveOpposition(): Observable<Opposition> {
-    const ids = this.#userIds();
-    const activeId = readJson<string>(MOCK_ACTIVE_OPPOSITION_KEY);
-    const active =
-      OPPOSITION_CATALOG.find(({ id }) => id === activeId && ids.includes(id)) ??
-      OPPOSITION_CATALOG.find(({ id }) => id === ids[0]) ??
-      OPPOSITION_CATALOG[0];
-    return of(toOpposition(active)).pipe(delay(800));
+    return this.#get().pipe(
+      map(({ ids, activeId }) => {
+        const active =
+          OPPOSITION_CATALOG.find(({ id }) => id === activeId && ids.includes(id)) ??
+          OPPOSITION_CATALOG.find(({ id }) => id === ids[0]) ??
+          OPPOSITION_CATALOG[0];
+        return toOpposition(active);
+      }),
+    );
   }
 
   getUserOppositions(): Observable<Opposition[]> {
-    const ids = this.#userIds();
-    return of(OPPOSITION_CATALOG.filter(({ id }) => ids.includes(id)).map(toOpposition)).pipe(
-      delay(300),
+    return this.getUserOppositionIds().pipe(
+      map((ids) => OPPOSITION_CATALOG.filter(({ id }) => ids.includes(id)).map(toOpposition)),
     );
   }
 
   getUserOppositionIds(): Observable<string[]> {
-    return of(this.#userIds()).pipe(delay(300));
+    return this.#get().pipe(map(({ ids }) => ids));
+  }
+
+  removeOpposition(oppositionId: string): Observable<string[]> {
+    return this.getUserOppositionIds().pipe(
+      switchMap((ids) => this.saveOppositions(ids.filter((id) => id !== oppositionId))),
+    );
   }
 
   addOppositions(oppositionIds: string[]): Observable<string[]> {
-    const updated = [...new Set([...this.#userIds(), ...oppositionIds])];
-    writeJson(MOCK_OPPOSITION_IDS_KEY, updated);
-    return of(updated).pipe(delay(500));
+    return this.getUserOppositionIds().pipe(
+      switchMap((ids) => this.saveOppositions([...ids, ...oppositionIds])),
+    );
+  }
+
+  saveOppositions(oppositionIds: string[]): Observable<string[]> {
+    return this.#http
+      .put<UserOppositions>(URL, { ids: oppositionIds })
+      .pipe(map(({ ids }) => ids ?? DEFAULT_OPPOSITION_IDS));
   }
 
   setActiveOpposition(oppositionId: string): Observable<Opposition> {
     const opposition = OPPOSITION_CATALOG.find(({ id }) => id === oppositionId);
     if (!opposition) throw new Error('Unknown opposition');
-    writeJson(MOCK_ACTIVE_OPPOSITION_KEY, oppositionId);
-    return of(toOpposition(opposition)).pipe(delay(400));
+    return this.#http
+      .put<UserOppositions>(`${URL}/active`, { id: oppositionId })
+      .pipe(map(() => toOpposition(opposition)));
   }
 
-  #userIds(): string[] {
-    return readJson<string[]>(MOCK_OPPOSITION_IDS_KEY) ?? DEFAULT_OPPOSITION_IDS;
+  #get(): Observable<{ ids: string[]; activeId: string | null }> {
+    return this.#http
+      .get<UserOppositions>(URL)
+      .pipe(map(({ ids, activeId }) => ({ ids: ids ?? DEFAULT_OPPOSITION_IDS, activeId })));
   }
 }

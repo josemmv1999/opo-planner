@@ -46,3 +46,25 @@ test('changes the password only with the current one', async () => {
   });
   assert.equal(login.status, 200);
 });
+
+test('saves the chosen oppositions and the active one', async () => {
+  const cookie = await signUp('opos@example.com');
+  const put = (path: string, body: unknown) =>
+    request(`/api/account/oppositions${path}`, {
+      method: 'PUT',
+      cookie,
+      body: JSON.stringify(body),
+    });
+  assert.deepEqual(await (await request('/api/account/oppositions', { cookie })).json(), {
+    ids: null,
+    activeId: null,
+  });
+  await put('', { ids: ['age-c1', 'age-c2', 'age-c1'] });
+  await put('/active', { id: 'age-c1' });
+  assert.deepEqual(await (await request('/api/account/oppositions', { cookie })).json(), {
+    ids: ['age-c1', 'age-c2'],
+    activeId: 'age-c1',
+  });
+  assert.equal((await put('', { ids: [] })).status, 400);
+  assert.equal((await put('/active', { id: '' })).status, 400);
+});

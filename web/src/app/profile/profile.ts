@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ConfirmContent } from '../../common/components/confirm-content/confirm-content';
 import { Modal } from '../../common/components/modal/modal';
 import { InitialsPipe } from '../../common/pipes/initials.pipe';
 import { AppLayoutStore } from '../app-layout/app-layout.store';
@@ -17,6 +18,7 @@ import { finalize } from 'rxjs';
 @Component({
   selector: 'app-profile',
   imports: [
+    ConfirmContent,
     Button,
     TranslatePipe,
     Modal,
@@ -98,6 +100,21 @@ import { finalize } from 'rxjs';
                       <span class="badge rounded-pill text-bg-primary">
                         {{ 'profile.active' | translate }}
                       </span>
+                    }
+                    @if (profile.canRemoveOppositions()) {
+                      <button
+                        app-button
+                        variant="link"
+                        size="sm"
+                        type="button"
+                        class="link-danger p-1"
+                        icon="delete"
+                        [isIconOnly]="true"
+                        [title]="'profile.removeOpposition' | translate: { name: opposition.name }"
+                        [attr.aria-label]="
+                          'profile.removeOpposition' | translate: { name: opposition.name }
+                        "
+                        (click)="profile.openRemoveModal(opposition.id)"></button>
                     }
                   </li>
                 }
@@ -200,6 +217,27 @@ import { finalize } from 'rxjs';
         </div>
       </ng-template>
     </app-modal>
+
+    <app-modal
+      [isOpen]="profile.oppositionToRemoveId() !== null"
+      [label]="'profile.removeOppositionTitle' | translate"
+      (closed)="profile.closeRemoveModal()">
+      <ng-template>
+        <app-confirm-content
+          [title]="'profile.removeOppositionTitle' | translate"
+          [message]="
+            'profile.removeOppositionMessage' | translate: { name: oppositionToRemoveName() }
+          "
+          [isDanger]="true"
+          (confirm)="removeOpposition()"
+          (cancelAction)="profile.closeRemoveModal()" />
+        @if (profile.error() === 'removing') {
+          <p class="alert alert-danger mt-3 mb-0" role="alert">
+            {{ 'profile.removeError' | translate }}
+          </p>
+        }
+      </ng-template>
+    </app-modal>
   `,
   styles: `
     :host {
@@ -235,6 +273,11 @@ import { finalize } from 'rxjs';
 export class Profile {
   protected readonly store = inject(AppLayoutStore);
   protected readonly profile = inject(ProfileStore);
+  protected readonly oppositionToRemoveName = computed(
+    () =>
+      this.profile.oppositions().find(({ id }) => id === this.profile.oppositionToRemoveId())
+        ?.name ?? '',
+  );
   readonly #router = inject(Router);
   readonly #session = inject(SessionService);
   readonly #accountService = inject(AccountService);
@@ -259,5 +302,13 @@ export class Profile {
         }),
       )
       .subscribe();
+  }
+
+  protected removeOpposition(): void {
+    const removedId = this.profile.oppositionToRemoveId();
+    const nextActive = this.profile.oppositions().find(({ id }) => id !== removedId);
+    if (removedId === this.store.activeOpposition()?.id && nextActive)
+      this.store.changeOpposition(nextActive.id);
+    this.profile.removeOpposition();
   }
 }

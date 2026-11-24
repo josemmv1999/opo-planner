@@ -1,8 +1,5 @@
 import { readStorage, writeStorage } from '../../common/utils/storage';
 
-export const MOCK_OPPOSITION_IDS_KEY = 'mockOppositionIds';
-export const MOCK_ACTIVE_OPPOSITION_KEY = 'mockActiveOppositionId';
-
 export const readJson = <T>(key: string): T | null => {
   try {
     const value = readStorage(key);
