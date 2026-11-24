@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import {
+  HighlightChange,
+  HighlightColor,
   NoteDetail,
   NoteDraft,
   PdfHighlight,
@@ -13,21 +15,22 @@ import { readJson, writeJson } from './mock-storage';
 
 const PAGES_KEY = 'notePages';
 const URL = '/api/notes';
-const HIGHLIGHT_COLOR = 'yellow';
 const OLD_KEYS = ['mockNotes', 'mockPdfHighlights', 'mockNotePages'];
 
 interface ApiHighlight extends PdfHighlightDraft {
   id: number;
   kind: 'highlight';
   comment: string;
+  color: HighlightColor;
 }
 
-const toHighlight = ({ id, page, text, rects, comment }: ApiHighlight): PdfHighlight => ({
+const toHighlight = ({ id, page, text, rects, comment, color }: ApiHighlight): PdfHighlight => ({
   id,
   page,
   text,
   rects,
   note: comment,
+  color,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -91,19 +94,23 @@ export class NotesService {
       );
   }
 
-  addHighlight(noteId: number, draft: PdfHighlightDraft): Observable<PdfHighlight> {
+  addHighlight(
+    noteId: number,
+    draft: PdfHighlightDraft,
+    color: HighlightColor,
+  ): Observable<PdfHighlight> {
     return this.#http
-      .post<ApiHighlight>(`${URL}/${noteId}/annotations`, {
-        ...draft,
-        kind: 'highlight',
-        color: HIGHLIGHT_COLOR,
-      })
+      .post<ApiHighlight>(`${URL}/${noteId}/annotations`, { ...draft, kind: 'highlight', color })
       .pipe(map(toHighlight));
   }
 
-  updateHighlightNote(noteId: number, highlightId: number, note: string): Observable<PdfHighlight> {
+  updateHighlight(
+    noteId: number,
+    highlightId: number,
+    { note, color }: HighlightChange,
+  ): Observable<PdfHighlight> {
     return this.#http
-      .put<ApiHighlight>(`${URL}/${noteId}/annotations/${highlightId}`, { comment: note })
+      .put<ApiHighlight>(`${URL}/${noteId}/annotations/${highlightId}`, { comment: note, color })
       .pipe(map(toHighlight));
   }
 

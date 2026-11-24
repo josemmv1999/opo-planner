@@ -16,6 +16,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { Modal } from '../../common/components/modal/modal';
+import { ColorPicker } from './color-picker/color-picker';
 import { HighlightForm } from './highlight-form/highlight-form';
 import { NoteForm } from './note-form/note-form';
 import { NoteStore } from './note.store';
@@ -37,6 +38,7 @@ const DEFAULT_ZOOM_INDEX = 1;
     NoteForm,
     PdfViewer,
     Modal,
+    ColorPicker,
     HighlightForm,
   ],
   providers: [NoteStore],
@@ -63,6 +65,9 @@ const DEFAULT_ZOOM_INDEX = 1;
         </span>
 
         @if (note.kind === 'pdf') {
+          <app-color-picker
+            [value]="store.highlightColor()"
+            (changed)="store.setHighlightColor($event)" />
           @if (store.selection()) {
             <button
               app-button
@@ -246,7 +251,7 @@ const DEFAULT_ZOOM_INDEX = 1;
             [highlight]="highlight"
             [isSaving]="store.isSavingHighlight()"
             [isDeleting]="store.isDeletingHighlight()"
-            (saved)="store.saveHighlightNote($event)"
+            (saved)="store.saveHighlight($event)"
             (deleted)="store.deleteHighlight()"
             (cancelled)="store.closeHighlight()" />
         }

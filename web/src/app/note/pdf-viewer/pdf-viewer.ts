@@ -62,6 +62,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
                 <span
                   class="pdf-viewer__highlight"
                   [class.pdf-viewer__highlight--noted]="highlight.note"
+                  [style.--highlight-color]="'var(--bs-' + highlight.color + ')'"
                   [style.left.%]="rect.x"
                   [style.top.%]="rect.y"
                   [style.width.%]="rect.width"
@@ -106,13 +107,13 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
       .pdf-viewer__highlight {
         position: absolute;
-        background-color: rgba(var(--bs-warning-rgb), 0.45);
+        background-color: color-mix(in srgb, var(--highlight-color) 45%, transparent);
         mix-blend-mode: multiply;
         border-radius: 0.125rem;
       }
 
       .pdf-viewer__highlight--noted {
-        border-bottom: 2px solid var(--bs-warning);
+        border-bottom: 2px solid var(--highlight-color);
       }
 
       .textLayer {

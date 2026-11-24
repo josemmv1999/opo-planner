@@ -5,6 +5,8 @@ import {
   NoteDetail,
   NoteDraft,
   PdfHighlight,
+  HighlightChange,
+  HighlightColor,
   PdfHighlightDraft,
 } from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
@@ -27,6 +29,7 @@ const HIGHLIGHT: PdfHighlight = {
   text: 'Artículo 1',
   rects: [{ x: 10, y: 20, width: 30, height: 2 }],
   note: '',
+  color: 'yellow',
 };
 
 describe('NoteStore', () => {
@@ -53,10 +56,10 @@ describe('NoteStore', () => {
             getLastPage: () => 3,
             setLastPage: vi.fn(),
             getHighlights: () => of([HIGHLIGHT]),
-            addHighlight: (_: number, draft: PdfHighlightDraft) =>
-              of({ ...draft, id: 2, note: '' }),
-            updateHighlightNote: (_: number, id: number, note: string) =>
-              of({ ...HIGHLIGHT, id, note }),
+            addHighlight: (_: number, draft: PdfHighlightDraft, color: HighlightColor) =>
+              of({ ...draft, id: 2, note: '', color }),
+            updateHighlight: (_: number, id: number, change: HighlightChange) =>
+              of({ ...HIGHLIGHT, id, ...change }),
             deleteHighlight: (_: number, id: number) => of(id),
           },
         },
@@ -71,17 +74,21 @@ describe('NoteStore', () => {
     expect(store.highlights()).toEqual([HIGHLIGHT]);
     const selection = { page: 3, text: 'Título I', rects: [{ x: 5, y: 5, width: 20, height: 2 }] };
     store.select(selection);
+    store.setHighlightColor('green');
     store.highlight();
-    expect(store.highlights()).toEqual([HIGHLIGHT, { ...selection, id: 2, note: '' }]);
+    expect(store.highlights()).toEqual([
+      HIGHLIGHT,
+      { ...selection, id: 2, note: '', color: 'green' },
+    ]);
     expect(store.selection()).toBeNull();
   });
 
-  it('writes a note on a highlight and closes it', () => {
+  it('writes a note and changes the color of a highlight, then closes it', () => {
     store.load({ topicId: 1, noteId: 7 });
     store.openHighlight(1);
     expect(store.openedHighlight()).toEqual(HIGHLIGHT);
-    store.saveHighlightNote('Cae en el examen');
-    expect(store.highlights()[0].note).toBe('Cae en el examen');
+    store.saveHighlight({ note: 'Cae en el examen', color: 'pink' });
+    expect(store.highlights()[0]).toMatchObject({ note: 'Cae en el examen', color: 'pink' });
     expect(store.openedHighlightId()).toBeNull();
   });
 
