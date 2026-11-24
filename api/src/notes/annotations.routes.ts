@@ -47,7 +47,8 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
-    `UPDATE annotations SET color = ?, comment = ? WHERE id = ? AND note_id = ? RETURNING *`,
+    `UPDATE annotations SET color = ?, comment = ?, y = ?, side = ?
+      WHERE id = ? AND note_id = ? RETURNING *`,
   );
   const findAnnotation = database.prepare('SELECT * FROM annotations WHERE id = ? AND note_id = ?');
   const deleteAnnotation = database.prepare('DELETE FROM annotations WHERE id = ? AND note_id = ?');
@@ -95,12 +96,23 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       const current = findAnnotation.get(Number(req.params['annotationId']), noteId) as
         AnnotationRow | undefined;
       if (!current) return void res.sendStatus(404);
-      const { color = current.color, comment = current.comment } = req.body ?? {};
-      if (!ANNOTATION_COLORS.includes(color) || typeof comment !== 'string')
+      const {
+        color = current.color,
+        comment = current.comment,
+        y = current.y,
+        side = current.side,
+      } = req.body ?? {};
+      const isPlaceValid =
+        current.kind === 'margin'
+          ? isPercent(y) && (side === 'left' || side === 'right')
+          : y === null && side === null;
+      if (!ANNOTATION_COLORS.includes(color) || typeof comment !== 'string' || !isPlaceValid)
         return void res.sendStatus(400);
       const row = updateAnnotation.get(
         color,
         comment,
+        y,
+        side,
         current.id,
         noteId,
       ) as unknown as AnnotationRow;

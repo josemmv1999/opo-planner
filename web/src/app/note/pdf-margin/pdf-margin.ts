@@ -8,6 +8,12 @@ import {
 } from '@angular/core';
 import { MarginNote, MarginSide } from '../../../common/models/syllabus.model';
 
+export interface MarginNoteGrab {
+  id: number;
+  x: number;
+  y: number;
+}
+
 @Component({
   selector: 'app-pdf-margin',
   host: {
@@ -24,6 +30,7 @@ import { MarginNote, MarginSide } from '../../../common/models/syllabus.model';
         [style.top.%]="note.y"
         [style.--note-color]="'var(--bs-' + note.color + ')'"
         [title]="note.text"
+        (pointerdown)="grab($event, note.id)"
         (click)="open($event, note.id)">
         <span class="pdf-margin__text">{{ note.text }}</span>
       </button>
@@ -51,7 +58,8 @@ import { MarginNote, MarginSide } from '../../../common/models/syllabus.model';
       border-radius: 50%;
       aspect-ratio: 1;
       transform: translateY(-50%);
-      cursor: pointer;
+      cursor: grab;
+      touch-action: none;
 
       @container (min-width: 56rem) {
         padding: 0.25rem 0.5rem;
@@ -85,8 +93,14 @@ export class PdfMargin {
   readonly hint = input('');
   readonly added = output<number>();
   readonly opened = output<number>();
+  readonly grabbed = output<MarginNoteGrab>();
 
   readonly #element = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  protected grab(event: PointerEvent, id: number): void {
+    event.preventDefault();
+    this.grabbed.emit({ id, x: event.clientX, y: event.clientY });
+  }
 
   protected add({ clientY }: MouseEvent): void {
     const { top, height } = this.#element.nativeElement.getBoundingClientRect();

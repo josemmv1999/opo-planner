@@ -19,11 +19,12 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import {
   MarginNote,
   MarginNoteDraft,
+  MarginNoteMove,
   MarginSide,
   PdfHighlight,
   PdfHighlightDraft,
 } from '../../../common/models/syllabus.model';
-import { PdfMargin } from '../pdf-margin/pdf-margin';
+import { MarginNoteGrab, PdfMargin } from '../pdf-margin/pdf-margin';
 
 export interface PdfPosition {
   page: number;
@@ -38,6 +39,7 @@ interface PdfLayout {
 
 const WORKER_SRC = '/pdfjs/pdf.worker.min.mjs';
 const BASE_WIDTH_REM = 52;
+const DRAG_THRESHOLD_PX = 4;
 
 const loadPdfjs = () => import('pdfjs-dist');
 
@@ -56,6 +58,10 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
     '(click)': 'openHighlightAt($event)',
+    '(document:pointerdown)': 'forgetDrag()',
+    '(document:pointermove)': 'dragMarginNote($event)',
+    '(document:pointerup)': 'dropMarginNote()',
+    '(document:pointercancel)': 'cancelMarginDrag()',
   },
   encapsulation: ViewEncapsulation.None,
   template: `
@@ -67,8 +73,9 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
             side="left"
             [notes]="marginNotesOf(pageIndex + 1, 'left')"
             [hint]="marginHint()"
-            (added)="marginAdded.emit({ page: pageIndex + 1, side: 'left', y: $event })"
-            (opened)="marginNoteOpened.emit($event)" />
+            (added)="addMarginNote({ page: pageIndex + 1, side: 'left', y: $event })"
+            (opened)="openMarginNote($event)"
+            (grabbed)="grabMarginNote(pageIndex + 1, $event)" />
           <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
             <canvas #canvas></canvas>
             <div class="pdf-viewer__highlights" aria-hidden="true">
@@ -91,8 +98,9 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
             side="right"
             [notes]="marginNotesOf(pageIndex + 1, 'right')"
             [hint]="marginHint()"
-            (added)="marginAdded.emit({ page: pageIndex + 1, side: 'right', y: $event })"
-            (opened)="marginNoteOpened.emit($event)" />
+            (added)="addMarginNote({ page: pageIndex + 1, side: 'right', y: $event })"
+            (opened)="openMarginNote($event)"
+            (grabbed)="grabMarginNote(pageIndex + 1, $event)" />
         </div>
       }
     </div>
@@ -199,8 +207,10 @@ export class PdfViewer {
   readonly marginHint = input('');
   readonly marginAdded = output<MarginNoteDraft>();
   readonly marginNoteOpened = output<number>();
+  readonly marginNoteMoved = output<MarginNoteMove>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
+  readonly #draggedNote = signal<MarginNoteMove | null>(null);
   private readonly pages = viewChildren<ElementRef<HTMLElement>>('page');
   private readonly canvases = viewChildren<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly textLayers = viewChildren<ElementRef<HTMLElement>>('textLayer');
@@ -212,12 +222,17 @@ export class PdfViewer {
       new Map<number, PdfHighlight[]>(),
     ),
   );
-  readonly #marginNotesByKey = computed(() =>
-    this.marginNotes().reduce((groups, note) => {
-      const key = `${note.page}-${note.side}`;
-      return groups.set(key, [...(groups.get(key) ?? []), note]);
-    }, new Map<string, MarginNote[]>()),
-  );
+  readonly #marginNotesByKey = computed(() => {
+    const dragged = this.#draggedNote();
+    return this.marginNotes()
+      .map((note) => (note.id === dragged?.id ? { ...note, ...dragged } : note))
+      .reduce((groups, note) => {
+        const key = `${note.page}-${note.side}`;
+        return groups.set(key, [...(groups.get(key) ?? []), note]);
+      }, new Map<string, MarginNote[]>());
+  });
+  #grab: (MarginNoteGrab & { page: number }) | null = null;
+  #hasDragged = false;
   #loadingTask: PDFDocumentLoadingTask | null = null;
   #document: PDFDocumentProxy | null = null;
   #observers: IntersectionObserver[] = [];
@@ -313,6 +328,49 @@ export class PdfViewer {
 
   protected marginNotesOf(page: number, side: MarginSide): MarginNote[] {
     return this.#marginNotesByKey().get(`${page}-${side}`) ?? [];
+  }
+
+  protected addMarginNote(draft: MarginNoteDraft): void {
+    if (!this.#hasDragged) this.marginAdded.emit(draft);
+  }
+
+  protected openMarginNote(id: number): void {
+    if (!this.#hasDragged) this.marginNoteOpened.emit(id);
+  }
+
+  protected forgetDrag(): void {
+    this.#hasDragged = false;
+  }
+
+  protected grabMarginNote(page: number, grab: MarginNoteGrab): void {
+    this.#grab = { ...grab, page };
+  }
+
+  protected dragMarginNote({ clientX, clientY }: PointerEvent): void {
+    const grab = this.#grab;
+    if (!grab) return;
+    if (!this.#hasDragged && Math.hypot(clientX - grab.x, clientY - grab.y) < DRAG_THRESHOLD_PX)
+      return;
+    this.#hasDragged = true;
+    const page = this.pages()[grab.page - 1].nativeElement.getBoundingClientRect();
+    this.#draggedNote.set({
+      id: grab.id,
+      y:
+        Math.round(Math.min(Math.max(toPercent(clientY - page.top, page.height), 0), 100) * 10) /
+        10,
+      side: clientX < page.left + page.width / 2 ? 'left' : 'right',
+    });
+  }
+
+  protected dropMarginNote(): void {
+    const dragged = this.#draggedNote();
+    if (dragged) this.marginNoteMoved.emit(dragged);
+    this.cancelMarginDrag();
+  }
+
+  protected cancelMarginDrag(): void {
+    this.#grab = null;
+    this.#draggedNote.set(null);
   }
 
   protected readSelection(): void {

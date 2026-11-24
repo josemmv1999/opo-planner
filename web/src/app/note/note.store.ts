@@ -2,7 +2,7 @@ import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs';
+import { concatMap, filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs';
 import {
   NoteDetail,
   NoteDraft,
@@ -11,6 +11,7 @@ import {
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
+  MarginNoteMove,
   PdfHighlight,
   PdfHighlightDraft,
   TopicNote,
@@ -47,6 +48,14 @@ interface NoteState {
   hasDeleted: boolean;
   error: 'loading' | 'saving' | 'deleting' | 'highlighting' | null;
 }
+
+const withMarginNote =
+  (changed: MarginNote) =>
+  ({ marginNotes }: NoteState): Pick<NoteState, 'marginNotes'> => ({
+    marginNotes: marginNotes.map((marginNote) =>
+      marginNote.id === changed.id ? changed : marginNote,
+    ),
+  });
 
 export const NoteStore = signalStore(
   withState<NoteState>({
@@ -258,6 +267,33 @@ export const NoteStore = signalStore(
                   })),
                 error: () => {
                   patchState(store, { isSavingMarginNote: false, error: 'highlighting' });
+                  notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      moveMarginNote: rxMethod<MarginNoteMove>(
+        pipe(
+          map((move) => ({
+            noteId: store.note()?.id,
+            previous: store.marginNotes().find(({ id }) => id === move.id),
+            move,
+          })),
+          filter(
+            (change): change is typeof change & { noteId: number; previous: MarginNote } =>
+              change.noteId !== undefined && change.previous !== undefined,
+          ),
+          tap(({ previous, move }) =>
+            patchState(store, withMarginNote({ ...previous, ...move }), { error: null }),
+          ),
+          concatMap(({ noteId, previous, move }) =>
+            notesService.moveMarginNote(noteId, move).pipe(
+              tapResponse({
+                next: (saved) => patchState(store, withMarginNote(saved)),
+                error: () => {
+                  patchState(store, withMarginNote(previous), { error: 'highlighting' });
                   notificationService.error('notes.errors.highlighting');
                 },
               }),

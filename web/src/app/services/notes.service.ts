@@ -7,6 +7,7 @@ import {
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
+  MarginNoteMove,
   NoteAnnotations,
   NoteDetail,
   NoteDraft,
@@ -137,6 +138,12 @@ export class NotesService {
   ): Observable<MarginNote> {
     return this.#http
       .put<ApiMarginNote>(`${URL}/${noteId}/annotations/${marginNoteId}`, { comment: text, color })
+      .pipe(map(toMarginNote));
+  }
+
+  moveMarginNote(noteId: number, { id, y, side }: MarginNoteMove): Observable<MarginNote> {
+    return this.#http
+      .put<ApiMarginNote>(`${URL}/${noteId}/annotations/${id}`, { y, side })
       .pipe(map(toMarginNote));
   }
 
