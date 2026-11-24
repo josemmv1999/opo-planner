@@ -107,7 +107,7 @@ interface Hint {
         }
       }
 
-      <div class="d-flex flex-wrap align-items-center gap-3">
+      <div class="onboarding__actions d-flex flex-wrap align-items-center gap-3">
         @if (store.stepIndex() > 0) {
           <button
             app-button
@@ -155,6 +155,16 @@ interface Hint {
     .onboarding__content {
       max-width: 50rem;
       padding: 0.5rem 1rem 3rem;
+    }
+
+    .onboarding__actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      margin: 0 -1rem -3rem;
+      padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
+      background-color: var(--bs-body-bg);
+      border-top: 1px solid var(--bs-border-color-translucent);
     }
 
     .onboarding__title {
