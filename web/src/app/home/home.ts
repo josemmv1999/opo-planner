@@ -49,7 +49,10 @@ import { WeakBlocksCard } from './weak-blocks-card/weak-blocks-card';
           [weekDaysWithTasks]="store.weekDaysWithTasks()"
           (toggled)="store.toggleTask($event)" />
         @if (store.statements().length) {
-          <app-true-false-game class="home__game" [statements]="store.statements()" />
+          <app-true-false-game
+            class="home__game"
+            [statements]="store.statements()"
+            (exhausted)="store.loadMoreStatements()" />
         }
         <app-weak-blocks-card class="home__weak" [weakBlocks]="store.weakBlocks()" />
         <app-studied-blocks-card class="home__studied" [studiedBlocks]="store.studiedBlocks()" />

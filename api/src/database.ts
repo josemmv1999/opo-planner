@@ -111,6 +111,11 @@ const MIGRATIONS = [
     topic_id INTEGER NOT NULL REFERENCES topics (id),
     PRIMARY KEY (user_id, topic_id)
   )`,
+  `CREATE TABLE flashcard_views (
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    question_id INTEGER NOT NULL REFERENCES questions (id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, question_id)
+  )`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
