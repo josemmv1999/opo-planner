@@ -62,50 +62,52 @@ const DEFAULT_ZOOM_INDEX = 1;
           {{ 'notes.kind.' + note.kind | translate }}
         </span>
         <span class="note__title d-flex flex-column flex-grow-1 overflow-hidden">
-          <strong class="text-truncate">{{ note.title }}</strong>
+          <strong class="note__title-text">{{ note.title }}</strong>
           <span class="note__meta text-body-secondary">
             {{ note.updatedAt | formatDate: 'd MMM yyyy' }}
           </span>
         </span>
 
         @if (note.kind === 'pdf') {
-          <app-color-picker
-            [value]="store.highlightColor()"
-            (changed)="store.setHighlightColor($event)" />
-          @if (store.selection()) {
-            <button
-              app-button
-              size="sm"
-              type="button"
-              icon="highlight"
-              [isLoading]="store.isHighlighting()"
-              [disabled]="store.isHighlighting()"
-              (pointerdown)="$event.preventDefault()"
-              (click)="highlight()">
-              {{ 'notes.highlight' | translate }}
-            </button>
-          }
-          @if (position(); as position) {
-            <span class="note__page">{{ 'notes.page' | translate: position }}</span>
-          }
-          <span class="note__zoom d-flex align-items-center">
-            <button
-              type="button"
-              class="note__icon-button d-flex align-items-center justify-content-center"
-              [title]="'notes.zoomOut' | translate"
-              [disabled]="zoomIndex() === 0"
-              (click)="changeZoom(-1)">
-              <app-icon name="zoom-out" />
-            </button>
-            <span class="note__zoom-level">{{ zoomLevels[zoomIndex()] | percent }}</span>
-            <button
-              type="button"
-              class="note__icon-button d-flex align-items-center justify-content-center"
-              [title]="'notes.zoomIn' | translate"
-              [disabled]="zoomIndex() === zoomLevels.length - 1"
-              (click)="changeZoom(1)">
-              <app-icon name="zoom-in" />
-            </button>
+          <span class="note__tools d-flex flex-wrap align-items-center">
+            <app-color-picker
+              [value]="store.highlightColor()"
+              (changed)="store.setHighlightColor($event)" />
+            @if (store.selection()) {
+              <button
+                app-button
+                size="sm"
+                type="button"
+                icon="highlight"
+                [isLoading]="store.isHighlighting()"
+                [disabled]="store.isHighlighting()"
+                (pointerdown)="$event.preventDefault()"
+                (click)="highlight()">
+                {{ 'notes.highlight' | translate }}
+              </button>
+            }
+            @if (position(); as position) {
+              <span class="note__page">{{ 'notes.page' | translate: position }}</span>
+            }
+            <span class="note__zoom d-flex align-items-center">
+              <button
+                type="button"
+                class="note__icon-button d-flex align-items-center justify-content-center"
+                [title]="'notes.zoomOut' | translate"
+                [disabled]="zoomIndex() === 0"
+                (click)="changeZoom(-1)">
+                <app-icon name="zoom-out" />
+              </button>
+              <span class="note__zoom-level">{{ zoomLevels[zoomIndex()] | percent }}</span>
+              <button
+                type="button"
+                class="note__icon-button d-flex align-items-center justify-content-center"
+                [title]="'notes.zoomIn' | translate"
+                [disabled]="zoomIndex() === zoomLevels.length - 1"
+                (click)="changeZoom(1)">
+                <app-icon name="zoom-in" />
+              </button>
+            </span>
           </span>
         } @else if (note.kind === 'text' && !store.isEditing()) {
           <button
@@ -301,6 +303,18 @@ const DEFAULT_ZOOM_INDEX = 1;
       flex-basis: 8rem;
     }
 
+    .note__title-text {
+      display: -webkit-box;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .note__tools {
+      gap: 0.75rem;
+    }
+
     .note__back {
       gap: 0.25rem;
       padding-inline: 0.75rem;
@@ -462,6 +476,14 @@ const DEFAULT_ZOOM_INDEX = 1;
       max-width: 42%;
       font-weight: 800;
       text-decoration: none;
+    }
+
+    @media (max-width: 52rem) {
+      .note__tools {
+        order: 1;
+        flex-basis: 100%;
+        justify-content: space-between;
+      }
     }
 
     @media (max-width: 40rem) {
