@@ -112,7 +112,9 @@ import { buildAgenda } from './build-agenda';
         }
 
         <div class="calendar-card__footer d-flex justify-content-end mt-auto">
-          <a class="calendar-card__link d-inline-flex align-items-center" routerLink="/planner">
+          <a
+            class="calendar-card__link touch-target d-inline-flex align-items-center"
+            routerLink="/planner">
             {{ 'home.calendar.openPlanner' | translate }}
             <app-icon class="ms-1" name="arrow-right" />
           </a>

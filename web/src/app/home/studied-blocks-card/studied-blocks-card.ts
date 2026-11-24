@@ -39,7 +39,7 @@ import { StudiedBlock } from '../../../common/models/home.model';
           }
         </ul>
         <a
-          class="studied-blocks-card__link d-inline-flex align-items-center align-self-start mt-auto"
+          class="studied-blocks-card__link touch-target d-inline-flex align-items-center align-self-start mt-auto"
           routerLink="/syllabus">
           {{ 'home.blocks.seeSyllabus' | translate }}
           <app-icon class="ms-1" name="arrow-right" />

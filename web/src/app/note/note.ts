@@ -50,7 +50,7 @@ const DEFAULT_ZOOM_INDEX = 1;
   template: `
     <header class="note__bar d-flex align-items-center">
       <a
-        class="note__back d-flex align-items-center"
+        class="note__back touch-target d-flex align-items-center"
         [routerLink]="['/syllabus', topicId()]"
         [title]="'notes.back' | translate">
         <app-icon name="chevron-left" />
@@ -224,7 +224,7 @@ const DEFAULT_ZOOM_INDEX = 1;
       <footer class="note__pager d-flex align-items-center justify-content-between">
         @if (neighbours.previous; as previous) {
           <a
-            class="note__step d-flex align-items-center"
+            class="note__step touch-target d-flex align-items-center"
             [routerLink]="['/syllabus', topicId(), 'notes', previous.id]"
             [title]="'notes.previous' | translate: previous">
             <app-icon name="chevron-left" />
@@ -240,7 +240,7 @@ const DEFAULT_ZOOM_INDEX = 1;
         </span>
         @if (neighbours.next; as next) {
           <a
-            class="note__step d-flex align-items-center justify-content-end"
+            class="note__step touch-target d-flex align-items-center justify-content-end"
             [routerLink]="['/syllabus', topicId(), 'notes', next.id]"
             [title]="'notes.next' | translate: next">
             <span class="text-truncate">{{ next.title }}</span>
@@ -303,6 +303,8 @@ const DEFAULT_ZOOM_INDEX = 1;
 
     .note__back {
       gap: 0.25rem;
+      padding-inline: 0.75rem;
+      margin-inline: -0.75rem;
       font-size: 0.875rem;
       font-weight: 800;
       text-decoration: none;

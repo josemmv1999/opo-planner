@@ -22,3 +22,9 @@
     transform: rotate(1turn);
   }
 }
+
+.touch-target {
+  box-sizing: content-box;
+  padding-block: 0.75rem;
+  margin-block: -0.75rem;
+}
