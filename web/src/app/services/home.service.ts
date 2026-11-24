@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
 import { HomeData } from '../../common/models/home.model';
 import { TrueFalseStatement } from '../../common/models/true-false-statement.model';
-import { readExamDate } from './mock-storage';
+import { DEFAULT_EXAM_DATE } from './mock-storage';
 
 const FLASHCARD_COUNT = 15;
 
@@ -13,9 +13,17 @@ export class HomeService {
 
   getHomeData(): Observable<HomeData> {
     return forkJoin([
-      this.#http.get<Omit<HomeData, 'examDate' | 'statements'>>('/api/home'),
+      this.#http.get<Omit<HomeData, 'examDate' | 'statements'> & { examDate: string | null }>(
+        '/api/home',
+      ),
       this.getFlashcards(),
-    ]).pipe(map(([home, statements]) => ({ ...home, examDate: readExamDate(), statements })));
+    ]).pipe(
+      map(([home, statements]) => ({
+        ...home,
+        examDate: home.examDate ?? DEFAULT_EXAM_DATE,
+        statements,
+      })),
+    );
   }
 
   getFlashcards(): Observable<TrueFalseStatement[]> {

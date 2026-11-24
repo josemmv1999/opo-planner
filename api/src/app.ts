@@ -9,6 +9,7 @@ import { examAttemptsRoutes } from './exams/exam-attempts.routes.ts';
 import { examsRoutes } from './exams/exams.routes.ts';
 import { flashcardsRoutes } from './progress/flashcards.routes.ts';
 import { homeRoutes } from './progress/home.routes.ts';
+import { plannerRoutes } from './progress/planner.routes.ts';
 import { studiedTopicsRoutes } from './progress/studied-topics.routes.ts';
 import { topicResultsRoutes } from './progress/topic-results.routes.ts';
 import { syllabusRoutes } from './syllabus/syllabus.routes.ts';
@@ -34,6 +35,7 @@ export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = 
   app.use('/api/topic-results', topicResultsRoutes(database));
   app.use('/api/studied-topics', studiedTopicsRoutes(database));
   app.use('/api/home', homeRoutes(database));
+  app.use('/api/planner', plannerRoutes(database));
   app.use('/api/flashcards', flashcardsRoutes(database));
   app.use('/api/notes/:noteId/annotations', annotationsRoutes(database));
   app.use('/api/notes', notesRoutes(database, uploadsDir));
