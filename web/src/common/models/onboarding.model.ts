@@ -3,6 +3,7 @@ export interface OppositionOption {
   level: 'C1' | 'C2';
   name: string;
   body: string;
+  isHidden?: boolean;
 }
 
 export interface TimeSlot {

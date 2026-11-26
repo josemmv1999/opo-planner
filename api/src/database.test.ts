@@ -44,11 +44,11 @@ test('deletes the questions of a deleted exam', () => {
   );
 });
 
-test('seeds the official C1 syllabus', () => {
+test('seeds the AGE C1 and Fuengirola syllabi', () => {
   const database = openDatabase(':memory:');
   const blocks = database
     .prepare(
-      'SELECT label, COUNT(topics.id) AS topics FROM syllabus_blocks JOIN topics ON topics.block_id = syllabus_blocks.id GROUP BY syllabus_blocks.id ORDER BY syllabus_blocks.id',
+      'SELECT label, COUNT(*) AS topics FROM syllabus_blocks JOIN opposition_topics ON opposition_topics.block_id = syllabus_blocks.id GROUP BY syllabus_blocks.id ORDER BY syllabus_blocks.id',
     )
     .all()
     .map((row) => ({ ...row }));
@@ -59,6 +59,8 @@ test('seeds the official C1 syllabus', () => {
     { label: 'Bloque IV', topics: 9 },
     { label: 'Bloque V', topics: 6 },
     { label: 'Bloque VI', topics: 8 },
+    { label: 'Bloque A', topics: 19 },
+    { label: 'Bloque B', topics: 22 },
   ]);
 });
 

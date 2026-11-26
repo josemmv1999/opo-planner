@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
 import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
+import { syllabusOppositionOf } from '../syllabus/syllabus-opposition.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DAYS_SHOWN = 7;
@@ -20,6 +21,7 @@ const streakOf = (studiedDays: Set<string>, now: Date): number => {
 };
 
 export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new Date()): Router => {
+  const oppositionOf = syllabusOppositionOf(database);
   const findUser = database.prepare('SELECT created_at, exam_date FROM users WHERE id = ?');
   const listActivity = database.prepare(
     `SELECT date FROM topic_results WHERE user_id = ?
@@ -27,9 +29,9 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
   );
   const listStudiedBlocks = database.prepare(
     `SELECT syllabus_blocks.id, syllabus_blocks.name FROM syllabus_blocks
-      WHERE NOT EXISTS (
-        SELECT 1 FROM topics WHERE topics.block_id = syllabus_blocks.id
-          AND topics.id NOT IN (SELECT topic_id FROM studied_topics WHERE user_id = ?)
+      WHERE syllabus_blocks.opposition_id = ? AND NOT EXISTS (
+        SELECT 1 FROM opposition_topics WHERE opposition_topics.block_id = syllabus_blocks.id
+          AND opposition_topics.topic_id NOT IN (SELECT topic_id FROM studied_topics WHERE user_id = ?)
       )
       ORDER BY syllabus_blocks.id`,
   );
@@ -37,9 +39,9 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
     `SELECT syllabus_blocks.id, syllabus_blocks.name,
         ROUND(AVG(topic_results.percentage)) AS correctPercentage
       FROM topic_results
-      JOIN topics ON topics.id = topic_results.topic_id
-      JOIN syllabus_blocks ON syllabus_blocks.id = topics.block_id
-      WHERE topic_results.user_id = ? AND topic_results.is_review = 0
+      JOIN opposition_topics ON opposition_topics.topic_id = topic_results.topic_id
+      JOIN syllabus_blocks ON syllabus_blocks.id = opposition_topics.block_id
+      WHERE opposition_topics.opposition_id = ? AND topic_results.user_id = ? AND topic_results.is_review = 0
       GROUP BY syllabus_blocks.id
       HAVING correctPercentage < ${WEAK_PERCENTAGE}
       ORDER BY correctPercentage, syllabus_blocks.id
@@ -50,6 +52,7 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
     .use(requireUser(database))
     .get('/', (_req, res: AuthenticatedResponse) => {
       const userId = res.locals.user.id;
+      const oppositionId = oppositionOf(userId);
       const today = now();
       const { created_at, exam_date } = findUser.get(userId) as {
         created_at: string;
@@ -66,8 +69,8 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
           const date = daysAgo(DAYS_SHOWN - 1 - i, today);
           return { date, hasStudied: studiedDays.has(date) };
         }),
-        studiedBlocks: listStudiedBlocks.all(userId),
-        weakBlocks: listWeakBlocks.all(userId),
+        studiedBlocks: listStudiedBlocks.all(oppositionId, userId),
+        weakBlocks: listWeakBlocks.all(oppositionId, userId),
       });
     });
 };

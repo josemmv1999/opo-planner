@@ -4,10 +4,10 @@ import { Observable, map, switchMap } from 'rxjs';
 import { OppositionOption } from '../../common/models/onboarding.model';
 import { Opposition } from '../../common/models/opposition.model';
 import { removeStorage } from '../../common/utils/storage';
-import { OPPOSITION_CATALOG } from './mock-oppositions';
+import { VISIBLE_OPPOSITIONS } from './mock-oppositions';
 
 const URL = '/api/account/oppositions';
-const DEFAULT_OPPOSITION_IDS = ['age-c2'];
+const DEFAULT_OPPOSITION_IDS = ['age-c1'];
 const OLD_KEYS = ['mockOppositionIds', 'mockActiveOppositionId'];
 
 interface UserOppositions {
@@ -33,9 +33,9 @@ export class OppositionService {
     return this.#get().pipe(
       map(({ ids, activeId }) => {
         const active =
-          OPPOSITION_CATALOG.find(({ id }) => id === activeId && ids.includes(id)) ??
-          OPPOSITION_CATALOG.find(({ id }) => id === ids[0]) ??
-          OPPOSITION_CATALOG[0];
+          VISIBLE_OPPOSITIONS.find(({ id }) => id === activeId && ids.includes(id)) ??
+          VISIBLE_OPPOSITIONS.find(({ id }) => id === ids[0]) ??
+          VISIBLE_OPPOSITIONS[0];
         return toOpposition(active);
       }),
     );
@@ -43,7 +43,7 @@ export class OppositionService {
 
   getUserOppositions(): Observable<Opposition[]> {
     return this.getUserOppositionIds().pipe(
-      map((ids) => OPPOSITION_CATALOG.filter(({ id }) => ids.includes(id)).map(toOpposition)),
+      map((ids) => VISIBLE_OPPOSITIONS.filter(({ id }) => ids.includes(id)).map(toOpposition)),
     );
   }
 
@@ -70,7 +70,7 @@ export class OppositionService {
   }
 
   setActiveOpposition(oppositionId: string): Observable<Opposition> {
-    const opposition = OPPOSITION_CATALOG.find(({ id }) => id === oppositionId);
+    const opposition = VISIBLE_OPPOSITIONS.find(({ id }) => id === oppositionId);
     if (!opposition) throw new Error('Unknown opposition');
     return this.#http
       .put<UserOppositions>(`${URL}/active`, { id: oppositionId })
