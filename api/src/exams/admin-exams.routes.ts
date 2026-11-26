@@ -2,7 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
 import { classifyQuestion } from '../syllabus/classify-question.ts';
 import { requireAdmin } from '../auth/require-admin.ts';
-import { requireUser } from '../auth/require-user.ts';
+import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
+import { syllabusOppositionOf } from '../syllabus/syllabus-opposition.ts';
 import {
   isParsedQuestion,
   toParsedQuestion,
@@ -17,9 +18,14 @@ interface ExamRow {
 }
 
 export const adminExamsRoutes = (database: DatabaseSync): Router => {
-  const listExams = database.prepare('SELECT * FROM exams ORDER BY id DESC');
+  const oppositionOf = syllabusOppositionOf(database);
+  const listExams = database.prepare(
+    'SELECT * FROM exams WHERE opposition_id = ? ORDER BY id DESC',
+  );
   const listQuestions = database.prepare('SELECT * FROM questions WHERE exam_id = ? ORDER BY id');
-  const insertExam = database.prepare('INSERT INTO exams (name) VALUES (?) RETURNING *');
+  const insertExam = database.prepare(
+    'INSERT INTO exams (name, opposition_id) VALUES (?, ?) RETURNING *',
+  );
   const insertQuestion = database.prepare(
     `INSERT INTO questions
       (exam_id, section, number, is_reserve, case_text, statement, options, correct_option, is_voided, topic_id)
@@ -34,10 +40,10 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
     questions: (listQuestions.all(id) as unknown as QuestionRow[]).map(toParsedQuestion),
   });
 
-  const saveExam = (name: string, questions: ParsedQuestion[]): ExamRow => {
+  const saveExam = (name: string, oppositionId: string, questions: ParsedQuestion[]): ExamRow => {
     database.exec('BEGIN');
     try {
-      const exam = insertExam.get(name) as unknown as ExamRow;
+      const exam = insertExam.get(name, oppositionId) as unknown as ExamRow;
       questions.forEach((question) =>
         insertQuestion.run(
           exam.id,
@@ -62,8 +68,12 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
 
   return Router()
     .use(requireUser(database), requireAdmin)
-    .get('/', (_req, res) => {
-      res.json((listExams.all() as unknown as ExamRow[]).map(toImportedExam));
+    .get('/', (_req, res: AuthenticatedResponse) => {
+      res.json(
+        (listExams.all(oppositionOf(res.locals.user.id)) as unknown as ExamRow[]).map(
+          toImportedExam,
+        ),
+      );
     })
     .post('/classify', (req, res) => {
       const { questions } = req.body ?? {};
@@ -76,7 +86,7 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
         ),
       );
     })
-    .post('/', (req, res) => {
+    .post('/', (req, res: AuthenticatedResponse) => {
       const { name, questions } = req.body ?? {};
       const isValid =
         typeof name === 'string' &&
@@ -85,7 +95,9 @@ export const adminExamsRoutes = (database: DatabaseSync): Router => {
         questions.length > 0 &&
         questions.every(isParsedQuestion);
       if (!isValid) return void res.sendStatus(400);
-      res.status(201).json(toImportedExam(saveExam(name.trim(), questions)));
+      res
+        .status(201)
+        .json(toImportedExam(saveExam(name.trim(), oppositionOf(res.locals.user.id), questions)));
     })
     .delete('/:id', (req, res) => {
       res.sendStatus(deleteExam.run(Number(req.params.id)).changes ? 204 : 404);
