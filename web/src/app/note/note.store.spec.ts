@@ -9,6 +9,7 @@ import {
   PdfHighlight,
   HighlightMark,
   HighlightUpdate,
+  InkStroke,
   InkStrokeDraft,
   MarginNoteChange,
   MarginNoteDraft,
@@ -51,6 +52,9 @@ describe('NoteStore', () => {
   const addHighlight = vi.fn((_: string, draft: PdfHighlightDraft, mark: HighlightMark) =>
     of({ ...draft, ...mark, id: 2, note: '' }),
   );
+  const deleteAnnotation = vi.fn((_: string, id: number) =>
+    id === 404 ? throwError(() => new Error('failed')) : of(id),
+  );
   const getNote = vi.fn((noteId: number) =>
     noteId === NOTE.id ? of(NOTE) : throwError(() => new Error('missing')),
   );
@@ -85,8 +89,7 @@ describe('NoteStore', () => {
             addHighlight,
             updateHighlight: (_: string, update: HighlightUpdate) =>
               of({ ...HIGHLIGHT, ...update }),
-            deleteAnnotation: (_: string, id: number) =>
-              id === 404 ? throwError(() => new Error('failed')) : of(id),
+            deleteAnnotation,
           },
         },
         {
@@ -181,30 +184,51 @@ describe('NoteStore', () => {
     expect(store.error()).toBe('highlighting');
   });
 
-  it('draws an ink stroke, erases it and toggles the pen modes', () => {
+  it('draws an ink stroke and toggles the pen modes and widths', () => {
     store.load({ topicId: 1, noteId: 7 });
     store.toggleInkMode('draw');
     expect(store.inkMode()).toBe('draw');
-    const draft: InkStrokeDraft = { page: 2, points: [{ x: 1, y: 2 }], color: 'blue' };
+    store.setToolWidth(1);
+    expect(store.inkWidth()).toBe(1);
+    const draft: InkStrokeDraft = { page: 2, points: [{ x: 1, y: 2 }], color: 'blue', width: 1 };
     store.addInkStroke(draft);
     expect(store.inkStrokes()).toEqual([{ ...draft, id: 9 }]);
     store.toggleInkMode('erase');
-    expect(store.inkMode()).toBe('erase');
-    store.deleteInkStroke(9);
-    expect(store.inkStrokes()).toEqual([]);
+    store.setToolWidth(8);
+    expect([store.inkMode(), store.eraserWidth(), store.inkWidth()]).toEqual(['erase', 8, 1]);
     store.toggleInkMode('erase');
     expect(store.inkMode()).toBe('off');
   });
 
+  it('erases part of a stroke and keeps the pieces left', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    const stroke: InkStroke = { id: 3, page: 1, points: [], color: 'blue', width: 0.5 };
+    patchState(unprotected(store), { inkStrokes: [stroke] });
+    const left = [{ x: 1, y: 1 }];
+    const right = [{ x: 9, y: 1 }];
+    store.eraseInk([{ id: 3, pieces: [left, right] }]);
+    expect(store.inkStrokes()).toEqual([
+      { ...stroke, id: 9, points: left },
+      { ...stroke, id: 9, points: right },
+    ]);
+    expect(deleteAnnotation).toHaveBeenCalledWith('/api/notes/7/annotations', 3);
+  });
+
   it('drops a stroke that fails to save and restores one that fails to erase', () => {
     store.load({ topicId: 1, noteId: 7 });
-    store.addInkStroke({ page: 99, points: [{ x: 1, y: 2 }], color: 'blue' });
+    store.addInkStroke({ page: 99, points: [{ x: 1, y: 2 }], color: 'blue', width: 0.5 });
     expect(store.inkStrokes()).toEqual([]);
     expect(store.error()).toBe('highlighting');
 
-    const stroke = { id: 404, page: 1, points: [{ x: 3, y: 4 }], color: 'pink' as const };
+    const stroke: InkStroke = {
+      id: 404,
+      page: 1,
+      points: [{ x: 3, y: 4 }],
+      color: 'pink',
+      width: 1,
+    };
     patchState(unprotected(store), { inkStrokes: [stroke] });
-    store.deleteInkStroke(404);
+    store.eraseInk([{ id: 404, pieces: [] }]);
     expect(store.inkStrokes()).toEqual([stroke]);
   });
 

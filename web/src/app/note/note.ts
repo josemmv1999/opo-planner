@@ -15,6 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Button } from '../../common/components/button/button';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
+import { ERASER_WIDTHS, INK_WIDTHS } from '../../common/models/syllabus.model';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { Modal } from '../../common/components/modal/modal';
 import { HighlightForm } from './highlight-form/highlight-form';
@@ -92,6 +93,33 @@ const DEFAULT_ZOOM_INDEX = 1;
                 (click)="store.toggleInkMode('erase')">
                 <app-icon name="eraser" />
               </button>
+              @if (store.inkMode() !== 'off') {
+                <span #widthMenu class="note__menu">
+                  <button
+                    type="button"
+                    class="note__icon-button d-flex align-items-center justify-content-center"
+                    aria-haspopup="true"
+                    [attr.aria-expanded]="isWidthMenuOpen()"
+                    [title]="'notes.width' | translate"
+                    (click)="isWidthMenuOpen.set(!isWidthMenuOpen())">
+                    <span class="note__width-dot" [style.--dot-size]="toolWidthIndex()"></span>
+                  </button>
+                  @if (isWidthMenuOpen()) {
+                    <span class="note__menu-list d-flex flex-column" role="menu">
+                      @for (width of toolWidths(); track width; let index = $index) {
+                        <button
+                          type="button"
+                          role="menuitemradio"
+                          [attr.aria-checked]="width === toolWidth()"
+                          (click)="chooseWidth(width)">
+                          <span class="note__width-dot" [style.--dot-size]="index"></span>
+                          {{ 'notes.widths.' + index | translate }}
+                        </button>
+                      }
+                    </span>
+                  }
+                </span>
+              }
             </span>
             <span class="note__zoom d-flex align-items-center">
               <button
@@ -219,8 +247,10 @@ const DEFAULT_ZOOM_INDEX = 1;
                 (marginNoteMoved)="store.moveMarginNote($event)"
                 [inkStrokes]="store.inkStrokes()"
                 [inkMode]="store.inkMode()"
+                [inkWidth]="store.inkWidth()"
+                [eraserWidth]="store.eraserWidth()"
                 (inkDrawn)="store.addInkStroke($event)"
-                (inkErased)="store.deleteInkStroke($event)" />
+                (inkErased)="store.eraseInk($event)" />
             }
           }
           @case ('image') {
@@ -418,6 +448,18 @@ const DEFAULT_ZOOM_INDEX = 1;
       position: relative;
     }
 
+    .note__width-dot {
+      flex-shrink: 0;
+      width: calc(0.375rem + var(--dot-size) * 0.3125rem);
+      aspect-ratio: 1;
+      background-color: currentColor;
+      border-radius: 50%;
+    }
+
+    .note__menu-list [aria-checked='true'] {
+      background-color: rgba(var(--bs-primary-rgb), 0.12);
+    }
+
     .note__menu-list {
       position: absolute;
       top: calc(100% + 0.375rem);
@@ -536,6 +578,15 @@ export class Note {
   protected readonly position = signal<PdfPosition | null>(null);
   protected readonly isMenuOpen = signal(false);
   private readonly menu = viewChild<ElementRef<HTMLElement>>('menu');
+  protected readonly isWidthMenuOpen = signal(false);
+  private readonly widthMenu = viewChild<ElementRef<HTMLElement>>('widthMenu');
+  protected readonly toolWidths = computed(() =>
+    this.store.inkMode() === 'erase' ? ERASER_WIDTHS : INK_WIDTHS,
+  );
+  protected readonly toolWidth = computed(() =>
+    this.store.inkMode() === 'erase' ? this.store.eraserWidth() : this.store.inkWidth(),
+  );
+  protected readonly toolWidthIndex = computed(() => this.toolWidths().indexOf(this.toolWidth()));
 
   protected readonly draft = computed(() => {
     const note = this.store.note();
@@ -576,7 +627,14 @@ export class Note {
   }
 
   protected closeMenu(event: MouseEvent): void {
-    if (!this.menu()?.nativeElement.contains(event.target as Node)) this.isMenuOpen.set(false);
+    const target = event.target as Node;
+    if (!this.menu()?.nativeElement.contains(target)) this.isMenuOpen.set(false);
+    if (!this.widthMenu()?.nativeElement.contains(target)) this.isWidthMenuOpen.set(false);
+  }
+
+  protected chooseWidth(width: number): void {
+    this.store.setToolWidth(width);
+    this.isWidthMenuOpen.set(false);
   }
 
   protected changeZoom(step: number): void {

@@ -8,7 +8,11 @@ import {
   NoteDraft,
   HighlightMark,
   HighlightUpdate,
+  ERASER_WIDTHS,
+  INK_WIDTHS,
+  InkErase,
   InkMode,
+  InkPoint,
   InkStroke,
   InkStrokeDraft,
   MarginNote,
@@ -39,6 +43,8 @@ interface NoteState {
   marginNotes: MarginNote[];
   inkStrokes: InkStroke[];
   inkMode: InkMode;
+  inkWidth: number;
+  eraserWidth: number;
   marginDraft: MarginNoteDraft | null;
   openedMarginNoteId: number | null;
   isSavingMarginNote: boolean;
@@ -84,6 +90,44 @@ const withoutInkStroke =
     inkStrokes: inkStrokes.filter(({ id }) => id !== strokeId),
   });
 
+interface InkCut {
+  stroke: InkStroke;
+  pieces: InkStroke[];
+}
+
+interface SavedInk {
+  pendingId: number;
+  saved: InkStroke;
+}
+
+const withSavedInk =
+  (saves: SavedInk[]) =>
+  ({ inkStrokes }: NoteState): Pick<NoteState, 'inkStrokes'> => ({
+    inkStrokes: inkStrokes.map(
+      (stroke) => saves.find(({ pendingId }) => pendingId === stroke.id)?.saved ?? stroke,
+    ),
+  });
+
+const withCuts =
+  (cuts: InkCut[]) =>
+  ({ inkStrokes }: NoteState): Pick<NoteState, 'inkStrokes'> => ({
+    inkStrokes: [
+      ...inkStrokes.filter(({ id }) => !cuts.some(({ stroke }) => stroke.id === id)),
+      ...cuts.flatMap(({ pieces }) => pieces),
+    ],
+  });
+
+const withoutCuts =
+  (cuts: InkCut[]) =>
+  ({ inkStrokes }: NoteState): Pick<NoteState, 'inkStrokes'> => ({
+    inkStrokes: [
+      ...inkStrokes.filter(
+        ({ id }) => !cuts.some(({ pieces }) => pieces.some((piece) => piece.id === id)),
+      ),
+      ...cuts.map(({ stroke }) => stroke),
+    ],
+  });
+
 const withMarginNote =
   (changed: MarginNote) =>
   ({ marginNotes }: NoteState): Pick<NoteState, 'marginNotes'> => ({
@@ -102,6 +146,8 @@ export const NoteStore = signalStore(
     marginNotes: [],
     inkStrokes: [],
     inkMode: 'off',
+    inkWidth: INK_WIDTHS[1],
+    eraserWidth: ERASER_WIDTHS[1],
     marginDraft: null,
     openedMarginNoteId: null,
     isSavingMarginNote: false,
@@ -411,12 +457,7 @@ export const NoteStore = signalStore(
           concatMap(({ url, pending: { id: pendingId, ...draft } }) =>
             notesService.addInkStroke(url, draft).pipe(
               tapResponse({
-                next: (saved) =>
-                  patchState(store, ({ inkStrokes }) => ({
-                    inkStrokes: inkStrokes.map((stroke) =>
-                      stroke.id === pendingId ? saved : stroke,
-                    ),
-                  })),
+                next: (saved) => patchState(store, withSavedInk([{ pendingId, saved }])),
                 error: () => {
                   patchState(store, withoutInkStroke(pendingId), { error: 'highlighting' });
                   notificationService.error('notes.errors.drawing');
@@ -426,23 +467,59 @@ export const NoteStore = signalStore(
           ),
         ),
       ),
-      deleteInkStroke: rxMethod<number>(
+      setToolWidth(width: number): void {
+        patchState(
+          store,
+          store.inkMode() === 'erase' ? { eraserWidth: width } : { inkWidth: width },
+        );
+      },
+      eraseInk: rxMethod<InkErase[]>(
         pipe(
-          map((strokeId) => ({
+          map((erases) => ({
             url: store.annotationsUrl(),
-            stroke: store.inkStrokes().find(({ id }) => id === strokeId),
+            cuts: erases
+              .map(({ id, pieces }) => ({
+                stroke: store.inkStrokes().find((stroke) => stroke.id === id),
+                pieces,
+              }))
+              .filter(
+                (cut): cut is { stroke: InkStroke; pieces: InkPoint[][] } =>
+                  (cut.stroke?.id ?? 0) > 0,
+              )
+              .map(({ stroke, pieces }) => ({
+                stroke,
+                pieces: pieces.map((points) => ({ ...stroke, points, id: --lastPendingInkId })),
+              })),
           })),
           filter(
-            (removal): removal is { url: string; stroke: InkStroke } =>
-              removal.url !== null && (removal.stroke?.id ?? 0) > 0,
+            (erase): erase is { url: string; cuts: InkCut[] } =>
+              erase.url !== null && erase.cuts.length > 0,
           ),
-          tap(({ stroke }) => patchState(store, withoutInkStroke(stroke.id), { error: null })),
-          concatMap(({ url, stroke }) =>
-            notesService.deleteAnnotation(url, stroke.id).pipe(
+          tap(({ cuts }) => patchState(store, withCuts(cuts), { error: null })),
+          concatMap(({ url, cuts }) =>
+            forkJoin(
+              cuts.map(({ stroke, pieces }) =>
+                notesService
+                  .deleteAnnotation(url, stroke.id)
+                  .pipe(
+                    switchMap(() =>
+                      pieces.length
+                        ? forkJoin(
+                            pieces.map(({ id, ...draft }) =>
+                              notesService
+                                .addInkStroke(url, draft)
+                                .pipe(map((saved) => ({ pendingId: id, saved }))),
+                            ),
+                          )
+                        : of([]),
+                    ),
+                  ),
+              ),
+            ).pipe(
               tapResponse({
-                next: () => undefined,
+                next: (saves) => patchState(store, withSavedInk(saves.flat())),
                 error: () => {
-                  patchState(store, withInkStroke(stroke), { error: 'highlighting' });
+                  patchState(store, withoutCuts(cuts), { error: 'highlighting' });
                   notificationService.error('notes.errors.drawing');
                 },
               }),

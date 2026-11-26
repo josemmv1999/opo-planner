@@ -571,6 +571,8 @@
     "zoomOut": "Alejar",
     "draw": "Dibujar con el lápiz",
     "erase": "Borrar trazos",
+    "width": "Grosor",
+    "widths": ["Fino", "Medio", "Grueso"],
     "page": "Página {{page}} de {{total}}",
     "previous": "Apunte anterior: {{title}}",
     "next": "Apunte siguiente: {{title}}",
