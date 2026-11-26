@@ -20,6 +20,7 @@ import { Modal } from '../../common/components/modal/modal';
 import { HighlightForm } from './highlight-form/highlight-form';
 import { MarginNoteForm } from './margin-note-form/margin-note-form';
 import { NoteForm } from './note-form/note-form';
+import { NoteText } from './note-text/note-text';
 import { NoteStore } from './note.store';
 import { PdfPosition, PdfViewer } from './pdf-viewer/pdf-viewer';
 
@@ -37,6 +38,7 @@ const DEFAULT_ZOOM_INDEX = 1;
     Icon,
     FormatDatePipe,
     NoteForm,
+    NoteText,
     PdfViewer,
     Modal,
     HighlightForm,
@@ -203,7 +205,14 @@ const DEFAULT_ZOOM_INDEX = 1;
             </div>
           }
           @default {
-            <article class="note__sheet note__text" [innerHTML]="note.content"></article>
+            @if (store.isMaterial()) {
+              <article class="note__sheet note__text" [innerHTML]="note.content"></article>
+            } @else {
+              <app-note-text
+                class="note__sheet note__text"
+                [content]="note.content ?? ''"
+                (contentChanged)="store.save({ title: note.title, content: $event })" />
+            }
           }
         }
       }
