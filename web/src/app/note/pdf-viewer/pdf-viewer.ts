@@ -20,7 +20,9 @@ import {
   HighlightMark,
   HighlightUpdate,
   HighlightColor,
+  InkErase,
   InkMode,
+  InkPoint,
   InkStroke,
   InkStrokeDraft,
   MarginNote,
@@ -135,7 +137,9 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
               [strokes]="inkStrokesOf(pageIndex + 1)"
               [mode]="inkMode()"
               [color]="inkColor()"
-              (drawn)="inkDrawn.emit({ page: pageIndex + 1, points: $event, color: inkColor() })"
+              [width]="inkWidth()"
+              [eraserWidth]="eraserWidth()"
+              (drawn)="drawInk(pageIndex + 1, $event)"
               (erased)="inkErased.emit($event)" />
             @if (menu()?.page === pageIndex + 1) {
               @let shown = menu()!;
@@ -343,7 +347,9 @@ export class PdfViewer {
   readonly inkMode = input<InkMode>('off');
   readonly inkColor = input<HighlightColor>('blue');
   readonly inkDrawn = output<InkStrokeDraft>();
-  readonly inkErased = output<number>();
+  readonly inkWidth = input(0.5);
+  readonly eraserWidth = input(4);
+  readonly inkErased = output<InkErase[]>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
   readonly #draggedNote = signal<MarginNoteMove | null>(null);
@@ -507,6 +513,10 @@ export class PdfViewer {
       container: textLayer,
       viewport: page.getViewport({ scale }),
     }).render();
+  }
+
+  protected drawInk(page: number, points: InkPoint[]): void {
+    this.inkDrawn.emit({ page, points, color: this.inkColor(), width: this.inkWidth() });
   }
 
   protected inkStrokesOf(page: number): InkStroke[] {

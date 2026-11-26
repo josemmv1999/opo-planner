@@ -71,11 +71,12 @@ interface ApiInkStroke extends InkStroke {
   kind: 'ink';
 }
 
-const toInkStroke = ({ id, page, points, color }: ApiInkStroke): InkStroke => ({
+const toInkStroke = ({ id, page, points, color, width }: ApiInkStroke): InkStroke => ({
   id,
   page,
   points,
   color,
+  width,
 });
 
 type ApiAnnotation = ApiHighlight | ApiMarginNote | ApiInkStroke;

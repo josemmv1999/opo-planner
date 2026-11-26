@@ -116,6 +116,7 @@ export interface InkStrokeDraft {
   page: number;
   points: InkPoint[];
   color: HighlightColor;
+  width: number;
 }
 
 export interface InkStroke extends InkStrokeDraft {
@@ -123,6 +124,15 @@ export interface InkStroke extends InkStrokeDraft {
 }
 
 export type InkMode = 'off' | 'draw' | 'erase';
+
+export const INK_WIDTHS = [0.25, 0.5, 1];
+
+export const ERASER_WIDTHS = [2, 4, 8];
+
+export interface InkErase {
+  id: number;
+  pieces: InkPoint[][];
+}
 
 export interface NoteAnnotations {
   highlights: PdfHighlight[];
