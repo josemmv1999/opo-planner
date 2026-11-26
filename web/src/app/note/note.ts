@@ -143,15 +143,17 @@ const DEFAULT_ZOOM_INDEX = 1;
                   {{ 'notes.openTab' | translate }}
                 </a>
               }
-              <button
-                type="button"
-                role="menuitem"
-                class="text-danger"
-                [disabled]="store.isDeleting()"
-                (click)="store.delete()">
-                <app-icon name="delete" />
-                {{ 'notes.delete' | translate }}
-              </button>
+              @if (!store.isMaterial()) {
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="text-danger"
+                  [disabled]="store.isDeleting()"
+                  (click)="store.delete()">
+                  <app-icon name="delete" />
+                  {{ 'notes.delete' | translate }}
+                </button>
+              }
             </span>
           }
         </span>
@@ -497,7 +499,8 @@ const DEFAULT_ZOOM_INDEX = 1;
 })
 export class Note {
   readonly topicId = input.required<string>();
-  readonly noteId = input.required<string>();
+  readonly noteId = input<string>();
+  readonly materialId = input<string>();
 
   protected readonly store = inject(NoteStore);
   readonly #router = inject(Router);
@@ -539,6 +542,7 @@ export class Note {
       computed(() => ({
         topicId: Number(this.topicId()),
         noteId: this.noteId() === NEW_NOTE_ID ? null : Number(this.noteId()),
+        materialId: this.materialId() === undefined ? undefined : Number(this.materialId()),
       })),
     );
     effect(() => {

@@ -34,6 +34,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'syllabus/:topicId/materials/:materialId',
+    loadComponent: () => import('./note/note').then((m) => m.Note),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     component: AppLayout,
     canActivate: [authGuard],

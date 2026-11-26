@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from '../../../common/components/button/button';
 import { Icon } from '../../../common/components/icon/icon';
@@ -6,7 +7,7 @@ import { TopicMaterial } from '../../../common/models/syllabus.model';
 
 @Component({
   selector: 'app-topic-materials',
-  imports: [Button, Icon, TranslatePipe],
+  imports: [Button, Icon, RouterLink, TranslatePipe],
   host: { class: 'd-flex flex-column gap-3' },
   template: `
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -37,7 +38,11 @@ import { TopicMaterial } from '../../../common/models/syllabus.model';
       @for (material of materials(); track material.id) {
         <li class="topic-materials__item d-flex align-items-center gap-2">
           <app-icon class="text-primary" name="notes" />
-          <span class="flex-grow-1">{{ material.title }}</span>
+          <a
+            class="topic-materials__link flex-grow-1"
+            [routerLink]="['/syllabus', material.topicId, 'materials', material.id]">
+            {{ material.title }}
+          </a>
           @if (isAdmin()) {
             <button
               app-button
@@ -59,6 +64,15 @@ import { TopicMaterial } from '../../../common/models/syllabus.model';
     .topic-materials__title {
       font-size: 1.375rem;
       font-weight: 900;
+    }
+
+    .topic-materials__link {
+      color: var(--bs-body-color);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--bs-primary);
+      }
     }
 
     .topic-materials__item {

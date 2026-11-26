@@ -14,18 +14,22 @@ import {
   MarginNoteMove,
   PdfHighlight,
   PdfHighlightDraft,
+  TopicMaterial,
   TopicNote,
 } from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
+import { MaterialsService } from '../services/materials.service';
 import { NotesService } from '../services/notes.service';
 
 export interface NoteLocation {
   topicId: number;
   noteId: number | null;
+  materialId?: number;
 }
 
 interface NoteState {
   topicId: number | null;
+  isMaterial: boolean;
   note: NoteDetail | null;
   siblings: TopicNote[];
   highlights: PdfHighlight[];
@@ -49,6 +53,19 @@ interface NoteState {
   error: 'loading' | 'saving' | 'deleting' | 'highlighting' | null;
 }
 
+const annotationsUrlOf = (id: number, isMaterial: boolean): string =>
+  `/api/${isMaterial ? 'materials' : 'notes'}/${id}/annotations`;
+
+const toNoteDetail = ({ id, topicId, title, uploadedAt, fileUrl }: TopicMaterial): NoteDetail => ({
+  id,
+  topicId,
+  title,
+  kind: 'pdf',
+  updatedAt: uploadedAt,
+  content: null,
+  fileUrl,
+});
+
 const withMarginNote =
   (changed: MarginNote) =>
   ({ marginNotes }: NoteState): Pick<NoteState, 'marginNotes'> => ({
@@ -60,6 +77,7 @@ const withMarginNote =
 export const NoteStore = signalStore(
   withState<NoteState>({
     topicId: null,
+    isMaterial: false,
     note: null,
     siblings: [],
     highlights: [],
@@ -83,7 +101,19 @@ export const NoteStore = signalStore(
     error: null,
   }),
   withComputed(
-    ({ highlights, openedHighlightId, marginNotes, openedMarginNoteId, marginDraft }) => ({
+    ({
+      note,
+      isMaterial,
+      highlights,
+      openedHighlightId,
+      marginNotes,
+      openedMarginNoteId,
+      marginDraft,
+    }) => ({
+      annotationsUrl: computed(() => {
+        const id = note()?.id;
+        return id === undefined ? null : annotationsUrlOf(id, isMaterial());
+      }),
       openedHighlight: computed(
         () => highlights().find(({ id }) => id === openedHighlightId()) ?? null,
       ),
@@ -97,22 +127,37 @@ export const NoteStore = signalStore(
     (
       store,
       notesService = inject(NotesService),
+      materialsService = inject(MaterialsService),
       notificationService = inject(NotificationService),
     ) => ({
       load: rxMethod<NoteLocation>(
         pipe(
-          tap(({ topicId }) =>
-            patchState(store, { topicId, isLoading: true, hasDeleted: false, error: null }),
+          tap(({ topicId, materialId }) =>
+            patchState(store, {
+              topicId,
+              isMaterial: materialId !== undefined,
+              isLoading: true,
+              hasDeleted: false,
+              error: null,
+            }),
           ),
-          switchMap(({ topicId, noteId }) =>
-            forkJoin({
-              note: noteId === null ? of(null) : notesService.getNote(noteId),
-              siblings: notesService.getTopicNotes(topicId),
-              annotations:
-                noteId === null
-                  ? of({ highlights: [], marginNotes: [] })
-                  : notesService.getAnnotations(noteId),
-            }).pipe(
+          switchMap(({ topicId, noteId, materialId }) =>
+            forkJoin(
+              materialId !== undefined
+                ? {
+                    note: materialsService.getMaterial(materialId).pipe(map(toNoteDetail)),
+                    siblings: of([]),
+                    annotations: notesService.getAnnotations(annotationsUrlOf(materialId, true)),
+                  }
+                : {
+                    note: noteId === null ? of(null) : notesService.getNote(noteId),
+                    siblings: notesService.getTopicNotes(topicId),
+                    annotations:
+                      noteId === null
+                        ? of({ highlights: [], marginNotes: [] })
+                        : notesService.getAnnotations(annotationsUrlOf(noteId, false)),
+                  },
+            ).pipe(
               tapResponse({
                 next: ({ note, siblings, annotations }) =>
                   patchState(store, {
@@ -120,7 +165,8 @@ export const NoteStore = signalStore(
                     siblings,
                     ...annotations,
                     selection: null,
-                    initialPage: note ? notesService.getLastPage(note.id) : 1,
+                    initialPage:
+                      note && !store.isMaterial() ? notesService.getLastPage(note.id) : 1,
                     isEditing: note === null,
                     isLoading: false,
                   }),
@@ -138,14 +184,14 @@ export const NoteStore = signalStore(
       },
       highlight: rxMethod<void>(
         pipe(
-          map(() => ({ noteId: store.note()?.id, selection: store.selection() })),
+          map(() => ({ url: store.annotationsUrl(), selection: store.selection() })),
           filter(
-            (pending): pending is { noteId: number; selection: PdfHighlightDraft } =>
-              pending.noteId !== undefined && pending.selection !== null,
+            (pending): pending is { url: string; selection: PdfHighlightDraft } =>
+              pending.url !== null && pending.selection !== null,
           ),
           tap(() => patchState(store, { isHighlighting: true, error: null })),
-          switchMap(({ noteId, selection }) =>
-            notesService.addHighlight(noteId, selection, store.highlightColor()).pipe(
+          switchMap(({ url, selection }) =>
+            notesService.addHighlight(url, selection, store.highlightColor()).pipe(
               tapResponse({
                 next: (highlight) =>
                   patchState(store, ({ highlights }) => ({
@@ -171,17 +217,17 @@ export const NoteStore = signalStore(
       saveHighlight: rxMethod<HighlightChange>(
         pipe(
           map((change) => ({
-            noteId: store.note()?.id,
+            url: store.annotationsUrl(),
             highlightId: store.openedHighlightId(),
             change,
           })),
           filter(
-            (update): update is { noteId: number; highlightId: number; change: HighlightChange } =>
-              update.noteId !== undefined && update.highlightId !== null,
+            (update): update is { url: string; highlightId: number; change: HighlightChange } =>
+              update.url !== null && update.highlightId !== null,
           ),
           tap(() => patchState(store, { isSavingHighlight: true, error: null })),
-          switchMap(({ noteId, highlightId, change }) =>
-            notesService.updateHighlight(noteId, highlightId, change).pipe(
+          switchMap(({ url, highlightId, change }) =>
+            notesService.updateHighlight(url, highlightId, change).pipe(
               tapResponse({
                 next: (updated) =>
                   patchState(store, ({ highlights }) => ({
@@ -202,14 +248,14 @@ export const NoteStore = signalStore(
       ),
       deleteHighlight: rxMethod<void>(
         pipe(
-          map(() => ({ noteId: store.note()?.id, highlightId: store.openedHighlightId() })),
+          map(() => ({ url: store.annotationsUrl(), highlightId: store.openedHighlightId() })),
           filter(
-            (removal): removal is { noteId: number; highlightId: number } =>
-              removal.noteId !== undefined && removal.highlightId !== null,
+            (removal): removal is { url: string; highlightId: number } =>
+              removal.url !== null && removal.highlightId !== null,
           ),
           tap(() => patchState(store, { isDeletingHighlight: true, error: null })),
-          switchMap(({ noteId, highlightId }) =>
-            notesService.deleteAnnotation(noteId, highlightId).pipe(
+          switchMap(({ url, highlightId }) =>
+            notesService.deleteAnnotation(url, highlightId).pipe(
               tapResponse({
                 next: () =>
                   patchState(store, ({ highlights }) => ({
@@ -238,20 +284,20 @@ export const NoteStore = signalStore(
       saveMarginNote: rxMethod<MarginNoteChange>(
         pipe(
           map((change) => ({
-            noteId: store.note()?.id,
+            url: store.annotationsUrl(),
             opened: store.openedMarginNoteId(),
             draft: store.marginDraft(),
             change,
           })),
           filter(
-            (save): save is typeof save & { noteId: number } =>
-              save.noteId !== undefined && (save.opened !== null || save.draft !== null),
+            (save): save is typeof save & { url: string } =>
+              save.url !== null && (save.opened !== null || save.draft !== null),
           ),
           tap(() => patchState(store, { isSavingMarginNote: true, error: null })),
-          switchMap(({ noteId, opened, draft, change }) =>
+          switchMap(({ url, opened, draft, change }) =>
             (opened !== null
-              ? notesService.updateMarginNote(noteId, opened, change)
-              : notesService.addMarginNote(noteId, draft as MarginNoteDraft, change)
+              ? notesService.updateMarginNote(url, opened, change)
+              : notesService.addMarginNote(url, draft as MarginNoteDraft, change)
             ).pipe(
               tapResponse({
                 next: (saved) =>
@@ -277,19 +323,19 @@ export const NoteStore = signalStore(
       moveMarginNote: rxMethod<MarginNoteMove>(
         pipe(
           map((move) => ({
-            noteId: store.note()?.id,
+            url: store.annotationsUrl(),
             previous: store.marginNotes().find(({ id }) => id === move.id),
             move,
           })),
           filter(
-            (change): change is typeof change & { noteId: number; previous: MarginNote } =>
-              change.noteId !== undefined && change.previous !== undefined,
+            (change): change is typeof change & { url: string; previous: MarginNote } =>
+              change.url !== null && change.previous !== undefined,
           ),
           tap(({ previous, move }) =>
             patchState(store, withMarginNote({ ...previous, ...move }), { error: null }),
           ),
-          concatMap(({ noteId, previous, move }) =>
-            notesService.moveMarginNote(noteId, move).pipe(
+          concatMap(({ url, previous, move }) =>
+            notesService.moveMarginNote(url, move).pipe(
               tapResponse({
                 next: (saved) => patchState(store, withMarginNote(saved)),
                 error: () => {
@@ -303,14 +349,14 @@ export const NoteStore = signalStore(
       ),
       deleteMarginNote: rxMethod<void>(
         pipe(
-          map(() => ({ noteId: store.note()?.id, marginNoteId: store.openedMarginNoteId() })),
+          map(() => ({ url: store.annotationsUrl(), marginNoteId: store.openedMarginNoteId() })),
           filter(
-            (removal): removal is { noteId: number; marginNoteId: number } =>
-              removal.noteId !== undefined && removal.marginNoteId !== null,
+            (removal): removal is { url: string; marginNoteId: number } =>
+              removal.url !== null && removal.marginNoteId !== null,
           ),
           tap(() => patchState(store, { isDeletingMarginNote: true, error: null })),
-          switchMap(({ noteId, marginNoteId }) =>
-            notesService.deleteAnnotation(noteId, marginNoteId).pipe(
+          switchMap(({ url, marginNoteId }) =>
+            notesService.deleteAnnotation(url, marginNoteId).pipe(
               tapResponse({
                 next: () =>
                   patchState(store, ({ marginNotes }) => ({
@@ -335,7 +381,7 @@ export const NoteStore = signalStore(
       },
       rememberPage(page: number): void {
         const noteId = store.note()?.id;
-        if (noteId !== undefined) notesService.setLastPage(noteId, page);
+        if (noteId !== undefined && !store.isMaterial()) notesService.setLastPage(noteId, page);
       },
       save: rxMethod<NoteDraft>(
         pipe(

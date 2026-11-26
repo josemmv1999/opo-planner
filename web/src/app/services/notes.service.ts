@@ -103,8 +103,8 @@ export class NotesService {
     writeJson(PAGES_KEY, { ...readJson<Record<number, number>>(PAGES_KEY), [noteId]: page });
   }
 
-  getAnnotations(noteId: number): Observable<NoteAnnotations> {
-    return this.#http.get<(ApiHighlight | ApiMarginNote)[]>(`${URL}/${noteId}/annotations`).pipe(
+  getAnnotations(annotationsUrl: string): Observable<NoteAnnotations> {
+    return this.#http.get<(ApiHighlight | ApiMarginNote)[]>(annotationsUrl).pipe(
       map((annotations) => ({
         highlights: annotations
           .filter((annotation): annotation is ApiHighlight => annotation.kind === 'highlight')
@@ -117,12 +117,12 @@ export class NotesService {
   }
 
   addMarginNote(
-    noteId: number,
+    annotationsUrl: string,
     draft: MarginNoteDraft,
     { text, color }: MarginNoteChange,
   ): Observable<MarginNote> {
     return this.#http
-      .post<ApiMarginNote>(`${URL}/${noteId}/annotations`, {
+      .post<ApiMarginNote>(annotationsUrl, {
         ...draft,
         kind: 'margin',
         color,
@@ -132,44 +132,44 @@ export class NotesService {
   }
 
   updateMarginNote(
-    noteId: number,
+    annotationsUrl: string,
     marginNoteId: number,
     { text, color }: MarginNoteChange,
   ): Observable<MarginNote> {
     return this.#http
-      .put<ApiMarginNote>(`${URL}/${noteId}/annotations/${marginNoteId}`, { comment: text, color })
+      .put<ApiMarginNote>(`${annotationsUrl}/${marginNoteId}`, { comment: text, color })
       .pipe(map(toMarginNote));
   }
 
-  moveMarginNote(noteId: number, { id, y, side }: MarginNoteMove): Observable<MarginNote> {
+  moveMarginNote(annotationsUrl: string, { id, y, side }: MarginNoteMove): Observable<MarginNote> {
     return this.#http
-      .put<ApiMarginNote>(`${URL}/${noteId}/annotations/${id}`, { y, side })
+      .put<ApiMarginNote>(`${annotationsUrl}/${id}`, { y, side })
       .pipe(map(toMarginNote));
   }
 
   addHighlight(
-    noteId: number,
+    annotationsUrl: string,
     draft: PdfHighlightDraft,
     color: HighlightColor,
   ): Observable<PdfHighlight> {
     return this.#http
-      .post<ApiHighlight>(`${URL}/${noteId}/annotations`, { ...draft, kind: 'highlight', color })
+      .post<ApiHighlight>(annotationsUrl, { ...draft, kind: 'highlight', color })
       .pipe(map(toHighlight));
   }
 
   updateHighlight(
-    noteId: number,
+    annotationsUrl: string,
     highlightId: number,
     { note, color }: HighlightChange,
   ): Observable<PdfHighlight> {
     return this.#http
-      .put<ApiHighlight>(`${URL}/${noteId}/annotations/${highlightId}`, { comment: note, color })
+      .put<ApiHighlight>(`${annotationsUrl}/${highlightId}`, { comment: note, color })
       .pipe(map(toHighlight));
   }
 
-  deleteAnnotation(noteId: number, annotationId: number): Observable<number> {
+  deleteAnnotation(annotationsUrl: string, annotationId: number): Observable<number> {
     return this.#http
-      .delete<void>(`${URL}/${noteId}/annotations/${annotationId}`)
+      .delete<void>(`${annotationsUrl}/${annotationId}`)
       .pipe(map(() => annotationId));
   }
 }

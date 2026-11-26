@@ -13,6 +13,7 @@ import {
   PdfHighlightDraft,
 } from '../../common/models/syllabus.model';
 import { NotificationService } from '../../common/services/notification.service';
+import { MaterialsService } from '../services/materials.service';
 import { NotesService } from '../services/notes.service';
 import { NoteStore } from './note.store';
 
@@ -40,12 +41,18 @@ describe('NoteStore', () => {
   const saveTextNote = vi.fn((topicId: number, noteId: number | null, draft: NoteDraft) =>
     of<NoteDetail>({ ...NOTE, id: noteId ?? 8, topicId, ...draft }),
   );
+  const getAnnotations = vi.fn(() => of({ highlights: [HIGHLIGHT], marginNotes: [] }));
+  const addHighlight = vi.fn((_: string, draft: PdfHighlightDraft, color: HighlightColor) =>
+    of({ ...draft, id: 2, note: '', color }),
+  );
   const getNote = vi.fn((noteId: number) =>
     noteId === NOTE.id ? of(NOTE) : throwError(() => new Error('missing')),
   );
 
   beforeEach(() => {
     saveTextNote.mockClear();
+    getAnnotations.mockClear();
+    addHighlight.mockClear();
     TestBed.configureTestingModule({
       providers: [
         NoteStore,
@@ -58,26 +65,43 @@ describe('NoteStore', () => {
             getTopicNotes: () => of([]),
             getLastPage: () => 3,
             setLastPage: vi.fn(),
-            getAnnotations: () => of({ highlights: [HIGHLIGHT], marginNotes: [] }),
-            addMarginNote: (_: number, draft: MarginNoteDraft, change: MarginNoteChange) =>
+            getAnnotations,
+            addMarginNote: (_: string, draft: MarginNoteDraft, change: MarginNoteChange) =>
               of({ ...draft, ...change, id: 5 }),
-            updateMarginNote: (_: number, id: number, change: MarginNoteChange) =>
+            updateMarginNote: (_: string, id: number, change: MarginNoteChange) =>
               of({ page: 1, y: 30, side: 'left', ...change, id }),
-            moveMarginNote: (_: number, move: MarginNoteMove) =>
+            moveMarginNote: (_: string, move: MarginNoteMove) =>
               move.y > 90
                 ? throwError(() => new Error('failed'))
                 : of({ page: 1, text: 'Ojo', color: 'blue', ...move }),
-            addHighlight: (_: number, draft: PdfHighlightDraft, color: HighlightColor) =>
-              of({ ...draft, id: 2, note: '', color }),
-            updateHighlight: (_: number, id: number, change: HighlightChange) =>
+            addHighlight,
+            updateHighlight: (_: string, id: number, change: HighlightChange) =>
               of({ ...HIGHLIGHT, id, ...change }),
-            deleteAnnotation: (_: number, id: number) => of(id),
+            deleteAnnotation: (_: string, id: number) => of(id),
+          },
+        },
+        {
+          provide: MaterialsService,
+          useValue: {
+            getMaterial: () =>
+              of({ id: 4, topicId: 1, title: 'Tema 1', uploadedAt: '2026-11-26', fileUrl: '/f' }),
           },
         },
         { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn() } },
       ],
     });
     store = TestBed.inject(NoteStore);
+  });
+
+  it('opens a material as a read-only PDF and saves highlights on its own annotations', () => {
+    store.load({ topicId: 1, noteId: null, materialId: 4 });
+    expect(store.note()).toMatchObject({ id: 4, kind: 'pdf', title: 'Tema 1', fileUrl: '/f' });
+    expect(store.isMaterial()).toBe(true);
+    expect(store.initialPage()).toBe(1);
+    expect(getAnnotations).toHaveBeenCalledWith('/api/materials/4/annotations');
+    store.select({ page: 1, text: 'Art. 1', rects: [{ x: 1, y: 1, width: 5, height: 1 }] });
+    store.highlight();
+    expect(addHighlight.mock.calls[0][0]).toBe('/api/materials/4/annotations');
   });
 
   it('loads the highlights of a note and saves the selected text as a new one', () => {
