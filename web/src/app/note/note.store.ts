@@ -8,6 +8,9 @@ import {
   NoteDraft,
   HighlightMark,
   HighlightUpdate,
+  InkMode,
+  InkStroke,
+  InkStrokeDraft,
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
@@ -34,6 +37,8 @@ interface NoteState {
   siblings: TopicNote[];
   highlights: PdfHighlight[];
   marginNotes: MarginNote[];
+  inkStrokes: InkStroke[];
+  inkMode: InkMode;
   marginDraft: MarginNoteDraft | null;
   openedMarginNoteId: number | null;
   isSavingMarginNote: boolean;
@@ -65,6 +70,20 @@ const toNoteDetail = ({ id, topicId, title, uploadedAt, fileUrl }: TopicMaterial
   fileUrl,
 });
 
+let lastPendingInkId = 0;
+
+const withInkStroke =
+  (stroke: InkStroke) =>
+  ({ inkStrokes }: NoteState): Pick<NoteState, 'inkStrokes'> => ({
+    inkStrokes: [...inkStrokes, stroke],
+  });
+
+const withoutInkStroke =
+  (strokeId: number) =>
+  ({ inkStrokes }: NoteState): Pick<NoteState, 'inkStrokes'> => ({
+    inkStrokes: inkStrokes.filter(({ id }) => id !== strokeId),
+  });
+
 const withMarginNote =
   (changed: MarginNote) =>
   ({ marginNotes }: NoteState): Pick<NoteState, 'marginNotes'> => ({
@@ -81,6 +100,8 @@ export const NoteStore = signalStore(
     siblings: [],
     highlights: [],
     marginNotes: [],
+    inkStrokes: [],
+    inkMode: 'off',
     marginDraft: null,
     openedMarginNoteId: null,
     isSavingMarginNote: false,
@@ -152,7 +173,7 @@ export const NoteStore = signalStore(
                     siblings: notesService.getTopicNotes(topicId),
                     annotations:
                       noteId === null
-                        ? of({ highlights: [], marginNotes: [] })
+                        ? of({ highlights: [], marginNotes: [], inkStrokes: [] })
                         : notesService.getAnnotations(annotationsUrlOf(noteId, false)),
                   },
             ).pipe(
@@ -368,6 +389,61 @@ export const NoteStore = signalStore(
                 error: () => {
                   patchState(store, { isDeletingMarginNote: false, error: 'highlighting' });
                   notificationService.error('notes.errors.highlighting');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      toggleInkMode(mode: Exclude<InkMode, 'off'>): void {
+        patchState(store, ({ inkMode }): Pick<NoteState, 'inkMode'> => ({
+          inkMode: inkMode === mode ? 'off' : mode,
+        }));
+      },
+      addInkStroke: rxMethod<InkStrokeDraft>(
+        pipe(
+          map((draft) => ({
+            url: store.annotationsUrl(),
+            pending: { ...draft, id: --lastPendingInkId },
+          })),
+          filter((add): add is { url: string; pending: InkStroke } => add.url !== null),
+          tap(({ pending }) => patchState(store, withInkStroke(pending), { error: null })),
+          concatMap(({ url, pending: { id: pendingId, ...draft } }) =>
+            notesService.addInkStroke(url, draft).pipe(
+              tapResponse({
+                next: (saved) =>
+                  patchState(store, ({ inkStrokes }) => ({
+                    inkStrokes: inkStrokes.map((stroke) =>
+                      stroke.id === pendingId ? saved : stroke,
+                    ),
+                  })),
+                error: () => {
+                  patchState(store, withoutInkStroke(pendingId), { error: 'highlighting' });
+                  notificationService.error('notes.errors.drawing');
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
+      deleteInkStroke: rxMethod<number>(
+        pipe(
+          map((strokeId) => ({
+            url: store.annotationsUrl(),
+            stroke: store.inkStrokes().find(({ id }) => id === strokeId),
+          })),
+          filter(
+            (removal): removal is { url: string; stroke: InkStroke } =>
+              removal.url !== null && (removal.stroke?.id ?? 0) > 0,
+          ),
+          tap(({ stroke }) => patchState(store, withoutInkStroke(stroke.id), { error: null })),
+          concatMap(({ url, stroke }) =>
+            notesService.deleteAnnotation(url, stroke.id).pipe(
+              tapResponse({
+                next: () => undefined,
+                error: () => {
+                  patchState(store, withInkStroke(stroke), { error: 'highlighting' });
+                  notificationService.error('notes.errors.drawing');
                 },
               }),
             ),

@@ -6,6 +6,8 @@ import {
   HighlightStyle,
   HighlightUpdate,
   HighlightColor,
+  InkStroke,
+  InkStrokeDraft,
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
@@ -65,6 +67,19 @@ const toHighlight = ({
   style: kind,
 });
 
+interface ApiInkStroke extends InkStroke {
+  kind: 'ink';
+}
+
+const toInkStroke = ({ id, page, points, color }: ApiInkStroke): InkStroke => ({
+  id,
+  page,
+  points,
+  color,
+});
+
+type ApiAnnotation = ApiHighlight | ApiMarginNote | ApiInkStroke;
+
 @Injectable({ providedIn: 'root' })
 export class NotesService {
   readonly #http = inject(HttpClient);
@@ -115,16 +130,28 @@ export class NotesService {
   }
 
   getAnnotations(annotationsUrl: string): Observable<NoteAnnotations> {
-    return this.#http.get<(ApiHighlight | ApiMarginNote)[]>(annotationsUrl).pipe(
+    return this.#http.get<ApiAnnotation[]>(annotationsUrl).pipe(
       map((annotations) => ({
         highlights: annotations
-          .filter((annotation): annotation is ApiHighlight => annotation.kind !== 'margin')
+          .filter(
+            (annotation): annotation is ApiHighlight =>
+              annotation.kind === 'highlight' || annotation.kind === 'underline',
+          )
           .map(toHighlight),
         marginNotes: annotations
           .filter((annotation): annotation is ApiMarginNote => annotation.kind === 'margin')
           .map(toMarginNote),
+        inkStrokes: annotations
+          .filter((annotation): annotation is ApiInkStroke => annotation.kind === 'ink')
+          .map(toInkStroke),
       })),
     );
+  }
+
+  addInkStroke(annotationsUrl: string, draft: InkStrokeDraft): Observable<InkStroke> {
+    return this.#http
+      .post<ApiInkStroke>(annotationsUrl, { ...draft, kind: 'ink' })
+      .pipe(map(toInkStroke));
   }
 
   addMarginNote(

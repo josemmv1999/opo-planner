@@ -75,6 +75,26 @@ const DEFAULT_ZOOM_INDEX = 1;
               <button
                 type="button"
                 class="note__icon-button d-flex align-items-center justify-content-center"
+                [class.note__icon-button--active]="store.inkMode() === 'draw'"
+                [attr.aria-pressed]="store.inkMode() === 'draw'"
+                [title]="'notes.draw' | translate"
+                (click)="store.toggleInkMode('draw')">
+                <app-icon name="pen" />
+              </button>
+              <button
+                type="button"
+                class="note__icon-button d-flex align-items-center justify-content-center"
+                [class.note__icon-button--active]="store.inkMode() === 'erase'"
+                [attr.aria-pressed]="store.inkMode() === 'erase'"
+                [title]="'notes.erase' | translate"
+                (click)="store.toggleInkMode('erase')">
+                <app-icon name="eraser" />
+              </button>
+            </span>
+            <span class="note__zoom d-flex align-items-center">
+              <button
+                type="button"
+                class="note__icon-button d-flex align-items-center justify-content-center"
                 [title]="'notes.zoomOut' | translate"
                 [disabled]="zoomIndex() === 0"
                 (click)="changeZoom(-1)">
@@ -194,7 +214,11 @@ const DEFAULT_ZOOM_INDEX = 1;
                 [editHint]="'notes.tapToEdit' | translate"
                 (marginAdded)="store.startMarginNote($event)"
                 (marginNoteOpened)="store.openMarginNote($event)"
-                (marginNoteMoved)="store.moveMarginNote($event)" />
+                (marginNoteMoved)="store.moveMarginNote($event)"
+                [inkStrokes]="store.inkStrokes()"
+                [inkMode]="store.inkMode()"
+                (inkDrawn)="store.addInkStroke($event)"
+                (inkErased)="store.deleteInkStroke($event)" />
             }
           }
           @case ('image') {
@@ -372,6 +396,13 @@ const DEFAULT_ZOOM_INDEX = 1;
         background-color: var(--bs-white);
         border-color: var(--bs-dark);
       }
+    }
+
+    .note__icon-button--active,
+    .note__icon-button--active:hover:not(:disabled) {
+      color: var(--bs-white);
+      background-color: var(--bs-dark);
+      border-color: var(--bs-dark);
     }
 
     .note__menu {
