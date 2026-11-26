@@ -34,6 +34,14 @@ export interface TopicNote {
   preview: string | null;
 }
 
+export interface TopicMaterial {
+  id: number;
+  topicId: number;
+  title: string;
+  uploadedAt: string;
+  fileUrl: string;
+}
+
 export interface NoteDetail extends Omit<TopicNote, 'preview'> {
   topicId: number;
   content: string | null;

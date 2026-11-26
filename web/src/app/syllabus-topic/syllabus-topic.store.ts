@@ -7,8 +7,11 @@ import { QuizQuestion } from '../../common/models/quiz.model';
 import {
   ReviewQuestion,
   SyllabusTopicDetail,
+  TopicMaterial,
   TopicResult,
 } from '../../common/models/syllabus.model';
+import { AccountService } from '../services/account.service';
+import { MaterialsService } from '../services/materials.service';
 import { NotesService } from '../services/notes.service';
 import { SyllabusService } from '../services/syllabus.service';
 import { TopicResultsService } from '../services/topic-results.service';
@@ -23,20 +26,30 @@ const REVIEW_LENGTH = 3;
 interface SyllabusTopicState {
   topic: SyllabusTopicDetail | null;
   results: TopicResult[];
+  materials: TopicMaterial[];
+  isAdmin: boolean;
+  materialToDeleteId: number | null;
   isLoading: boolean;
   isUploading: boolean;
-  error: 'loading' | 'uploading' | null;
+  isUploadingMaterials: boolean;
+  isDeletingMaterial: boolean;
+  error: 'loading' | 'uploading' | 'uploadingMaterials' | 'deletingMaterial' | null;
 }
 
 export const SyllabusTopicStore = signalStore(
   withState<SyllabusTopicState>({
     topic: null,
     results: [],
+    materials: [],
+    isAdmin: false,
+    materialToDeleteId: null,
     isLoading: false,
     isUploading: false,
+    isUploadingMaterials: false,
+    isDeletingMaterial: false,
     error: null,
   }),
-  withComputed(({ results }) => {
+  withComputed(({ results, materials, materialToDeleteId }) => {
     const sortedResults = computed(() =>
       [...results()].sort((a, b) => a.date.localeCompare(b.date)),
     );
@@ -53,6 +66,7 @@ export const SyllabusTopicStore = signalStore(
       reviewQuestions: computed<ReviewQuestion[]>(() => pendingReview().slice(0, REVIEW_LENGTH)),
       reviewCount: computed(() => pendingReview().length),
       reviewQuiz: computed<QuizQuestion[]>(() => pendingReview().map(toQuizQuestion)),
+      materialToDelete: computed(() => materials().find(({ id }) => id === materialToDeleteId())),
     };
   }),
   withMethods(
@@ -61,6 +75,8 @@ export const SyllabusTopicStore = signalStore(
       syllabusService = inject(SyllabusService),
       notesService = inject(NotesService),
       topicResultsService = inject(TopicResultsService),
+      materialsService = inject(MaterialsService),
+      accountService = inject(AccountService),
     ) => ({
       load: rxMethod<number>(
         pipe(
@@ -69,10 +85,18 @@ export const SyllabusTopicStore = signalStore(
             forkJoin({
               topic: syllabusService.getTopic(topicId),
               results: topicResultsService.getTopicResults(topicId),
+              materials: materialsService.getTopicMaterials(topicId),
+              user: accountService.getCurrentUser(),
             }).pipe(
               tapResponse({
-                next: ({ topic, results }) =>
-                  patchState(store, { topic, results, isLoading: false }),
+                next: ({ topic, results, materials, user }) =>
+                  patchState(store, {
+                    topic,
+                    results,
+                    materials,
+                    isAdmin: user.isAdmin,
+                    isLoading: false,
+                  }),
                 error: () => patchState(store, { topic: null, isLoading: false, error: 'loading' }),
               }),
             ),
@@ -102,6 +126,55 @@ export const SyllabusTopicStore = signalStore(
           ),
         ),
       ),
+      uploadMaterials: rxMethod<File[]>(
+        pipe(
+          map((files) => ({ files, topicId: store.topic()?.id })),
+          filter(
+            (upload): upload is { files: File[]; topicId: number } =>
+              upload.topicId !== undefined && upload.files.length > 0,
+          ),
+          tap(() => patchState(store, { isUploadingMaterials: true, error: null })),
+          switchMap(({ files, topicId }) =>
+            from(files).pipe(
+              concatMap((file) => materialsService.uploadMaterial(topicId, file)),
+              tapResponse({
+                next: (material) =>
+                  patchState(store, ({ materials }) => ({ materials: [...materials, material] })),
+                error: () =>
+                  patchState(store, { isUploadingMaterials: false, error: 'uploadingMaterials' }),
+                finalize: () => patchState(store, { isUploadingMaterials: false }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      deleteMaterial: rxMethod<void>(
+        pipe(
+          map(() => store.materialToDeleteId()),
+          filter((materialId): materialId is number => materialId !== null),
+          tap(() => patchState(store, { isDeletingMaterial: true, error: null })),
+          switchMap((materialId) =>
+            materialsService.deleteMaterial(materialId).pipe(
+              tapResponse({
+                next: () =>
+                  patchState(store, ({ materials }) => ({
+                    materials: materials.filter(({ id }) => id !== materialId),
+                    materialToDeleteId: null,
+                    isDeletingMaterial: false,
+                  })),
+                error: () =>
+                  patchState(store, { isDeletingMaterial: false, error: 'deletingMaterial' }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      openDeleteMaterialModal(materialToDeleteId: number): void {
+        patchState(store, { materialToDeleteId });
+      },
+      closeDeleteMaterialModal(): void {
+        patchState(store, { materialToDeleteId: null });
+      },
     }),
   ),
 );
