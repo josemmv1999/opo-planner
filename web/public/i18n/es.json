@@ -317,7 +317,16 @@
     "pager": "Otros temas",
     "previousTopic": "Tema anterior",
     "nextTopic": "Tema siguiente",
-    "practiseReview": "Practicar solo estas ({{count}})"
+    "practiseReview": "Practicar solo estas ({{count}})",
+    "materials": {
+      "title": "Temario oficial",
+      "upload": "Subir temario",
+      "uploadError": "No hemos podido subir algún PDF. Inténtalo de nuevo.",
+      "empty": "Todavía no hay temario para este tema.",
+      "delete": "Eliminar {{title}}",
+      "deleteTitle": "Eliminar temario",
+      "deleteMessage": "Se eliminará «{{title}}» para todos los usuarios, junto con sus subrayados y notas."
+    }
   },
   "topicQuiz": {
     "eyebrow": "Simulacro",

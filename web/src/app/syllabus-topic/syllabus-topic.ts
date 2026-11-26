@@ -6,14 +6,28 @@ import { Icon } from '../../common/components/icon/icon';
 import { TopicQuiz } from '../topic-quiz/topic-quiz';
 import { NoteTile } from './note-tile/note-tile';
 import { SyllabusTopicStore } from './syllabus-topic.store';
+import { TopicMaterials } from './topic-materials/topic-materials';
 import { TopicProgress } from './topic-progress/topic-progress';
+import { ConfirmContent } from '../../common/components/confirm-content/confirm-content';
+import { Modal } from '../../common/components/modal/modal';
 
 const BOE_URL = 'https://www.boe.es/buscar/act.php?id=';
 const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
 
 @Component({
   selector: 'app-syllabus-topic',
-  imports: [Button, RouterLink, TranslatePipe, Icon, TopicQuiz, NoteTile, TopicProgress],
+  imports: [
+    Button,
+    RouterLink,
+    TranslatePipe,
+    Icon,
+    TopicQuiz,
+    NoteTile,
+    TopicProgress,
+    TopicMaterials,
+    Modal,
+    ConfirmContent,
+  ],
   providers: [SyllabusTopicStore],
   host: { class: 'd-flex flex-column gap-4' },
   template: `
@@ -80,6 +94,16 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
           </div>
         </div>
       </section>
+
+      @if (store.isAdmin() || store.materials().length) {
+        <app-topic-materials
+          [materials]="store.materials()"
+          [isAdmin]="store.isAdmin()"
+          [isUploading]="store.isUploadingMaterials()"
+          [hasUploadError]="store.error() === 'uploadingMaterials'"
+          (uploaded)="store.uploadMaterials($event)"
+          (deleted)="store.openDeleteMaterialModal($event)" />
+      }
 
       <div class="syllabus-topic__grid">
         <section class="d-flex flex-column gap-3">
@@ -174,6 +198,23 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
     }
 
     <app-topic-quiz #quiz (closed)="reload()" />
+
+    <app-modal
+      [isOpen]="!!store.materialToDelete()"
+      [label]="'syllabusTopic.materials.deleteTitle' | translate"
+      (closed)="store.closeDeleteMaterialModal()">
+      <ng-template>
+        <app-confirm-content
+          [title]="'syllabusTopic.materials.deleteTitle' | translate"
+          [message]="
+            'syllabusTopic.materials.deleteMessage'
+              | translate: { title: store.materialToDelete()?.title }
+          "
+          [isDanger]="true"
+          (confirm)="store.deleteMaterial()"
+          (cancelAction)="store.closeDeleteMaterialModal()" />
+      </ng-template>
+    </app-modal>
   `,
   styles: `
     .syllabus-topic__drop-hint {

@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { SyllabusTopicDetail, TopicResult } from '../../common/models/syllabus.model';
+import { AccountService } from '../services/account.service';
+import { MaterialsService } from '../services/materials.service';
 import { NotesService } from '../services/notes.service';
 import { SyllabusService } from '../services/syllabus.service';
 import { TopicResultsService } from '../services/topic-results.service';
@@ -50,12 +52,22 @@ const RESULTS: TopicResult[] = [
   },
 ];
 
+const MATERIAL = { id: 7, topicId: 5, title: 'Tema 5', uploadedAt: '2026-11-26', fileUrl: '/f' };
+
+const MATERIALS_SERVICE = {
+  getTopicMaterials: () => of([MATERIAL]),
+  uploadMaterial: () => of({ ...MATERIAL, id: 8 }),
+  deleteMaterial: (id: number) => of(id),
+};
+
 const setup = (getTopic: (id: number) => ReturnType<SyllabusService['getTopic']>) => {
   TestBed.configureTestingModule({
     providers: [
       SyllabusTopicStore,
       { provide: SyllabusService, useValue: { getTopic } },
       { provide: NotesService, useValue: {} },
+      { provide: MaterialsService, useValue: MATERIALS_SERVICE },
+      { provide: AccountService, useValue: { getCurrentUser: () => of({ isAdmin: true }) } },
       { provide: TopicResultsService, useValue: { getTopicResults: () => of(RESULTS) } },
     ],
   });
@@ -91,6 +103,8 @@ describe('SyllabusTopicStore', () => {
         SyllabusTopicStore,
         { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
         { provide: NotesService, useValue: {} },
+        { provide: MaterialsService, useValue: MATERIALS_SERVICE },
+        { provide: AccountService, useValue: { getCurrentUser: () => of({ isAdmin: true }) } },
         {
           provide: TopicResultsService,
           useValue: {
@@ -110,6 +124,8 @@ describe('SyllabusTopicStore', () => {
         SyllabusTopicStore,
         { provide: SyllabusService, useValue: { getTopic: () => of(TOPIC) } },
         { provide: NotesService, useValue: {} },
+        { provide: MaterialsService, useValue: MATERIALS_SERVICE },
+        { provide: AccountService, useValue: { getCurrentUser: () => of({ isAdmin: true }) } },
         {
           provide: TopicResultsService,
           useValue: {
@@ -123,5 +139,24 @@ describe('SyllabusTopicStore', () => {
     store.load(5);
     expect(store.trend().map(({ id }) => id)).toEqual([1, 2]);
     expect(store.improvement()).toBe(20);
+  });
+
+  it('loads the materials and whether the user is an admin', () => {
+    const store = setup(() => of(TOPIC));
+    store.load(5);
+    expect(store.materials()).toEqual([MATERIAL]);
+    expect(store.isAdmin()).toBe(true);
+  });
+
+  it('uploads and deletes materials', () => {
+    const store = setup(() => of(TOPIC));
+    store.load(5);
+    store.uploadMaterials([new File(['%PDF'], 'Tema.pdf', { type: 'application/pdf' })]);
+    expect(store.materials().map(({ id }) => id)).toEqual([7, 8]);
+    store.openDeleteMaterialModal(7);
+    expect(store.materialToDelete()).toEqual(MATERIAL);
+    store.deleteMaterial();
+    expect(store.materials().map(({ id }) => id)).toEqual([8]);
+    expect(store.materialToDeleteId()).toBeNull();
   });
 });
