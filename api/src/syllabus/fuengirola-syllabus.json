@@ -3,8 +3,18 @@
     "label": "Bloque A",
     "name": "Materias comunes",
     "topics": [
-      { "number": 1, "topicId": 1 },
-      { "number": 2, "topicId": 2 },
+      {
+        "number": 1,
+        "topicId": 1,
+        "name": "La Constitución española de 1978",
+        "description": "La Constitución española de 1978: Estructura. Características generales, estructura y contenido. Principios que informan la Constitución de 1978. Derechos fundamentales y Libertades Públicas."
+      },
+      {
+        "number": 2,
+        "topicId": 2,
+        "name": "La Corona",
+        "description": "La Corona: carácter, sucesión, proclamación y funciones."
+      },
       {
         "number": 3,
         "name": "El poder legislativo y el Gobierno",
@@ -20,13 +30,23 @@
         "name": "La Administración Pública en el ordenamiento jurídico español",
         "description": "La Administración Pública en el ordenamiento jurídico español. Tipología de los Entes Públicos: La Administración del Estado, autonómica, local e institucional."
       },
-      { "number": 6, "topicId": 9 },
+      {
+        "number": 6,
+        "topicId": 9,
+        "name": "La Organización Territorial del Estado",
+        "description": "La Organización Territorial del Estado. La Administración Autonómica: principios informadores y organización. Los Estatutos de Autonomía."
+      },
       {
         "number": 7,
         "name": "El Estatuto de Autonomía para Andalucía",
         "description": "El Estatuto de Autonomía para Andalucía. Estructura y disposiciones generales. Competencias y organización de la comunidad Autónoma Andaluza."
       },
-      { "number": 8, "topicId": 16 },
+      {
+        "number": 8,
+        "topicId": 16,
+        "name": "Fuentes del Derecho Público",
+        "description": "Fuentes del Derecho Público: enumeración y principios. La jerarquía de las fuentes. Fuentes escritas: Leyes y Reglamentos."
+      },
       {
         "number": 9,
         "name": "El Régimen Local Español",
@@ -67,7 +87,12 @@
         "name": "Prevención de Riesgos Laborales",
         "description": "La Ley 31/1995, de 8 de noviembre, de Prevención de Riesgos Laborales: Objeto y ámbito de aplicación. Nociones básicas de Seguridad e Higiene en el Trabajo."
       },
-      { "number": 17, "topicId": 15 },
+      {
+        "number": 17,
+        "topicId": 15,
+        "name": "Protección de Datos de Carácter Personal",
+        "description": "La Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos de Carácter Personal y Garantía de los Derechos Digitales. El Reglamento general de protección de datos."
+      },
       {
         "number": 18,
         "name": "Normativa en materia de igualdad",
@@ -84,7 +109,12 @@
     "label": "Bloque B",
     "name": "Materias específicas",
     "topics": [
-      { "number": 20, "topicId": 17 },
+      {
+        "number": 20,
+        "topicId": 17,
+        "name": "El acto administrativo",
+        "description": "El acto administrativo: concepto, clases y elementos. Eficacia y validez de los actos administrativos. Su motivación y notificación: revisión, anulación y revocación. El principio de legalidad en la actuación administrativa."
+      },
       {
         "number": 21,
         "name": "La Ley 39/2015: objeto, principios e interesado",
@@ -150,14 +180,29 @@
         "name": "La Expropiación Forzosa",
         "description": "La Expropiación Forzosa: concepto y elementos. Procedimiento general de expropiación: fases."
       },
-      { "number": 34, "topicId": 19 },
-      { "number": 35, "topicId": 20 },
+      {
+        "number": 34,
+        "topicId": 19,
+        "name": "Los Contratos del Sector Público",
+        "description": "Los Contratos del Sector Público. Clases. Especial regulación en el ámbito local: Competencias en materia de contratación en las Entidades Locales. Normas específicas de contratación pública en las Entidades Locales."
+      },
+      {
+        "number": 35,
+        "topicId": 20,
+        "name": "Formas de la acción administrativa",
+        "description": "Formas de la acción administrativa: Fomento. Policía. Servicio Público. Clasificación. Procedimiento de concesión de licencias: concepto y caracteres. Actividades sometidas a licencia. Procedimiento. Efectos. La responsabilidad de la Administración."
+      },
       {
         "number": 36,
         "name": "El servicio público en la esfera local",
         "description": "El servicio público en la esfera local. Los modos de gestión de los servicios públicos. Consideración especial de la concesión."
       },
-      { "number": 37, "topicId": 21 },
+      {
+        "number": 37,
+        "topicId": 21,
+        "name": "La responsabilidad patrimonial de la Administración Pública",
+        "description": "La responsabilidad patrimonial de la Administración Pública: régimen jurídico actual. La responsabilidad de las autoridades y del personal."
+      },
       {
         "number": 38,
         "name": "La potestad sancionadora",
@@ -168,7 +213,12 @@
         "name": "La Administración Electrónica",
         "description": "La Administración Electrónica. El derecho y el deber de relacionarse con las Administraciones Públicas por medios electrónicos. El registro electrónico. El expediente administrativo electrónico. Actuación administrativa automatizada."
       },
-      { "number": 40, "topicId": 7 },
+      {
+        "number": 40,
+        "topicId": 7,
+        "name": "La transparencia de la actividad pública",
+        "description": "La transparencia de la actividad pública: objeto de la ley y ámbito subjetivo de aplicación. Principios generales de publicidad activa. Límites al derecho de acceso a la información pública. Ejercicio del derecho de acceso a la información pública y régimen de impugnación."
+      },
       {
         "number": 41,
         "name": "Informática básica",

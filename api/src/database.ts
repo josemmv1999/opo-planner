@@ -1,7 +1,11 @@
 import { mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { fuengirolaSeedSql, syllabusSeedSql } from './syllabus/syllabus-seed.ts';
+import {
+  fuengirolaSeedSql,
+  fuengirolaSharedTextsSql,
+  syllabusSeedSql,
+} from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
 export const UPLOADS_DIR = resolve(process.env.UPLOADS_DIR ?? join(dirname(DB_FILE), 'uploads'));
@@ -152,6 +156,9 @@ const MIGRATIONS = [
   )`,
   `INSERT INTO opposition_settings SELECT id, 'age-c1', exam_date, study_schedule FROM users
     WHERE exam_date IS NOT NULL OR study_schedule IS NOT NULL`,
+  `ALTER TABLE opposition_topics ADD COLUMN name TEXT`,
+  `ALTER TABLE opposition_topics ADD COLUMN description TEXT`,
+  fuengirolaSharedTextsSql(),
 ];
 
 const migrate = (database: DatabaseSync): void => {

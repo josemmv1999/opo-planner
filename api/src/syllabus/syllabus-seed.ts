@@ -37,3 +37,15 @@ export const fuengirolaSeedSql = (): string =>
       ];
     })
     .join('\n');
+
+export const fuengirolaSharedTextsSql = (): string =>
+  fuengirolaSyllabus
+    .flatMap(({ topics }) => topics)
+    .flatMap((topic) =>
+      'topicId' in topic
+        ? [
+            `UPDATE opposition_topics SET name = ${quote(topic.name)}, description = ${quote(topic.description)} WHERE opposition_id = '${FUENGIROLA_ID}' AND topic_id = ${topic.topicId};`,
+          ]
+        : [],
+    )
+    .join('\n');

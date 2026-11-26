@@ -50,6 +50,7 @@ test('returns the Fuengirola syllabus reusing the shared AGE topics', async () =
       [46, 3],
     ],
   );
+  assert.equal(blocks[0].topics[0].name, 'La Constitución española de 1978');
 });
 
 test('needs a session', async () => {
