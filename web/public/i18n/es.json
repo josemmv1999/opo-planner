@@ -525,6 +525,13 @@
     "highlightNote": "Tu nota",
     "highlightNotePlaceholder": "Por ejemplo: esto cae siempre en el examen",
     "removeHighlight": "Quitar subrayado",
+    "menu": {
+      "label": "Subrayado",
+      "underline": "Subrayar con línea",
+      "comment": "Comentar",
+      "editComment": "Editar comentario",
+      "copy": "Copiar"
+    },
     "kind": {
       "pdf": "PDF",
       "text": "Texto",

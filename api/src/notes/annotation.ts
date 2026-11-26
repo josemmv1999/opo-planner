@@ -1,8 +1,9 @@
 export const ANNOTATION_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange'];
+const TEXT_KINDS = ['highlight', 'underline'];
 
 export interface AnnotationRow {
   id: number;
-  kind: 'highlight' | 'margin';
+  kind: 'highlight' | 'underline' | 'margin';
   page: number;
   text: string | null;
   rects: string | null;
@@ -13,7 +14,7 @@ export interface AnnotationRow {
 }
 
 export type NewAnnotation = Omit<AnnotationRow, 'id'>;
-export type AnnotationChange = Pick<AnnotationRow, 'color' | 'comment' | 'y' | 'side'>;
+export type AnnotationChange = Pick<AnnotationRow, 'kind' | 'color' | 'comment' | 'y' | 'side'>;
 
 export const toAnnotation = (row: AnnotationRow) => ({
   id: row.id,
@@ -21,7 +22,7 @@ export const toAnnotation = (row: AnnotationRow) => ({
   page: row.page,
   color: row.color,
   comment: row.comment,
-  ...(row.kind === 'highlight'
+  ...(row.kind !== 'margin'
     ? { text: row.text, rects: JSON.parse(row.rects ?? '[]') as unknown[] }
     : { y: row.y, side: row.side }),
 });
@@ -46,7 +47,7 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
     comment = '',
   } = (body ?? {}) as Record<string, unknown>;
   const isHighlight =
-    kind === 'highlight' &&
+    TEXT_KINDS.includes(kind as string) &&
     typeof text === 'string' &&
     Array.isArray(rects) &&
     rects.length > 0 &&
@@ -60,7 +61,7 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
     typeof comment === 'string';
   return isValid
     ? {
-        kind,
+        kind: kind as AnnotationRow['kind'],
         page: page as number,
         text: isHighlight ? text : null,
         rects: isHighlight ? JSON.stringify(rects) : null,
@@ -77,6 +78,7 @@ export const parseAnnotationChange = (
   current: AnnotationRow,
 ): AnnotationChange | null => {
   const {
+    kind = current.kind,
     color = current.color,
     comment = current.comment,
     y = current.y,
@@ -84,10 +86,11 @@ export const parseAnnotationChange = (
   } = (body ?? {}) as Record<string, unknown>;
   const isPlaceValid =
     current.kind === 'margin'
-      ? isPercent(y) && (side === 'left' || side === 'right')
-      : y === null && side === null;
+      ? kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right')
+      : TEXT_KINDS.includes(kind as string) && y === null && side === null;
   return ANNOTATION_COLORS.includes(color as string) && typeof comment === 'string' && isPlaceValid
     ? {
+        kind: kind as AnnotationRow['kind'],
         color: color as string,
         comment,
         y: y as number | null,

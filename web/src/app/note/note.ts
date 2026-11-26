@@ -17,7 +17,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../common/components/icon/icon';
 import { FormatDatePipe } from '../../common/pipes/format-date.pipe';
 import { Modal } from '../../common/components/modal/modal';
-import { ColorPicker } from './color-picker/color-picker';
 import { HighlightForm } from './highlight-form/highlight-form';
 import { MarginNoteForm } from './margin-note-form/margin-note-form';
 import { NoteForm } from './note-form/note-form';
@@ -40,7 +39,6 @@ const DEFAULT_ZOOM_INDEX = 1;
     NoteForm,
     PdfViewer,
     Modal,
-    ColorPicker,
     HighlightForm,
     MarginNoteForm,
     PercentPipe,
@@ -70,22 +68,6 @@ const DEFAULT_ZOOM_INDEX = 1;
 
         @if (note.kind === 'pdf') {
           <span class="note__tools d-flex flex-wrap align-items-center">
-            <app-color-picker
-              [value]="store.highlightColor()"
-              (changed)="store.setHighlightColor($event)" />
-            @if (store.selection()) {
-              <button
-                app-button
-                size="sm"
-                type="button"
-                icon="highlight"
-                [isLoading]="store.isHighlighting()"
-                [disabled]="store.isHighlighting()"
-                (pointerdown)="$event.preventDefault()"
-                (click)="highlight()">
-                {{ 'notes.highlight' | translate }}
-              </button>
-            }
             @if (position(); as position) {
               <span class="note__page">{{ 'notes.page' | translate: position }}</span>
             }
@@ -202,6 +184,9 @@ const DEFAULT_ZOOM_INDEX = 1;
                 (positionChanged)="onPosition($event)"
                 (selected)="store.select($event)"
                 (highlightOpened)="store.openHighlight($event)"
+                (highlighted)="store.highlight($event)"
+                (highlightChanged)="store.saveHighlight($event)"
+                (highlightDeleted)="store.deleteHighlight($event)"
                 [marginNotes]="store.marginNotes()"
                 [marginHint]="'notes.addMarginNote' | translate"
                 [editHint]="'notes.tapToEdit' | translate"
@@ -264,8 +249,8 @@ const DEFAULT_ZOOM_INDEX = 1;
             [highlight]="highlight"
             [isSaving]="store.isSavingHighlight()"
             [isDeleting]="store.isDeletingHighlight()"
-            (saved)="store.saveHighlight($event)"
-            (deleted)="store.deleteHighlight()"
+            (saved)="store.saveHighlight({ id: highlight.id, ...$event })"
+            (deleted)="store.deleteHighlight(highlight.id)"
             (cancelled)="store.closeHighlight()" />
         }
       </ng-template>
@@ -548,11 +533,6 @@ export class Note {
 
   protected closeMenu(event: MouseEvent): void {
     if (!this.menu()?.nativeElement.contains(event.target as Node)) this.isMenuOpen.set(false);
-  }
-
-  protected highlight(): void {
-    this.store.highlight();
-    getSelection()?.removeAllRanges();
   }
 
   protected changeZoom(step: number): void {

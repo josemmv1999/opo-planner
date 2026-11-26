@@ -22,7 +22,7 @@ export const materialAnnotationsRoutes = (database: DatabaseSync): Router => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
-    `UPDATE material_annotations SET color = ?, comment = ?, y = ?, side = ?
+    `UPDATE material_annotations SET kind = ?, color = ?, comment = ?, y = ?, side = ?
       WHERE id = ? AND material_id = ? AND user_id = ? RETURNING *`,
   );
   const findAnnotation = database.prepare(
@@ -67,6 +67,7 @@ export const materialAnnotationsRoutes = (database: DatabaseSync): Router => {
       const change = parseAnnotationChange(req.body, current);
       if (!change) return void res.sendStatus(400);
       const row = updateAnnotation.get(
+        change.kind,
         change.color,
         change.comment,
         change.y,
