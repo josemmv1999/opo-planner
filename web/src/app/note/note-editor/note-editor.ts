@@ -15,8 +15,49 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChainedCommands, Editor } from '@tiptap/core';
 import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
+import { Button } from '../../../common/components/button/button';
 import { Icon } from '../../../common/components/icon/icon';
+import {
+  HIGHLIGHT_COLORS,
+  HighlightColor,
+  HighlightMark,
+  HighlightStyle,
+} from '../../../common/models/syllabus.model';
+import { AnnotationMenu } from '../annotation-menu/annotation-menu';
+
+interface EditorMenu {
+  above: number;
+  below: number;
+  left: number;
+  isSelection: boolean;
+  style: HighlightStyle | null;
+  color: HighlightColor | null;
+  comment: string;
+}
+
+const MARK_NAMES: HighlightStyle[] = ['highlight', 'underline'];
+
+const colorAndComment = () => ({
+  color: {
+    default: 'yellow',
+    parseHTML: (element: HTMLElement) =>
+      HIGHLIGHT_COLORS.find((color) => element.classList.contains(`note-mark--${color}`)) ??
+      'yellow',
+    renderHTML: ({ color }: Record<string, unknown>) => ({
+      class: `note-mark note-mark--${color}`,
+    }),
+  },
+  comment: {
+    default: '',
+    parseHTML: (element: HTMLElement) => element.getAttribute('title') ?? '',
+    renderHTML: ({ comment }: Record<string, unknown>) => (comment ? { title: comment } : {}),
+  },
+});
+
+const NoteHighlight = Highlight.extend({ addAttributes: colorAndComment });
+const NoteUnderline = Underline.extend({ addAttributes: colorAndComment });
 
 interface FormatAction {
   name: string;
@@ -78,8 +119,8 @@ let nextId = 0;
 
 @Component({
   selector: 'app-note-editor',
-  imports: [TranslatePipe, Icon],
-  host: { class: 'note-editor' },
+  imports: [AnnotationMenu, Button, TranslatePipe, Icon],
+  host: { class: 'note-editor', '(focusout)': 'closeMenuOnBlur($event)' },
   encapsulation: ViewEncapsulation.None,
   template: `
     <div
@@ -107,9 +148,52 @@ let nextId = 0;
     </div>
     <span class="visually-hidden" [id]="labelId">{{ label() }}</span>
     <div #area class="note-editor__area"></div>
+    @if (menu(); as shown) {
+      <app-annotation-menu
+        class="note-editor__menu"
+        [class.note-editor__menu--selection]="shown.isSelection"
+        [style.--menu-above.px]="shown.above"
+        [style.--menu-below.px]="shown.below"
+        [style.left.px]="shown.left"
+        [color]="shown.color"
+        [markStyle]="shown.style"
+        [comment]="shown.comment"
+        (marked)="mark($event)"
+        (commented)="openComment()"
+        (copied)="copy()"
+        (deleted)="unmark()" />
+    }
+    @if (commentDraft(); as draft) {
+      <div
+        class="note-editor__comment d-flex flex-column gap-2"
+        [style.top.px]="draft.below"
+        [style.left.px]="draft.left">
+        <textarea
+          #commentText
+          class="form-control"
+          rows="3"
+          [value]="draft.comment"
+          [attr.aria-label]="'notes.highlightNote' | translate"
+          [placeholder]="'notes.highlightNotePlaceholder' | translate"></textarea>
+        <div class="d-flex justify-content-end gap-2">
+          <button
+            app-button
+            variant="outline-primary"
+            size="sm"
+            type="button"
+            (click)="commentDraft.set(null)">
+            {{ 'actions.cancel' | translate }}
+          </button>
+          <button app-button size="sm" type="button" (click)="saveComment(commentText.value)">
+            {{ 'actions.save' | translate }}
+          </button>
+        </div>
+      </div>
+    }
   `,
   styles: `
     .note-editor {
+      position: relative;
       display: block;
       background-color: var(--bs-white);
       border: 2px solid rgba(var(--bs-dark-rgb), 0.14);
@@ -139,6 +223,33 @@ let nextId = 0;
       }
     }
 
+    .note-editor__menu,
+    .note-editor__comment {
+      position: absolute;
+      z-index: 2;
+    }
+
+    .note-editor__menu {
+      top: var(--menu-above);
+      transform: translateY(calc(-100% - 0.5rem));
+    }
+
+    @media (pointer: coarse) {
+      .note-editor__menu--selection {
+        top: var(--menu-below);
+        transform: translateY(0.5rem);
+      }
+    }
+
+    .note-editor__comment {
+      width: min(20rem, 100%);
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background-color: var(--bs-white);
+      border: 2px solid var(--bs-dark);
+      border-radius: 0.75rem;
+    }
+
     .note-editor__content {
       min-height: 18rem;
       padding: 0.875rem 1rem;
@@ -164,6 +275,9 @@ export class NoteEditor implements ControlValueAccessor {
   protected readonly isDisabled = signal(false);
   protected readonly activeLabels = signal(new Set<string>());
   protected readonly labelId = `note-editor-label-${nextId++}`;
+  protected readonly menu = signal<EditorMenu | null>(null);
+  protected readonly commentDraft = signal<EditorMenu | null>(null);
+  readonly #element = inject<ElementRef<HTMLElement>>(ElementRef);
   #editor: Editor | null = null;
   #value = '';
   #onChange?: (value: string) => void;
@@ -196,10 +310,85 @@ export class NoteEditor implements ControlValueAccessor {
     if (this.#editor) apply(this.#editor.chain().focus()).run();
   }
 
+  protected mark({ color, style }: HighlightMark): void {
+    const comment = this.menu()?.comment ?? '';
+    const other = style === 'highlight' ? 'underline' : 'highlight';
+    this.#applyToMark(this.menu()?.style ?? null, (chain) =>
+      chain.unsetMark(other).setMark(style, { color, comment }),
+    );
+  }
+
+  protected unmark(): void {
+    const style = this.menu()?.style;
+    if (style) this.#applyToMark(style, (chain) => chain.unsetMark(style));
+  }
+
+  protected copy(): void {
+    const editor = this.#editor;
+    const style = this.menu()?.style;
+    if (!editor) return;
+    if (editor.state.selection.empty && style) editor.commands.extendMarkRange(style);
+    const { from, to } = editor.state.selection;
+    void navigator.clipboard?.writeText(editor.state.doc.textBetween(from, to, ' '));
+  }
+
+  protected openComment(): void {
+    this.commentDraft.set(this.menu());
+    this.menu.set(null);
+  }
+
+  protected saveComment(comment: string): void {
+    const draft = this.commentDraft();
+    this.commentDraft.set(null);
+    if (draft)
+      this.#applyToMark(draft.style, (chain) =>
+        chain.setMark(draft.style ?? 'highlight', {
+          color: draft.color ?? 'yellow',
+          comment: comment.trim(),
+        }),
+      );
+  }
+
+  protected closeMenuOnBlur({ relatedTarget }: FocusEvent): void {
+    if (!this.#element.nativeElement.contains(relatedTarget as Node | null)) this.menu.set(null);
+  }
+
+  #applyToMark(
+    current: HighlightStyle | null,
+    apply: (chain: ChainedCommands) => ChainedCommands,
+  ): void {
+    if (!this.#editor) return;
+    const chain = this.#editor.chain().focus();
+    apply(current ? chain.extendMarkRange(current) : chain).run();
+  }
+
+  #updateMenu(editor: Editor): void {
+    const { empty, from, to } = editor.state.selection;
+    const style = MARK_NAMES.find((name) => editor.isActive(name)) ?? null;
+    if (!editor.isEditable || !editor.isFocused || (empty && !style)) return this.menu.set(null);
+    const host = this.#element.nativeElement.getBoundingClientRect();
+    const start = editor.view.coordsAtPos(from);
+    const end = editor.view.coordsAtPos(to);
+    const attributes = style ? editor.getAttributes(style) : {};
+    this.menu.set({
+      above: start.top - host.top,
+      below: end.bottom - host.top,
+      left: Math.max(start.left - host.left, 0),
+      isSelection: !empty,
+      style,
+      color: attributes['color'] ?? null,
+      comment: attributes['comment'] ?? '',
+    });
+  }
+
   #createEditor(): Editor {
     return new Editor({
       element: this.area().nativeElement,
-      extensions: [StarterKit.configure({ heading: { levels: [2] } }), Highlight],
+      extensions: [
+        StarterKit.configure({ heading: { levels: [2] }, underline: false }),
+        NoteHighlight,
+        NoteUnderline,
+      ],
       content: this.#value,
       editable: !this.isDisabled(),
       editorProps: {
@@ -212,14 +401,17 @@ export class NoteEditor implements ControlValueAccessor {
       },
       onUpdate: ({ editor }) => this.#onChange?.(editor.getHTML()),
       onBlur: () => this.#onTouched?.(),
-      onTransaction: ({ editor }) =>
+      onTransaction: ({ editor }) => {
         this.activeLabels.set(
           new Set(
             FORMAT_ACTIONS.filter(({ name, attributes }) => editor.isActive(name, attributes)).map(
               ({ labelKey }) => labelKey,
             ),
           ),
-        ),
+        );
+        this.#updateMenu(editor);
+      },
+      onFocus: ({ editor }) => this.#updateMenu(editor),
     });
   }
 }
