@@ -113,3 +113,23 @@ test('rejects invalid annotations and other users', async () => {
   );
   assert.equal((await request(base, { cookie: other })).status, 404);
 });
+
+test('draws ink strokes, recolors them and rejects bad points', async () => {
+  const points = [
+    { x: 10, y: 20 },
+    { x: 12.5, y: 21.25 },
+  ];
+  const ink = await (await post({ kind: 'ink', page: 4, points, color: 'blue' })).json();
+  assert.deepEqual([ink.kind, ink.points, ink.color], ['ink', points, 'blue']);
+  const put = (body: unknown) =>
+    request(`${base}/${ink.id}`, { method: 'PUT', cookie, body: JSON.stringify(body) });
+  assert.equal((await (await put({ color: 'pink' })).json()).color, 'pink');
+  assert.equal((await put({ kind: 'highlight' })).status, 400);
+  const list = await (await request(base, { cookie })).json();
+  assert.deepEqual(list.find(({ id }: { id: number }) => id === ink.id).points, points);
+  assert.equal((await post({ kind: 'ink', page: 4, points: [], color: 'blue' })).status, 400);
+  assert.equal(
+    (await post({ kind: 'ink', page: 4, points: [{ x: 101, y: 5 }], color: 'blue' })).status,
+    400,
+  );
+});
