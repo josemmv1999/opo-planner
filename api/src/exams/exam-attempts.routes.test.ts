@@ -36,3 +36,14 @@ test('rejects an invalid attempt', async () => {
   assert.equal((await save(cookie, { ...attempt, kind: 'other' })).status, 400);
   assert.equal((await save(cookie, { ...attempt, percentage: '80' })).status, 400);
 });
+
+test('keeps a separate history for each opposition', async () => {
+  const cookie = await signUp('two-opos@example.com');
+  const useOppositions = (ids: string[]) =>
+    request('/api/account/oppositions', { method: 'PUT', cookie, body: JSON.stringify({ ids }) });
+  await save(cookie, attempt);
+  await useOppositions(['ayto-fuengirola-c1', 'age-c1']);
+  assert.deepEqual(await (await request('/api/exam-attempts', { cookie })).json(), []);
+  await useOppositions(['age-c1', 'ayto-fuengirola-c1']);
+  assert.equal((await (await request('/api/exam-attempts', { cookie })).json()).length, 1);
+});

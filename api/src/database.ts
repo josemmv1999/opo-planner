@@ -140,6 +140,8 @@ const MIGRATIONS = [
   )`,
   `INSERT INTO opposition_topics SELECT 'age-c1', block_id, id, number FROM topics`,
   fuengirolaSeedSql(),
+  `ALTER TABLE exams ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
+  `ALTER TABLE exam_attempts ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
