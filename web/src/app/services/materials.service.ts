@@ -14,6 +14,10 @@ export class MaterialsService {
     return this.#http.get<TopicMaterial[]>(URL, { params: { topicId } });
   }
 
+  getMaterial(materialId: number): Observable<TopicMaterial> {
+    return this.#http.get<TopicMaterial>(`${URL}/${materialId}`);
+  }
+
   uploadMaterial(topicId: number, file: File): Observable<TopicMaterial> {
     return this.#http.post<TopicMaterial>(`${ADMIN_URL}/file`, file, {
       params: { topicId, name: file.name },
