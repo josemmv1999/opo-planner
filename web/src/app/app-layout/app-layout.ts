@@ -184,6 +184,9 @@ export class AppLayout {
   constructor() {
     this.store.loadLayoutData();
     effect(() => saveIsSidebarCollapsed(this.isSidebarCollapsed()));
+    effect(() => {
+      if (this.store.hasChangedOpposition()) location.reload();
+    });
   }
 
   protected toggleSidebar(): void {
