@@ -1,0 +1,16 @@
+@each $color in yellow, green, blue, pink, orange {
+  mark.note-mark--#{$color} {
+    color: inherit;
+    background-color: color-mix(in srgb, var(--bs-#{$color}) 45%, transparent);
+  }
+
+  u.note-mark--#{$color} {
+    text-decoration-color: var(--bs-#{$color});
+    text-decoration-thickness: 0.1875rem;
+  }
+}
+
+.note-mark[title] {
+  border-bottom: 0.125rem dotted currentColor;
+  cursor: help;
+}
