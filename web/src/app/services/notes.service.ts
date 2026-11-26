@@ -2,7 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import {
-  HighlightChange,
+  HighlightMark,
+  HighlightStyle,
+  HighlightUpdate,
   HighlightColor,
   MarginNote,
   MarginNoteChange,
@@ -40,18 +42,27 @@ const toMarginNote = ({ id, page, y, side, comment, color }: ApiMarginNote): Mar
 
 interface ApiHighlight extends PdfHighlightDraft {
   id: number;
-  kind: 'highlight';
+  kind: HighlightStyle;
   comment: string;
   color: HighlightColor;
 }
 
-const toHighlight = ({ id, page, text, rects, comment, color }: ApiHighlight): PdfHighlight => ({
+const toHighlight = ({
+  id,
+  page,
+  text,
+  rects,
+  comment,
+  color,
+  kind,
+}: ApiHighlight): PdfHighlight => ({
   id,
   page,
   text,
   rects,
   note: comment,
   color,
+  style: kind,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -107,7 +118,7 @@ export class NotesService {
     return this.#http.get<(ApiHighlight | ApiMarginNote)[]>(annotationsUrl).pipe(
       map((annotations) => ({
         highlights: annotations
-          .filter((annotation): annotation is ApiHighlight => annotation.kind === 'highlight')
+          .filter((annotation): annotation is ApiHighlight => annotation.kind !== 'margin')
           .map(toHighlight),
         marginNotes: annotations
           .filter((annotation): annotation is ApiMarginNote => annotation.kind === 'margin')
@@ -150,20 +161,23 @@ export class NotesService {
   addHighlight(
     annotationsUrl: string,
     draft: PdfHighlightDraft,
-    color: HighlightColor,
+    { color, style }: HighlightMark,
   ): Observable<PdfHighlight> {
     return this.#http
-      .post<ApiHighlight>(annotationsUrl, { ...draft, kind: 'highlight', color })
+      .post<ApiHighlight>(annotationsUrl, { ...draft, kind: style, color })
       .pipe(map(toHighlight));
   }
 
   updateHighlight(
     annotationsUrl: string,
-    highlightId: number,
-    { note, color }: HighlightChange,
+    { id, note, color, style }: HighlightUpdate,
   ): Observable<PdfHighlight> {
     return this.#http
-      .put<ApiHighlight>(`${annotationsUrl}/${highlightId}`, { comment: note, color })
+      .put<ApiHighlight>(`${annotationsUrl}/${id}`, {
+        comment: note,
+        color,
+        kind: style,
+      })
       .pipe(map(toHighlight));
   }
 

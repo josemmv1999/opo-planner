@@ -6,8 +6,8 @@ import { concatMap, filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs
 import {
   NoteDetail,
   NoteDraft,
-  HighlightChange,
-  HighlightColor,
+  HighlightMark,
+  HighlightUpdate,
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
@@ -33,7 +33,6 @@ interface NoteState {
   note: NoteDetail | null;
   siblings: TopicNote[];
   highlights: PdfHighlight[];
-  highlightColor: HighlightColor;
   marginNotes: MarginNote[];
   marginDraft: MarginNoteDraft | null;
   openedMarginNoteId: number | null;
@@ -81,7 +80,6 @@ export const NoteStore = signalStore(
     note: null,
     siblings: [],
     highlights: [],
-    highlightColor: 'yellow',
     marginNotes: [],
     marginDraft: null,
     openedMarginNoteId: null,
@@ -179,24 +177,33 @@ export const NoteStore = signalStore(
       select(selection: PdfHighlightDraft | null): void {
         patchState(store, { selection });
       },
-      setHighlightColor(highlightColor: HighlightColor): void {
-        patchState(store, { highlightColor });
-      },
-      highlight: rxMethod<void>(
+      highlight: rxMethod<HighlightMark & { isCommenting?: boolean }>(
         pipe(
-          map(() => ({ url: store.annotationsUrl(), selection: store.selection() })),
+          map(({ isCommenting = false, ...mark }) => ({
+            url: store.annotationsUrl(),
+            selection: store.selection(),
+            mark,
+            isCommenting,
+          })),
           filter(
-            (pending): pending is { url: string; selection: PdfHighlightDraft } =>
-              pending.url !== null && pending.selection !== null,
+            (
+              pending,
+            ): pending is {
+              url: string;
+              selection: PdfHighlightDraft;
+              mark: HighlightMark;
+              isCommenting: boolean;
+            } => pending.url !== null && pending.selection !== null,
           ),
           tap(() => patchState(store, { isHighlighting: true, error: null })),
-          switchMap(({ url, selection }) =>
-            notesService.addHighlight(url, selection, store.highlightColor()).pipe(
+          switchMap(({ url, selection, mark, isCommenting }) =>
+            notesService.addHighlight(url, selection, mark).pipe(
               tapResponse({
                 next: (highlight) =>
                   patchState(store, ({ highlights }) => ({
                     highlights: [...highlights, highlight],
                     selection: null,
+                    openedHighlightId: isCommenting ? highlight.id : null,
                     isHighlighting: false,
                   })),
                 error: () => {
@@ -214,20 +221,15 @@ export const NoteStore = signalStore(
       closeHighlight(): void {
         patchState(store, { openedHighlightId: null });
       },
-      saveHighlight: rxMethod<HighlightChange>(
+      saveHighlight: rxMethod<HighlightUpdate>(
         pipe(
-          map((change) => ({
-            url: store.annotationsUrl(),
-            highlightId: store.openedHighlightId(),
-            change,
-          })),
+          map((update) => ({ url: store.annotationsUrl(), update })),
           filter(
-            (update): update is { url: string; highlightId: number; change: HighlightChange } =>
-              update.url !== null && update.highlightId !== null,
+            (pending): pending is { url: string; update: HighlightUpdate } => pending.url !== null,
           ),
           tap(() => patchState(store, { isSavingHighlight: true, error: null })),
-          switchMap(({ url, highlightId, change }) =>
-            notesService.updateHighlight(url, highlightId, change).pipe(
+          switchMap(({ url, update }) =>
+            notesService.updateHighlight(url, update).pipe(
               tapResponse({
                 next: (updated) =>
                   patchState(store, ({ highlights }) => ({
@@ -246,12 +248,11 @@ export const NoteStore = signalStore(
           ),
         ),
       ),
-      deleteHighlight: rxMethod<void>(
+      deleteHighlight: rxMethod<number>(
         pipe(
-          map(() => ({ url: store.annotationsUrl(), highlightId: store.openedHighlightId() })),
+          map((highlightId) => ({ url: store.annotationsUrl(), highlightId })),
           filter(
-            (removal): removal is { url: string; highlightId: number } =>
-              removal.url !== null && removal.highlightId !== null,
+            (removal): removal is { url: string; highlightId: number } => removal.url !== null,
           ),
           tap(() => patchState(store, { isDeletingHighlight: true, error: null })),
           switchMap(({ url, highlightId }) =>

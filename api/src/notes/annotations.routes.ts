@@ -20,7 +20,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
-    `UPDATE annotations SET color = ?, comment = ?, y = ?, side = ?
+    `UPDATE annotations SET kind = ?, color = ?, comment = ?, y = ?, side = ?
       WHERE id = ? AND note_id = ? RETURNING *`,
   );
   const findAnnotation = database.prepare('SELECT * FROM annotations WHERE id = ? AND note_id = ?');
@@ -60,6 +60,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       const change = parseAnnotationChange(req.body, current);
       if (!change) return void res.sendStatus(400);
       const row = updateAnnotation.get(
+        change.kind,
         change.color,
         change.comment,
         change.y,

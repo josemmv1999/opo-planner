@@ -65,16 +65,24 @@ export const HIGHLIGHT_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange'] as
 
 export type HighlightColor = (typeof HIGHLIGHT_COLORS)[number];
 
-export interface PdfHighlight extends PdfHighlightDraft {
+export type HighlightStyle = 'highlight' | 'underline';
+
+export interface HighlightMark {
+  color: HighlightColor;
+  style: HighlightStyle;
+}
+
+export interface PdfHighlight extends PdfHighlightDraft, HighlightMark {
   id: number;
   note: string;
-  color: HighlightColor;
 }
 
 export interface HighlightChange {
   note: string;
   color: HighlightColor;
 }
+
+export type HighlightUpdate = { id: number } & Partial<HighlightChange & HighlightMark>;
 
 export type MarginSide = 'left' | 'right';
 
