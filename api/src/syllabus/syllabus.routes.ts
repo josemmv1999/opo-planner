@@ -23,7 +23,9 @@ export const syllabusRoutes = (database: DatabaseSync): Router => {
     'SELECT id, label, name FROM syllabus_blocks WHERE opposition_id = ? ORDER BY id',
   );
   const listTopics = database.prepare(
-    `SELECT topics.id, opposition_topics.block_id, opposition_topics.number, topics.name, topics.description
+    `SELECT topics.id, opposition_topics.block_id, opposition_topics.number,
+        COALESCE(opposition_topics.name, topics.name) AS name,
+        COALESCE(opposition_topics.description, topics.description) AS description
       FROM opposition_topics JOIN topics ON topics.id = opposition_topics.topic_id
       WHERE opposition_topics.opposition_id = ?
       ORDER BY opposition_topics.block_id, opposition_topics.number`,
