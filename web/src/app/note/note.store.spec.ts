@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { patchState } from '@ngrx/signals';
+import { unprotected } from '@ngrx/signals/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   NoteDetail,
@@ -7,6 +9,7 @@ import {
   PdfHighlight,
   HighlightMark,
   HighlightUpdate,
+  InkStrokeDraft,
   MarginNoteChange,
   MarginNoteDraft,
   MarginNoteMove,
@@ -42,7 +45,9 @@ describe('NoteStore', () => {
   const saveTextNote = vi.fn((topicId: number, noteId: number | null, draft: NoteDraft) =>
     of<NoteDetail>({ ...NOTE, id: noteId ?? 8, topicId, ...draft }),
   );
-  const getAnnotations = vi.fn(() => of({ highlights: [HIGHLIGHT], marginNotes: [] }));
+  const getAnnotations = vi.fn(() =>
+    of({ highlights: [HIGHLIGHT], marginNotes: [], inkStrokes: [] }),
+  );
   const addHighlight = vi.fn((_: string, draft: PdfHighlightDraft, mark: HighlightMark) =>
     of({ ...draft, ...mark, id: 2, note: '' }),
   );
@@ -67,6 +72,8 @@ describe('NoteStore', () => {
             getLastPage: () => 3,
             setLastPage: vi.fn(),
             getAnnotations,
+            addInkStroke: (_: string, draft: InkStrokeDraft) =>
+              draft.page > 90 ? throwError(() => new Error('failed')) : of({ ...draft, id: 9 }),
             addMarginNote: (_: string, draft: MarginNoteDraft, change: MarginNoteChange) =>
               of({ ...draft, ...change, id: 5 }),
             updateMarginNote: (_: string, id: number, change: MarginNoteChange) =>
@@ -78,7 +85,8 @@ describe('NoteStore', () => {
             addHighlight,
             updateHighlight: (_: string, update: HighlightUpdate) =>
               of({ ...HIGHLIGHT, ...update }),
-            deleteAnnotation: (_: string, id: number) => of(id),
+            deleteAnnotation: (_: string, id: number) =>
+              id === 404 ? throwError(() => new Error('failed')) : of(id),
           },
         },
         {
@@ -171,6 +179,33 @@ describe('NoteStore', () => {
     store.moveMarginNote({ id: 5, y: 99, side: 'left' });
     expect(store.marginNotes()[0]).toMatchObject({ y: 60, side: 'right' });
     expect(store.error()).toBe('highlighting');
+  });
+
+  it('draws an ink stroke, erases it and toggles the pen modes', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.toggleInkMode('draw');
+    expect(store.inkMode()).toBe('draw');
+    const draft: InkStrokeDraft = { page: 2, points: [{ x: 1, y: 2 }], color: 'blue' };
+    store.addInkStroke(draft);
+    expect(store.inkStrokes()).toEqual([{ ...draft, id: 9 }]);
+    store.toggleInkMode('erase');
+    expect(store.inkMode()).toBe('erase');
+    store.deleteInkStroke(9);
+    expect(store.inkStrokes()).toEqual([]);
+    store.toggleInkMode('erase');
+    expect(store.inkMode()).toBe('off');
+  });
+
+  it('drops a stroke that fails to save and restores one that fails to erase', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.addInkStroke({ page: 99, points: [{ x: 1, y: 2 }], color: 'blue' });
+    expect(store.inkStrokes()).toEqual([]);
+    expect(store.error()).toBe('highlighting');
+
+    const stroke = { id: 404, page: 1, points: [{ x: 3, y: 4 }], color: 'pink' as const };
+    patchState(unprotected(store), { inkStrokes: [stroke] });
+    store.deleteInkStroke(404);
+    expect(store.inkStrokes()).toEqual([stroke]);
   });
 
   it('removes the opened highlight', () => {

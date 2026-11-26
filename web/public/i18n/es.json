@@ -549,7 +549,8 @@
     "errors": {
       "saving": "No hemos podido guardar el apunte. Inténtalo de nuevo.",
       "deleting": "No hemos podido borrar el apunte. Inténtalo de nuevo.",
-      "highlighting": "No hemos podido guardar el subrayado. Inténtalo de nuevo."
+      "highlighting": "No hemos podido guardar el subrayado. Inténtalo de nuevo.",
+      "drawing": "No hemos podido guardar el trazo. Inténtalo de nuevo."
     },
     "editor": {
       "toolbar": "Formato",
@@ -568,6 +569,8 @@
     "openTab": "Abrir en otra pestaña",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
+    "draw": "Dibujar con el lápiz",
+    "erase": "Borrar trazos",
     "page": "Página {{page}} de {{total}}",
     "previous": "Apunte anterior: {{title}}",
     "next": "Apunte siguiente: {{title}}",

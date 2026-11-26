@@ -19,6 +19,10 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import {
   HighlightMark,
   HighlightUpdate,
+  HighlightColor,
+  InkMode,
+  InkStroke,
+  InkStrokeDraft,
   MarginNote,
   MarginNoteDraft,
   MarginNoteMove,
@@ -27,6 +31,7 @@ import {
   PdfHighlightDraft,
 } from '../../../common/models/syllabus.model';
 import { AnnotationMenu } from '../annotation-menu/annotation-menu';
+import { PdfInk } from '../pdf-ink/pdf-ink';
 import { MarginNoteGrab, PdfMargin } from '../pdf-margin/pdf-margin';
 
 export interface PdfPosition {
@@ -67,6 +72,7 @@ interface PdfMenu {
 }
 
 const MENU_MIN_TOP = 8;
+const NO_STROKES: InkStroke[] = [];
 
 const loadPdfjs = () => import('pdfjs-dist');
 
@@ -80,7 +86,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
 @Component({
   selector: 'app-pdf-viewer',
-  imports: [AnnotationMenu, PdfMargin],
+  imports: [AnnotationMenu, PdfInk, PdfMargin],
   host: {
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
@@ -125,6 +131,12 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
               }
             </div>
             <div #textLayer class="textLayer"></div>
+            <app-pdf-ink
+              [strokes]="inkStrokesOf(pageIndex + 1)"
+              [mode]="inkMode()"
+              [color]="inkColor()"
+              (drawn)="inkDrawn.emit({ page: pageIndex + 1, points: $event, color: inkColor() })"
+              (erased)="inkErased.emit($event)" />
             @if (menu()?.page === pageIndex + 1) {
               @let shown = menu()!;
               <app-annotation-menu
@@ -327,6 +339,11 @@ export class PdfViewer {
   readonly marginNoteOpened = output<number>();
   readonly marginNoteMoved = output<MarginNoteMove>();
   readonly editHint = input('');
+  readonly inkStrokes = input<InkStroke[]>([]);
+  readonly inkMode = input<InkMode>('off');
+  readonly inkColor = input<HighlightColor>('blue');
+  readonly inkDrawn = output<InkStrokeDraft>();
+  readonly inkErased = output<number>();
 
   protected readonly layout = signal<PdfLayout | null>(null);
   readonly #draggedNote = signal<MarginNoteMove | null>(null);
@@ -380,6 +397,12 @@ export class PdfViewer {
       (pages, highlight) =>
         pages.set(highlight.page, [...(pages.get(highlight.page) ?? []), highlight]),
       new Map<number, PdfHighlight[]>(),
+    ),
+  );
+  readonly #inkByPage = computed(() =>
+    this.inkStrokes().reduce(
+      (pages, stroke) => pages.set(stroke.page, [...(pages.get(stroke.page) ?? []), stroke]),
+      new Map<number, InkStroke[]>(),
     ),
   );
   readonly #marginNotesByKey = computed(() => {
@@ -484,6 +507,10 @@ export class PdfViewer {
       container: textLayer,
       viewport: page.getViewport({ scale }),
     }).render();
+  }
+
+  protected inkStrokesOf(page: number): InkStroke[] {
+    return this.#inkByPage().get(page) ?? NO_STROKES;
   }
 
   protected marginNotesOf(page: number, side: MarginSide): MarginNote[] {
@@ -618,7 +645,7 @@ export class PdfViewer {
   }
 
   protected openHighlightAt({ target, clientX, clientY }: MouseEvent): void {
-    if (!getSelection()?.isCollapsed) return;
+    if (this.inkMode() !== 'off' || !getSelection()?.isCollapsed) return;
     const pageIndex = this.pages().findIndex(({ nativeElement }) =>
       nativeElement.contains(target as Node),
     );

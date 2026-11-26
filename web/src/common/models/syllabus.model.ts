@@ -107,9 +107,27 @@ export interface MarginNoteMove {
   side: MarginSide;
 }
 
+export interface InkPoint {
+  x: number;
+  y: number;
+}
+
+export interface InkStrokeDraft {
+  page: number;
+  points: InkPoint[];
+  color: HighlightColor;
+}
+
+export interface InkStroke extends InkStrokeDraft {
+  id: number;
+}
+
+export type InkMode = 'off' | 'draw' | 'erase';
+
 export interface NoteAnnotations {
   highlights: PdfHighlight[];
   marginNotes: MarginNote[];
+  inkStrokes: InkStroke[];
 }
 
 export interface NoteDraft {
