@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
+import { syllabusOppositionOf } from '../syllabus/syllabus-opposition.ts';
 import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
 
 export const DEFAULT_SCHEDULE = {
@@ -51,13 +52,17 @@ const isSchedule = (value: unknown): boolean => {
 };
 
 export const plannerRoutes = (database: DatabaseSync): Router => {
-  const findSettings = database.prepare('SELECT exam_date, study_schedule FROM users WHERE id = ?');
+  const oppositionOf = syllabusOppositionOf(database);
+  const findSettings = database.prepare(
+    'SELECT exam_date, study_schedule FROM opposition_settings WHERE user_id = ? AND opposition_id = ?',
+  );
   const listEntries = database.prepare(
-    'SELECT * FROM planner_entries WHERE user_id = ? AND start >= ? AND start < ? ORDER BY start',
+    `SELECT * FROM planner_entries WHERE user_id = ? AND opposition_id = ? AND start >= ? AND start < ?
+      ORDER BY start`,
   );
   const insertEntry = database.prepare(
-    `INSERT INTO planner_entries (user_id, text, start, end, is_record)
-      VALUES (?, ?, ?, ?, ?) RETURNING *`,
+    `INSERT INTO planner_entries (user_id, opposition_id, text, start, end, is_record)
+      VALUES (?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateEntry = database.prepare(
     `UPDATE planner_entries SET text = ?, start = ?, end = ?
@@ -67,8 +72,14 @@ export const plannerRoutes = (database: DatabaseSync): Router => {
     'UPDATE planner_entries SET is_done = ? WHERE id = ? AND user_id = ? RETURNING *',
   );
   const deleteEntry = database.prepare('DELETE FROM planner_entries WHERE id = ? AND user_id = ?');
-  const updateExamDate = database.prepare('UPDATE users SET exam_date = ? WHERE id = ?');
-  const updateSchedule = database.prepare('UPDATE users SET study_schedule = ? WHERE id = ?');
+  const updateExamDate = database.prepare(
+    `INSERT INTO opposition_settings (user_id, opposition_id, exam_date) VALUES (?, ?, ?)
+      ON CONFLICT (user_id, opposition_id) DO UPDATE SET exam_date = excluded.exam_date`,
+  );
+  const updateSchedule = database.prepare(
+    `INSERT INTO opposition_settings (user_id, opposition_id, study_schedule) VALUES (?, ?, ?)
+      ON CONFLICT (user_id, opposition_id) DO UPDATE SET study_schedule = excluded.study_schedule`,
+  );
 
   return Router()
     .use(requireUser(database))
@@ -76,14 +87,13 @@ export const plannerRoutes = (database: DatabaseSync): Router => {
       const { from, to } = req.query;
       if (!isInstant(from) || !isInstant(to)) return void res.sendStatus(400);
       const userId = res.locals.user.id;
-      const settings = findSettings.get(userId) as {
-        exam_date: string | null;
-        study_schedule: string | null;
-      };
-      const rows = listEntries.all(userId, from, to) as unknown as EntryRow[];
+      const oppositionId = oppositionOf(userId);
+      const settings = findSettings.get(userId, oppositionId) as
+        { exam_date: string | null; study_schedule: string | null } | undefined;
+      const rows = listEntries.all(userId, oppositionId, from, to) as unknown as EntryRow[];
       res.json({
-        examDate: settings.exam_date,
-        schedule: settings.study_schedule ? JSON.parse(settings.study_schedule) : DEFAULT_SCHEDULE,
+        examDate: settings?.exam_date ?? null,
+        schedule: settings?.study_schedule ? JSON.parse(settings.study_schedule) : DEFAULT_SCHEDULE,
         otherSchedules: [],
         entries: rows.map(toEntry),
         otherEntries: [],
@@ -94,6 +104,7 @@ export const plannerRoutes = (database: DatabaseSync): Router => {
       const { text, start, end } = req.body;
       const row = insertEntry.get(
         res.locals.user.id,
+        oppositionOf(res.locals.user.id),
         text.trim(),
         start,
         end,
@@ -129,14 +140,18 @@ export const plannerRoutes = (database: DatabaseSync): Router => {
     .put('/exam-date', (req, res: AuthenticatedResponse) => {
       const { date } = req.body ?? {};
       if (typeof date !== 'string' || !DATE.test(date)) return void res.sendStatus(400);
-      updateExamDate.run(date, res.locals.user.id);
+      updateExamDate.run(res.locals.user.id, oppositionOf(res.locals.user.id), date);
       res.json({ date });
     })
     .put('/schedule', (req, res: AuthenticatedResponse) => {
       if (!isSchedule(req.body)) return void res.sendStatus(400);
       const { days, slots } = req.body;
       const schedule = { days, slots };
-      updateSchedule.run(JSON.stringify(schedule), res.locals.user.id);
+      updateSchedule.run(
+        res.locals.user.id,
+        oppositionOf(res.locals.user.id),
+        JSON.stringify(schedule),
+      );
       res.json(schedule);
     });
 };

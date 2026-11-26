@@ -93,6 +93,31 @@ test('saves the exam date and the study schedule', async () => {
   assert.equal((await (await request('/api/home', { cookie })).json()).examDate, '2027-06-12');
 });
 
+test('keeps tasks, exam date and schedule apart for each opposition', async () => {
+  const opos = await signUp('opos@example.com');
+  const useOppositions = (ids: string[]) =>
+    request('/api/account/oppositions', {
+      method: 'PUT',
+      cookie: opos,
+      body: JSON.stringify({ ids }),
+    });
+  await send('/exam-date', 'PUT', { date: '2027-06-12' }, opos);
+  await send(
+    '/entries',
+    'POST',
+    { text: 'Tema 1', start: '2026-11-24T09:00:00.000Z', end: '2026-11-24T10:00:00.000Z' },
+    opos,
+  );
+  await useOppositions(['ayto-fuengirola-c1', 'age-c1']);
+  const fuengirola = await week(opos);
+  assert.equal(fuengirola.examDate, null);
+  assert.deepEqual(fuengirola.entries, []);
+  await useOppositions(['age-c1', 'ayto-fuengirola-c1']);
+  const age = await week(opos);
+  assert.equal(age.examDate, '2027-06-12');
+  assert.equal(age.entries.length, 1);
+});
+
 test('needs a session', async () => {
   assert.equal((await request('/api/planner?from=a&to=b')).status, 401);
 });
