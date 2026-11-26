@@ -1,0 +1,179 @@
+[
+  {
+    "label": "Bloque A",
+    "name": "Materias comunes",
+    "topics": [
+      { "number": 1, "topicId": 1 },
+      { "number": 2, "topicId": 2 },
+      {
+        "number": 3,
+        "name": "El poder legislativo y el Gobierno",
+        "description": "El poder legislativo: las Cortes Generales. Composición, atribuciones y funcionamiento. El Gobierno. Designación, duración y responsabilidad del Gobierno."
+      },
+      {
+        "number": 4,
+        "name": "El Poder Judicial y el Tribunal Constitucional",
+        "description": "El Poder Judicial: principios informadores y organización. El Consejo General del Poder Judicial. El Tribunal Constitucional: Designación, composición, organización y competencias."
+      },
+      {
+        "number": 5,
+        "name": "La Administración Pública en el ordenamiento jurídico español",
+        "description": "La Administración Pública en el ordenamiento jurídico español. Tipología de los Entes Públicos: La Administración del Estado, autonómica, local e institucional."
+      },
+      { "number": 6, "topicId": 9 },
+      {
+        "number": 7,
+        "name": "El Estatuto de Autonomía para Andalucía",
+        "description": "El Estatuto de Autonomía para Andalucía. Estructura y disposiciones generales. Competencias y organización de la comunidad Autónoma Andaluza."
+      },
+      { "number": 8, "topicId": 16 },
+      {
+        "number": 9,
+        "name": "El Régimen Local Español",
+        "description": "El Régimen Local Español. Evolución del Régimen Local. Principios constitucionales y regulación jurídica."
+      },
+      {
+        "number": 10,
+        "name": "El Municipio",
+        "description": "El Municipio: evolución, concepto, elementos esenciales, denominación y cambio de nombre de los municipios. El Término municipal: concepto, caracteres, alteración del término municipal. La población: concepto. El empadronamiento: regulación, concepto."
+      },
+      {
+        "number": 11,
+        "name": "Organización municipal",
+        "description": "Organización municipal: concepto. Clases de órganos. Órganos de régimen común. Competencias: concepto y clases. Título X de la Ley 7/1985, de 2 de abril, reguladora de las Bases del Régimen Local."
+      },
+      {
+        "number": 12,
+        "name": "La Provincia en el Régimen Local",
+        "description": "La Provincia en el Régimen Local: concepto, elementos, organización y competencias."
+      },
+      {
+        "number": 13,
+        "name": "Haciendas locales",
+        "description": "Haciendas locales. Clasificación de los recursos. Conceptos generales. Potestad tributaria de los Entes locales. Fases de la potestad tributaria. Fiscalidad de las Haciendas locales. Clasificación de los ingresos. Ordenanzas Fiscales. Tramitación de las Ordenanzas y acuerdos. Contenido. Entrada en vigor."
+      },
+      {
+        "number": 14,
+        "name": "La Unión Europea",
+        "description": "La Unión Europea. Los tratados originarios y modificaciones: especial referencia al Tratado de la Unión Europea. Objetivos y naturaleza jurídica de las Comunidades. La unión política. El proceso de integración de España en la Comunidad Económica Europea."
+      },
+      {
+        "number": 15,
+        "name": "La jurisdicción contencioso-administrativa",
+        "description": "La jurisdicción contencioso-administrativa: idea general del proceso."
+      },
+      {
+        "number": 16,
+        "name": "Prevención de Riesgos Laborales",
+        "description": "La Ley 31/1995, de 8 de noviembre, de Prevención de Riesgos Laborales: Objeto y ámbito de aplicación. Nociones básicas de Seguridad e Higiene en el Trabajo."
+      },
+      { "number": 17, "topicId": 15 },
+      {
+        "number": 18,
+        "name": "Normativa en materia de igualdad",
+        "description": "Normativa estatal, autonómica y local en materia de igualdad: La obligación administrativa de empleo de un lenguaje inclusivo. Definición de acoso sexual y acoso por razón de sexo. Presupuestos con enfoque de género."
+      },
+      {
+        "number": 19,
+        "name": "Normativa en materia de violencia de género",
+        "description": "Normativa estatal y autonómica en materia de violencia de género: La ampliación del concepto de víctima en la normativa andaluza y derechos de las víctimas de violencia de género."
+      }
+    ]
+  },
+  {
+    "label": "Bloque B",
+    "name": "Materias específicas",
+    "topics": [
+      { "number": 20, "topicId": 17 },
+      {
+        "number": 21,
+        "name": "La Ley 39/2015: objeto, principios e interesado",
+        "description": "La Ley 39/2015, del Procedimiento Administrativo Común de las Administraciones Públicas: Objeto, ámbito subjetivo de aplicación y principios. Concepto de interesado. Fases del procedimiento común: principios y normas reguladoras. Días y horas hábiles. Cómputo de plazos."
+      },
+      {
+        "number": 22,
+        "name": "El Procedimiento Administrativo (I): registros y plazos",
+        "description": "El Procedimiento Administrativo (I): Los registros administrativos. Requisitos de la presentación de documentos. Término y plazos: cómputo, ampliación y tramitación de urgencia."
+      },
+      {
+        "number": 23,
+        "name": "El Procedimiento Administrativo (II): iniciación y desarrollo",
+        "description": "El Procedimiento Administrativo (II). Iniciación. Desarrollo: A) Ordenación. B) Instrucción: intervención de los interesados, prueba e informes."
+      },
+      {
+        "number": 24,
+        "name": "El Procedimiento Administrativo (III): terminación",
+        "description": "El Procedimiento Administrativo (III). Terminación del procedimiento: Obligación de resolver. Contenido de la resolución expresa. Ampliación del plazo máximo para resolver. El silencio administrativo. El desistimiento y la renuncia. La caducidad."
+      },
+      {
+        "number": 25,
+        "name": "Recursos administrativos",
+        "description": "Recursos administrativos: concepto, clases, interposición, objeto, fin de la vía administrativa, suspensión de la ejecución, audiencia al interesado, resolución. Recurso de alzada, recurso potestativo de reposición y recurso extraordinario de revisión: objeto, interposición y plazos."
+      },
+      {
+        "number": 26,
+        "name": "La relación jurídica administrativa",
+        "description": "La relación jurídica administrativa. Las personas jurídicas públicas: clases y capacidad. El administrado: concepto y clases. La capacidad de los administrados y sus causas modificativas. Las situaciones jurídicas del administrado: derechos subjetivos e intereses legítimos."
+      },
+      {
+        "number": 27,
+        "name": "Ordenanzas y reglamentos de las entidades locales",
+        "description": "Ordenanzas y reglamentos de las entidades locales. Procedimiento de elaboración y aprobación."
+      },
+      {
+        "number": 28,
+        "name": "Funcionamiento de los órganos colegiados locales",
+        "description": "Funcionamiento de los órganos colegiados locales. Convocatoria y orden del día. Requisitos de constitución. Votaciones. Actas y certificados de acuerdos."
+      },
+      {
+        "number": 29,
+        "name": "Registro, notificaciones y archivo",
+        "description": "El registro de entrada y salida de documentos. La presentación de instancias y documentos en las oficinas públicas. La informatización de los registros. Comunicaciones y notificaciones. El Archivo. Clases de archivos. Principales criterios de ordenación. El derecho de los ciudadanos al acceso a archivos y registros."
+      },
+      {
+        "number": 30,
+        "name": "Los Presupuestos locales",
+        "description": "Los Presupuestos locales: concepto. Principio de estabilidad presupuestaria. Contenido del presupuesto general. Anexos del presupuesto general. Estructura presupuestaria. Formación y aprobación. Entrada en vigor. Ejercicio presupuestario. Liquidación. Modificaciones presupuestarias."
+      },
+      {
+        "number": 31,
+        "name": "La Función pública local",
+        "description": "La Función pública local y su organización: ideas generales. Concepto de funcionario. Clases. El personal laboral al servicio de las Entidades locales. Régimen jurídico. Personal eventual. Derechos y deberes de los Funcionarios públicos locales. Régimen disciplinario. Derecho de sindicación. La Función Pública en Andalucía."
+      },
+      {
+        "number": 32,
+        "name": "Los Bienes de las Entidades locales",
+        "description": "Los Bienes de las Entidades locales: concepto, clases. Bienes de dominio público local. Bienes patrimoniales locales, enajenación, cesión y utilización."
+      },
+      {
+        "number": 33,
+        "name": "La Expropiación Forzosa",
+        "description": "La Expropiación Forzosa: concepto y elementos. Procedimiento general de expropiación: fases."
+      },
+      { "number": 34, "topicId": 19 },
+      { "number": 35, "topicId": 20 },
+      {
+        "number": 36,
+        "name": "El servicio público en la esfera local",
+        "description": "El servicio público en la esfera local. Los modos de gestión de los servicios públicos. Consideración especial de la concesión."
+      },
+      { "number": 37, "topicId": 21 },
+      {
+        "number": 38,
+        "name": "La potestad sancionadora",
+        "description": "La potestad sancionadora: Principios de la potestad sancionadora y del procedimiento sancionador. El procedimiento sancionador."
+      },
+      {
+        "number": 39,
+        "name": "La Administración Electrónica",
+        "description": "La Administración Electrónica. El derecho y el deber de relacionarse con las Administraciones Públicas por medios electrónicos. El registro electrónico. El expediente administrativo electrónico. Actuación administrativa automatizada."
+      },
+      { "number": 40, "topicId": 7 },
+      {
+        "number": 41,
+        "name": "Informática básica",
+        "description": "Informática básica: conceptos fundamentales sobre hardware y software. Sistemas operativos (especial referencia a Windows). Sistemas ofimáticos. Procesadores de texto y hojas de cálculo (especial referencia a Microsoft Word y Excel). Internet, Portal interno y correo electrónico."
+      }
+    ]
+  }
+]

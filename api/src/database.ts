@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { syllabusSeedSql } from './syllabus/syllabus-seed.ts';
+import { fuengirolaSeedSql, syllabusSeedSql } from './syllabus/syllabus-seed.ts';
 
 export const DB_FILE = process.env.DB_FILE ?? 'data/opo-planner.db';
 export const UPLOADS_DIR = resolve(process.env.UPLOADS_DIR ?? join(dirname(DB_FILE), 'uploads'));
@@ -130,6 +130,16 @@ const MIGRATIONS = [
   `ALTER TABLE users ADD COLUMN study_schedule TEXT`,
   `ALTER TABLE users ADD COLUMN opposition_ids TEXT`,
   `ALTER TABLE users ADD COLUMN active_opposition_id TEXT`,
+  `ALTER TABLE syllabus_blocks ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
+  `CREATE TABLE opposition_topics (
+    opposition_id TEXT NOT NULL,
+    block_id INTEGER NOT NULL REFERENCES syllabus_blocks (id),
+    topic_id INTEGER NOT NULL REFERENCES topics (id),
+    number INTEGER NOT NULL,
+    PRIMARY KEY (opposition_id, topic_id)
+  )`,
+  `INSERT INTO opposition_topics SELECT 'age-c1', block_id, id, number FROM topics`,
+  fuengirolaSeedSql(),
 ];
 
 const migrate = (database: DatabaseSync): void => {

@@ -27,6 +27,31 @@ test('returns the syllabus blocks with their topics in order', async () => {
   );
 });
 
+test('returns the Fuengirola syllabus reusing the shared AGE topics', async () => {
+  const cookie = await signUp('fuengirola@example.com');
+  await request('/api/account/oppositions', {
+    method: 'PUT',
+    cookie,
+    body: JSON.stringify({ ids: ['ayto-fuengirola-c1'] }),
+  });
+  const blocks = await (await request('/api/syllabus', { cookie })).json();
+  assert.deepEqual(
+    blocks.map(({ label, topics }: { label: string; topics: unknown[] }) => [label, topics.length]),
+    [
+      ['Bloque A', 19],
+      ['Bloque B', 22],
+    ],
+  );
+  assert.deepEqual(
+    blocks[0].topics.slice(0, 3).map(({ id, number }: { id: number; number: number }) => [id, number]),
+    [
+      [1, 1],
+      [2, 2],
+      [46, 3],
+    ],
+  );
+});
+
 test('needs a session', async () => {
   assert.equal((await request('/api/syllabus')).status, 401);
 });

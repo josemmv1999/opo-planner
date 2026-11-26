@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { Router } from 'express';
-import { requireUser } from '../auth/require-user.ts';
+import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
+import { syllabusOppositionOf } from './syllabus-opposition.ts';
 
 interface BlockRow {
   id: number;
@@ -17,21 +18,32 @@ interface TopicRow {
 }
 
 export const syllabusRoutes = (database: DatabaseSync): Router => {
-  const listBlocks = database.prepare('SELECT * FROM syllabus_blocks ORDER BY id');
-  const listTopics = database.prepare('SELECT * FROM topics ORDER BY block_id, number');
+  const oppositionOf = syllabusOppositionOf(database);
+  const listBlocks = database.prepare(
+    'SELECT id, label, name FROM syllabus_blocks WHERE opposition_id = ? ORDER BY id',
+  );
+  const listTopics = database.prepare(
+    `SELECT topics.id, opposition_topics.block_id, opposition_topics.number, topics.name, topics.description
+      FROM opposition_topics JOIN topics ON topics.id = opposition_topics.topic_id
+      WHERE opposition_topics.opposition_id = ?
+      ORDER BY opposition_topics.block_id, opposition_topics.number`,
+  );
 
   return Router()
     .use(requireUser(database))
-    .get('/', (_req, res) => {
-      const topics = listTopics.all() as unknown as TopicRow[];
-      const blocks = (listBlocks.all() as unknown as BlockRow[]).map(({ id, label, name }) => ({
-        id,
-        label,
-        name,
-        topics: topics
-          .filter(({ block_id }) => block_id === id)
-          .map(({ id, number, name, description }) => ({ id, number, name, description })),
-      }));
+    .get('/', (_req, res: AuthenticatedResponse) => {
+      const oppositionId = oppositionOf(res.locals.user.id);
+      const topics = listTopics.all(oppositionId) as unknown as TopicRow[];
+      const blocks = (listBlocks.all(oppositionId) as unknown as BlockRow[]).map(
+        ({ id, label, name }) => ({
+          id,
+          label,
+          name,
+          topics: topics
+            .filter(({ block_id }) => block_id === id)
+            .map(({ id, number, name, description }) => ({ id, number, name, description })),
+        }),
+      );
       res.json(blocks);
     });
 };

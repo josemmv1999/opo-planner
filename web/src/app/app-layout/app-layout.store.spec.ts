@@ -31,7 +31,9 @@ describe('AppLayoutStore', () => {
         {
           provide: OppositionService,
           useValue: {
-            getActiveOpposition: () => of({ id: 'age-c2', abbreviation: 'C2', name: 'AGE' }),
+            getActiveOpposition: () => of({ id: 'age-c1', abbreviation: 'C1', name: 'AGE' }),
+            setActiveOpposition: (id: string) =>
+              of({ id, abbreviation: 'C1', name: 'Fuengirola' }),
           },
         },
         { provide: NotificationService, useValue: { success } },
@@ -53,5 +55,11 @@ describe('AppLayoutStore', () => {
     store.updateUser(PROFILE);
     expect(store.currentUser()).toEqual(USER);
     expect(store.error()).toBe('saving');
+  });
+
+  it('flags the opposition change so the app reloads its syllabus', () => {
+    store.changeOpposition('ayto-fuengirola-c1');
+    expect(store.activeOpposition()?.id).toBe('ayto-fuengirola-c1');
+    expect(store.hasChangedOpposition()).toBe(true);
   });
 });

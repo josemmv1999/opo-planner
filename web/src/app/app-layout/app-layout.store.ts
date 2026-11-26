@@ -15,6 +15,7 @@ interface AppLayoutState {
   userOppositions: Opposition[];
   isOppositionModalOpen: boolean;
   isChangingOpposition: boolean;
+  hasChangedOpposition: boolean;
   isLoadingLayoutData: boolean;
   isSavingUser: boolean;
   error: 'loading' | 'saving' | null;
@@ -27,6 +28,7 @@ export const AppLayoutStore = signalStore(
     userOppositions: [],
     isOppositionModalOpen: false,
     isChangingOpposition: false,
+    hasChangedOpposition: false,
     isLoadingLayoutData: false,
     isSavingUser: false,
     error: null,
@@ -82,6 +84,7 @@ export const AppLayoutStore = signalStore(
                     activeOpposition,
                     isChangingOpposition: false,
                     isOppositionModalOpen: false,
+                    hasChangedOpposition: true,
                   }),
                 error: () => {
                   patchState(store, { isChangingOpposition: false });
