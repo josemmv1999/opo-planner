@@ -6,8 +6,8 @@ import { concatMap, filter, forkJoin, map, of, pipe, switchMap, tap } from 'rxjs
 import {
   NoteDetail,
   NoteDraft,
-  HighlightChange,
-  HighlightColor,
+  HighlightMark,
+  HighlightUpdate,
   MarginNote,
   MarginNoteChange,
   MarginNoteDraft,
@@ -29,7 +29,6 @@ interface NoteState {
   note: NoteDetail | null;
   siblings: TopicNote[];
   highlights: PdfHighlight[];
-  highlightColor: HighlightColor;
   marginNotes: MarginNote[];
   marginDraft: MarginNoteDraft | null;
   openedMarginNoteId: number | null;
@@ -63,7 +62,6 @@ export const NoteStore = signalStore(
     note: null,
     siblings: [],
     highlights: [],
-    highlightColor: 'yellow',
     marginNotes: [],
     marginDraft: null,
     openedMarginNoteId: null,
@@ -133,24 +131,33 @@ export const NoteStore = signalStore(
       select(selection: PdfHighlightDraft | null): void {
         patchState(store, { selection });
       },
-      setHighlightColor(highlightColor: HighlightColor): void {
-        patchState(store, { highlightColor });
-      },
-      highlight: rxMethod<void>(
+      highlight: rxMethod<HighlightMark & { isCommenting?: boolean }>(
         pipe(
-          map(() => ({ noteId: store.note()?.id, selection: store.selection() })),
+          map(({ isCommenting = false, ...mark }) => ({
+            noteId: store.note()?.id,
+            selection: store.selection(),
+            mark,
+            isCommenting,
+          })),
           filter(
-            (pending): pending is { noteId: number; selection: PdfHighlightDraft } =>
-              pending.noteId !== undefined && pending.selection !== null,
+            (
+              pending,
+            ): pending is {
+              noteId: number;
+              selection: PdfHighlightDraft;
+              mark: HighlightMark;
+              isCommenting: boolean;
+            } => pending.noteId !== undefined && pending.selection !== null,
           ),
           tap(() => patchState(store, { isHighlighting: true, error: null })),
-          switchMap(({ noteId, selection }) =>
-            notesService.addHighlight(noteId, selection, store.highlightColor()).pipe(
+          switchMap(({ noteId, selection, mark, isCommenting }) =>
+            notesService.addHighlight(noteId, selection, mark).pipe(
               tapResponse({
                 next: (highlight) =>
                   patchState(store, ({ highlights }) => ({
                     highlights: [...highlights, highlight],
                     selection: null,
+                    openedHighlightId: isCommenting ? highlight.id : null,
                     isHighlighting: false,
                   })),
                 error: () => {
@@ -168,20 +175,16 @@ export const NoteStore = signalStore(
       closeHighlight(): void {
         patchState(store, { openedHighlightId: null });
       },
-      saveHighlight: rxMethod<HighlightChange>(
+      saveHighlight: rxMethod<HighlightUpdate>(
         pipe(
-          map((change) => ({
-            noteId: store.note()?.id,
-            highlightId: store.openedHighlightId(),
-            change,
-          })),
+          map((update) => ({ noteId: store.note()?.id, update })),
           filter(
-            (update): update is { noteId: number; highlightId: number; change: HighlightChange } =>
-              update.noteId !== undefined && update.highlightId !== null,
+            (pending): pending is { noteId: number; update: HighlightUpdate } =>
+              pending.noteId !== undefined,
           ),
           tap(() => patchState(store, { isSavingHighlight: true, error: null })),
-          switchMap(({ noteId, highlightId, change }) =>
-            notesService.updateHighlight(noteId, highlightId, change).pipe(
+          switchMap(({ noteId, update }) =>
+            notesService.updateHighlight(noteId, update).pipe(
               tapResponse({
                 next: (updated) =>
                   patchState(store, ({ highlights }) => ({
@@ -200,12 +203,12 @@ export const NoteStore = signalStore(
           ),
         ),
       ),
-      deleteHighlight: rxMethod<void>(
+      deleteHighlight: rxMethod<number>(
         pipe(
-          map(() => ({ noteId: store.note()?.id, highlightId: store.openedHighlightId() })),
+          map((highlightId) => ({ noteId: store.note()?.id, highlightId })),
           filter(
             (removal): removal is { noteId: number; highlightId: number } =>
-              removal.noteId !== undefined && removal.highlightId !== null,
+              removal.noteId !== undefined,
           ),
           tap(() => patchState(store, { isDeletingHighlight: true, error: null })),
           switchMap(({ noteId, highlightId }) =>

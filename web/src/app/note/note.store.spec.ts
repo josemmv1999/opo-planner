@@ -5,8 +5,8 @@ import {
   NoteDetail,
   NoteDraft,
   PdfHighlight,
-  HighlightChange,
-  HighlightColor,
+  HighlightMark,
+  HighlightUpdate,
   MarginNoteChange,
   MarginNoteDraft,
   MarginNoteMove,
@@ -33,6 +33,7 @@ const HIGHLIGHT: PdfHighlight = {
   rects: [{ x: 10, y: 20, width: 30, height: 2 }],
   note: '',
   color: 'yellow',
+  style: 'highlight',
 };
 
 describe('NoteStore', () => {
@@ -67,10 +68,10 @@ describe('NoteStore', () => {
               move.y > 90
                 ? throwError(() => new Error('failed'))
                 : of({ page: 1, text: 'Ojo', color: 'blue', ...move }),
-            addHighlight: (_: number, draft: PdfHighlightDraft, color: HighlightColor) =>
-              of({ ...draft, id: 2, note: '', color }),
-            updateHighlight: (_: number, id: number, change: HighlightChange) =>
-              of({ ...HIGHLIGHT, id, ...change }),
+            addHighlight: (_: number, draft: PdfHighlightDraft, mark: HighlightMark) =>
+              of({ ...draft, ...mark, id: 2, note: '' }),
+            updateHighlight: (_: number, update: HighlightUpdate) =>
+              of({ ...HIGHLIGHT, ...update }),
             deleteAnnotation: (_: number, id: number) => of(id),
           },
         },
@@ -85,20 +86,33 @@ describe('NoteStore', () => {
     expect(store.highlights()).toEqual([HIGHLIGHT]);
     const selection = { page: 3, text: 'Título I', rects: [{ x: 5, y: 5, width: 20, height: 2 }] };
     store.select(selection);
-    store.setHighlightColor('green');
-    store.highlight();
+    store.highlight({ color: 'green', style: 'underline' });
     expect(store.highlights()).toEqual([
       HIGHLIGHT,
-      { ...selection, id: 2, note: '', color: 'green' },
+      { ...selection, id: 2, note: '', color: 'green', style: 'underline' },
     ]);
     expect(store.selection()).toBeNull();
+    expect(store.openedHighlightId()).toBeNull();
+  });
+
+  it('highlights the selected text and opens it to write a comment', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.select({ page: 1, text: 'Plazo', rects: [{ x: 5, y: 5, width: 20, height: 2 }] });
+    store.highlight({ color: 'yellow', style: 'highlight', isCommenting: true });
+    expect(store.openedHighlight()).toMatchObject({ id: 2, text: 'Plazo' });
+  });
+
+  it('changes the color and the style of a highlight from the menu', () => {
+    store.load({ topicId: 1, noteId: 7 });
+    store.saveHighlight({ id: 1, color: 'blue', style: 'underline' });
+    expect(store.highlights()[0]).toMatchObject({ color: 'blue', style: 'underline', note: '' });
   });
 
   it('writes a note and changes the color of a highlight, then closes it', () => {
     store.load({ topicId: 1, noteId: 7 });
     store.openHighlight(1);
     expect(store.openedHighlight()).toEqual(HIGHLIGHT);
-    store.saveHighlight({ note: 'Cae en el examen', color: 'pink' });
+    store.saveHighlight({ id: 1, note: 'Cae en el examen', color: 'pink' });
     expect(store.highlights()[0]).toMatchObject({ note: 'Cae en el examen', color: 'pink' });
     expect(store.openedHighlightId()).toBeNull();
   });
@@ -138,14 +152,14 @@ describe('NoteStore', () => {
   it('removes the opened highlight', () => {
     store.load({ topicId: 1, noteId: 7 });
     store.openHighlight(1);
-    store.deleteHighlight();
+    store.deleteHighlight(1);
     expect(store.highlights()).toEqual([]);
     expect(store.openedHighlight()).toBeNull();
   });
 
   it('ignores a highlight without selected text', () => {
     store.load({ topicId: 1, noteId: 7 });
-    store.highlight();
+    store.highlight({ color: 'yellow', style: 'highlight' });
     expect(store.highlights()).toEqual([HIGHLIGHT]);
   });
 
