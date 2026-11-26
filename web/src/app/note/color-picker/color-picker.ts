@@ -38,7 +38,7 @@ import { HIGHLIGHT_COLORS, HighlightColor } from '../../../common/models/syllabu
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ColorPicker {
-  readonly value = input.required<HighlightColor>();
+  readonly value = input.required<HighlightColor | null>();
   readonly changed = output<HighlightColor>();
 
   protected readonly colors = HIGHLIGHT_COLORS;

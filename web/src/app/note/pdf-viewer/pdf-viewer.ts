@@ -17,6 +17,8 @@ import {
 } from '@angular/core';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import {
+  HighlightMark,
+  HighlightUpdate,
   MarginNote,
   MarginNoteDraft,
   MarginNoteMove,
@@ -24,6 +26,7 @@ import {
   PdfHighlight,
   PdfHighlightDraft,
 } from '../../../common/models/syllabus.model';
+import { AnnotationMenu } from '../annotation-menu/annotation-menu';
 import { MarginNoteGrab, PdfMargin } from '../pdf-margin/pdf-margin';
 
 export interface PdfPosition {
@@ -54,6 +57,17 @@ interface PdfTooltip {
   right: number | null;
 }
 
+interface PdfMenu {
+  page: number;
+  above: number;
+  below: number;
+  left: number | null;
+  right: number | null;
+  highlight: PdfHighlight | null;
+}
+
+const MENU_MIN_TOP = 8;
+
 const loadPdfjs = () => import('pdfjs-dist');
 
 const toPercent = (value: number, size: number): number => (value / size) * 100;
@@ -66,7 +80,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
 @Component({
   selector: 'app-pdf-viewer',
-  imports: [PdfMargin],
+  imports: [AnnotationMenu, PdfMargin],
   host: {
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
@@ -101,6 +115,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
                   <span
                     class="pdf-viewer__highlight"
                     [class.pdf-viewer__highlight--noted]="highlight.note"
+                    [class.pdf-viewer__highlight--underline]="highlight.style === 'underline'"
                     [style.--highlight-color]="'var(--bs-' + highlight.color + ')'"
                     [style.left.%]="rect.x"
                     [style.top.%]="rect.y"
@@ -110,6 +125,24 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
               }
             </div>
             <div #textLayer class="textLayer"></div>
+            @if (menu()?.page === pageIndex + 1) {
+              @let shown = menu()!;
+              <app-annotation-menu
+                class="pdf-viewer__menu"
+                [class.pdf-viewer__menu--selection]="!shown.highlight"
+                [class.pdf-viewer__menu--below]="shown.above < minTop"
+                [style.left.%]="shown.left"
+                [style.right.%]="shown.right"
+                [style.--menu-above]="shown.above + '%'"
+                [style.--menu-below]="shown.below + '%'"
+                [color]="shown.highlight?.color ?? null"
+                [markStyle]="shown.highlight?.style ?? null"
+                [comment]="shown.highlight?.note ?? ''"
+                (marked)="mark($event)"
+                (commented)="comment()"
+                (copied)="copy()"
+                (deleted)="deleteHighlight()" />
+            }
             @if (tooltip()?.page === pageIndex + 1) {
               @let shown = tooltip()!;
               <button
@@ -181,6 +214,32 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
       .pdf-viewer__highlight--noted {
         border-bottom: 3px solid var(--highlight-color);
+      }
+
+      .pdf-viewer__highlight--underline {
+        background-color: transparent;
+        mix-blend-mode: normal;
+        border-bottom: 3px solid var(--highlight-color);
+        border-radius: 0;
+      }
+
+      .pdf-viewer__menu {
+        position: absolute;
+        z-index: 2;
+        top: var(--menu-above);
+        transform: translateY(calc(-100% - 0.5rem));
+      }
+
+      .pdf-viewer__menu--below {
+        top: var(--menu-below);
+        transform: translateY(0.5rem);
+      }
+
+      @media (pointer: coarse) {
+        .pdf-viewer__menu--selection {
+          top: var(--menu-below);
+          transform: translateY(0.5rem);
+        }
       }
 
       .pdf-viewer__tooltip {
@@ -259,6 +318,9 @@ export class PdfViewer {
   readonly positionChanged = output<PdfPosition>();
   readonly selected = output<PdfHighlightDraft | null>();
   readonly highlightOpened = output<number>();
+  readonly highlighted = output<HighlightMark & { isCommenting?: boolean }>();
+  readonly highlightChanged = output<HighlightUpdate>();
+  readonly highlightDeleted = output<number>();
   readonly marginNotes = input<MarginNote[]>([]);
   readonly marginHint = input('');
   readonly marginAdded = output<MarginNoteDraft>();
@@ -269,30 +331,43 @@ export class PdfViewer {
   protected readonly layout = signal<PdfLayout | null>(null);
   readonly #draggedNote = signal<MarginNoteMove | null>(null);
   readonly #peek = signal<AnnotationPeek | null>(null);
+  readonly #selection = signal<PdfHighlightDraft | null>(null);
+  protected readonly minTop = MENU_MIN_TOP;
   protected readonly tooltip = computed((): PdfTooltip | null => {
     const peek = this.#peek();
-    if (peek?.kind === 'margin') {
-      const note = this.marginNotes().find(({ id }) => id === peek.id);
-      return note
-        ? {
-            page: note.page,
-            text: note.text,
-            top: note.y,
-            left: note.side === 'left' ? 0 : null,
-            right: note.side === 'right' ? 0 : null,
-          }
-        : null;
-    }
-    const highlight = this.highlights().find(({ id }) => id === peek?.id);
-    const rect = highlight?.rects.at(-1);
-    if (!highlight || !rect) return null;
-    const isOnRightHalf = rect.x > 50;
+    const note =
+      peek?.kind === 'margin' ? this.marginNotes().find(({ id }) => id === peek.id) : undefined;
+    return note
+      ? {
+          page: note.page,
+          text: note.text,
+          top: note.y,
+          left: note.side === 'left' ? 0 : null,
+          right: note.side === 'right' ? 0 : null,
+        }
+      : null;
+  });
+  readonly #tappedHighlight = computed(() => {
+    const peek = this.#peek();
+    return peek?.kind === 'highlight'
+      ? (this.highlights().find(({ id }) => id === peek.id) ?? null)
+      : null;
+  });
+  protected readonly menu = computed((): PdfMenu | null => {
+    const selection = this.#selection();
+    const highlight = this.#tappedHighlight();
+    const target = selection ?? highlight;
+    const first = target?.rects[0];
+    const last = target?.rects.at(-1);
+    if (!target || !first || !last) return null;
+    const isOnRightHalf = first.x > 50;
     return {
-      page: highlight.page,
-      text: highlight.note,
-      top: rect.y + rect.height,
-      left: isOnRightHalf ? null : rect.x,
-      right: isOnRightHalf ? 100 - rect.x - rect.width : null,
+      page: target.page,
+      above: first.y,
+      below: last.y + last.height,
+      left: isOnRightHalf ? null : first.x,
+      right: isOnRightHalf ? 100 - last.x - last.width : null,
+      highlight: selection ? null : highlight,
     };
   });
   readonly #element = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -431,7 +506,44 @@ export class PdfViewer {
     event.stopPropagation();
     const peek = this.#peek();
     this.#peek.set(null);
-    if (peek) (peek.kind === 'margin' ? this.marginNoteOpened : this.highlightOpened).emit(peek.id);
+    if (peek) this.marginNoteOpened.emit(peek.id);
+  }
+
+  protected mark(mark: HighlightMark): void {
+    const highlight = this.#tappedHighlight();
+    if (highlight) this.highlightChanged.emit({ id: highlight.id, ...mark });
+    else this.#highlightSelection(mark);
+  }
+
+  protected comment(): void {
+    const highlight = this.#tappedHighlight();
+    if (!highlight)
+      return this.#highlightSelection({ color: 'yellow', style: 'highlight', isCommenting: true });
+    this.#peek.set(null);
+    this.highlightOpened.emit(highlight.id);
+  }
+
+  protected copy(): void {
+    const text = (this.#selection() ?? this.#tappedHighlight())?.text;
+    if (text) void navigator.clipboard?.writeText(text);
+    this.#closeMenu();
+  }
+
+  protected deleteHighlight(): void {
+    const highlight = this.#tappedHighlight();
+    if (highlight) this.highlightDeleted.emit(highlight.id);
+    this.#closeMenu();
+  }
+
+  #highlightSelection(mark: HighlightMark & { isCommenting?: boolean }): void {
+    this.highlighted.emit(mark);
+    this.#closeMenu();
+  }
+
+  #closeMenu(): void {
+    this.#peek.set(null);
+    this.#selection.set(null);
+    getSelection()?.removeAllRanges();
   }
 
   protected closeTooltipOutside({ target }: MouseEvent): void {
@@ -483,11 +595,12 @@ export class PdfViewer {
         )
       : -1;
     if (!range || pageIndex === -1) {
+      this.#selection.set(null);
       this.selected.emit(null);
       return;
     }
     const page = this.pages()[pageIndex].nativeElement.getBoundingClientRect();
-    this.selected.emit({
+    const draft: PdfHighlightDraft = {
       page: pageIndex + 1,
       text: range.toString().trim(),
       rects: [...range.getClientRects()]
@@ -498,7 +611,10 @@ export class PdfViewer {
           width: toPercent(width, page.width),
           height: toPercent(height, page.height),
         })),
-    });
+    };
+    this.#peek.set(null);
+    this.#selection.set(draft.rects.length ? draft : null);
+    this.selected.emit(draft);
   }
 
   protected openHighlightAt({ target, clientX, clientY }: MouseEvent): void {
@@ -518,8 +634,7 @@ export class PdfViewer {
             x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height,
         ),
       );
-    this.#peek.set(highlight?.note ? { kind: 'highlight', id: highlight.id } : null);
-    if (highlight && !highlight.note) this.highlightOpened.emit(highlight.id);
+    this.#peek.set(highlight ? { kind: 'highlight', id: highlight.id } : null);
   }
 
   #disconnect(): void {
