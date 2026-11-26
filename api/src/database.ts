@@ -142,6 +142,16 @@ const MIGRATIONS = [
   fuengirolaSeedSql(),
   `ALTER TABLE exams ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
   `ALTER TABLE exam_attempts ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
+  `ALTER TABLE planner_entries ADD COLUMN opposition_id TEXT NOT NULL DEFAULT 'age-c1'`,
+  `CREATE TABLE opposition_settings (
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    opposition_id TEXT NOT NULL,
+    exam_date TEXT,
+    study_schedule TEXT,
+    PRIMARY KEY (user_id, opposition_id)
+  )`,
+  `INSERT INTO opposition_settings SELECT id, 'age-c1', exam_date, study_schedule FROM users
+    WHERE exam_date IS NOT NULL OR study_schedule IS NOT NULL`,
 ];
 
 const migrate = (database: DatabaseSync): void => {

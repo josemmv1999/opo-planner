@@ -22,7 +22,12 @@ const streakOf = (studiedDays: Set<string>, now: Date): number => {
 
 export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new Date()): Router => {
   const oppositionOf = syllabusOppositionOf(database);
-  const findUser = database.prepare('SELECT created_at, exam_date FROM users WHERE id = ?');
+  const findUser = database.prepare(
+    `SELECT created_at, opposition_settings.exam_date FROM users
+      LEFT JOIN opposition_settings ON opposition_settings.user_id = users.id
+        AND opposition_settings.opposition_id = ?
+      WHERE users.id = ?`,
+  );
   const listActivity = database.prepare(
     `SELECT date FROM topic_results WHERE user_id = ?
       UNION ALL SELECT date FROM exam_attempts WHERE user_id = ?`,
@@ -54,7 +59,7 @@ export const homeRoutes = (database: DatabaseSync, now: () => Date = () => new D
       const userId = res.locals.user.id;
       const oppositionId = oppositionOf(userId);
       const today = now();
-      const { created_at, exam_date } = findUser.get(userId) as {
+      const { created_at, exam_date } = findUser.get(oppositionId, userId) as {
         created_at: string;
         exam_date: string | null;
       };
