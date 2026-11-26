@@ -3,7 +3,7 @@ const TEXT_KINDS = ['highlight', 'underline'];
 
 export interface AnnotationRow {
   id: number;
-  kind: 'highlight' | 'underline' | 'margin';
+  kind: 'highlight' | 'underline' | 'margin' | 'ink';
   page: number;
   text: string | null;
   rects: string | null;
@@ -16,15 +16,19 @@ export interface AnnotationRow {
 export type NewAnnotation = Omit<AnnotationRow, 'id'>;
 export type AnnotationChange = Pick<AnnotationRow, 'kind' | 'color' | 'comment' | 'y' | 'side'>;
 
+const placeOf = (row: AnnotationRow) => {
+  if (row.kind === 'margin') return { y: row.y, side: row.side };
+  const shapes = JSON.parse(row.rects ?? '[]') as unknown[];
+  return row.kind === 'ink' ? { points: shapes } : { text: row.text, rects: shapes };
+};
+
 export const toAnnotation = (row: AnnotationRow) => ({
   id: row.id,
   kind: row.kind,
   page: row.page,
   color: row.color,
   comment: row.comment,
-  ...(row.kind !== 'margin'
-    ? { text: row.text, rects: JSON.parse(row.rects ?? '[]') as unknown[] }
-    : { y: row.y, side: row.side }),
+  ...placeOf(row),
 });
 
 const isRect = (rect: unknown): boolean =>
@@ -35,12 +39,18 @@ const isRect = (rect: unknown): boolean =>
 const isPercent = (value: unknown): value is number =>
   typeof value === 'number' && value >= 0 && value <= 100;
 
+const isPoint = (point: unknown): boolean =>
+  ['x', 'y'].every((key) => isPercent((point as Record<string, unknown>)?.[key]));
+
+const MAX_INK_POINTS = 2000;
+
 export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
   const {
     kind,
     page,
     text,
     rects,
+    points,
     y,
     side,
     color,
@@ -53,8 +63,14 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
     rects.length > 0 &&
     rects.every(isRect);
   const isMargin = kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right');
+  const isInk =
+    kind === 'ink' &&
+    Array.isArray(points) &&
+    points.length > 0 &&
+    points.length <= MAX_INK_POINTS &&
+    points.every(isPoint);
   const isValid =
-    (isHighlight || isMargin) &&
+    (isHighlight || isMargin || isInk) &&
     Number.isInteger(page) &&
     (page as number) > 0 &&
     ANNOTATION_COLORS.includes(color as string) &&
@@ -64,7 +80,7 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
         kind: kind as AnnotationRow['kind'],
         page: page as number,
         text: isHighlight ? text : null,
-        rects: isHighlight ? JSON.stringify(rects) : null,
+        rects: isHighlight ? JSON.stringify(rects) : isInk ? JSON.stringify(points) : null,
         y: isMargin ? y : null,
         side: isMargin ? side : null,
         color: color as string,
@@ -87,7 +103,9 @@ export const parseAnnotationChange = (
   const isPlaceValid =
     current.kind === 'margin'
       ? kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right')
-      : TEXT_KINDS.includes(kind as string) && y === null && side === null;
+      : (current.kind === 'ink' ? kind === 'ink' : TEXT_KINDS.includes(kind as string)) &&
+        y === null &&
+        side === null;
   return ANNOTATION_COLORS.includes(color as string) && typeof comment === 'string' && isPlaceValid
     ? {
         kind: kind as AnnotationRow['kind'],
