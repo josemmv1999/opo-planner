@@ -17,6 +17,9 @@ import { questionsRoutes } from './exams/questions.routes.ts';
 import { UPLOADS_DIR } from './database.ts';
 import { annotationsRoutes } from './notes/annotations.routes.ts';
 import { notesRoutes } from './notes/notes.routes.ts';
+import { adminMaterialsRoutes } from './materials/admin-materials.routes.ts';
+import { materialAnnotationsRoutes } from './materials/material-annotations.routes.ts';
+import { materialsRoutes } from './materials/materials.routes.ts';
 
 export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = UPLOADS_DIR) => {
   const app = express();
@@ -39,6 +42,9 @@ export const createApp = (database: DatabaseSync, webDir?: string, uploadsDir = 
   app.use('/api/flashcards', flashcardsRoutes(database));
   app.use('/api/notes/:noteId/annotations', annotationsRoutes(database));
   app.use('/api/notes', notesRoutes(database, uploadsDir));
+  app.use('/api/admin/materials', adminMaterialsRoutes(database, uploadsDir));
+  app.use('/api/materials/:materialId/annotations', materialAnnotationsRoutes(database));
+  app.use('/api/materials', materialsRoutes(database, uploadsDir));
   if (webDir) {
     app.use(express.static(webDir));
     app.use((req, res, next) =>

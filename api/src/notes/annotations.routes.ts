@@ -1,42 +1,14 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { Router, type Request } from 'express';
 import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
-
-export const ANNOTATION_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange'];
-const TEXT_KINDS = ['highlight', 'underline'];
-
-interface AnnotationRow {
-  id: number;
-  kind: 'highlight' | 'underline' | 'margin';
-  page: number;
-  text: string | null;
-  rects: string | null;
-  y: number | null;
-  side: 'left' | 'right' | null;
-  color: string;
-  comment: string;
-}
-
-const toAnnotation = (row: AnnotationRow) => ({
-  id: row.id,
-  kind: row.kind,
-  page: row.page,
-  color: row.color,
-  comment: row.comment,
-  ...(row.kind !== 'margin'
-    ? { text: row.text, rects: JSON.parse(row.rects ?? '[]') as unknown[] }
-    : { y: row.y, side: row.side }),
-});
-
-const isRect = (rect: unknown): boolean =>
-  ['x', 'y', 'width', 'height'].every(
-    (key) => typeof (rect as Record<string, unknown>)?.[key] === 'number',
-  );
+import {
+  parseAnnotationChange,
+  parseNewAnnotation,
+  toAnnotation,
+  type AnnotationRow,
+} from './annotation.ts';
 
 const noteIdOf = (req: Request): number => Number((req.params as Record<string, string>)['noteId']);
-
-const isPercent = (value: unknown): value is number =>
-  typeof value === 'number' && value >= 0 && value <= 100;
 
 export const annotationsRoutes = (database: DatabaseSync): Router => {
   const findNote = database.prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
@@ -64,29 +36,17 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       res.json(rows.map(toAnnotation));
     })
     .post('/', (req, res) => {
-      const { kind, page, text, rects, y, side, color, comment = '' } = req.body ?? {};
-      const isHighlight =
-        TEXT_KINDS.includes(kind) &&
-        typeof text === 'string' &&
-        Array.isArray(rects) &&
-        rects.length > 0 &&
-        rects.every(isRect);
-      const isMargin = kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right');
-      const isValid =
-        (isHighlight || isMargin) &&
-        Number.isInteger(page) &&
-        page > 0 &&
-        ANNOTATION_COLORS.includes(color) &&
-        typeof comment === 'string';
-      if (!isValid) return void res.sendStatus(400);
+      const annotation = parseNewAnnotation(req.body);
+      if (!annotation) return void res.sendStatus(400);
+      const { kind, page, text, rects, y, side, color, comment } = annotation;
       const row = insertAnnotation.get(
         noteIdOf(req),
         kind,
         page,
-        isHighlight ? text : null,
-        isHighlight ? JSON.stringify(rects) : null,
-        isMargin ? y : null,
-        isMargin ? side : null,
+        text,
+        rects,
+        y,
+        side,
         color,
         comment,
       ) as unknown as AnnotationRow;
@@ -97,25 +57,14 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       const current = findAnnotation.get(Number(req.params['annotationId']), noteId) as
         AnnotationRow | undefined;
       if (!current) return void res.sendStatus(404);
-      const {
-        kind = current.kind,
-        color = current.color,
-        comment = current.comment,
-        y = current.y,
-        side = current.side,
-      } = req.body ?? {};
-      const isPlaceValid =
-        current.kind === 'margin'
-          ? kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right')
-          : TEXT_KINDS.includes(kind) && y === null && side === null;
-      if (!ANNOTATION_COLORS.includes(color) || typeof comment !== 'string' || !isPlaceValid)
-        return void res.sendStatus(400);
+      const change = parseAnnotationChange(req.body, current);
+      if (!change) return void res.sendStatus(400);
       const row = updateAnnotation.get(
-        kind,
-        color,
-        comment,
-        y,
-        side,
+        change.kind,
+        change.color,
+        change.comment,
+        change.y,
+        change.side,
         current.id,
         noteId,
       ) as unknown as AnnotationRow;

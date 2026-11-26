@@ -159,6 +159,29 @@ const MIGRATIONS = [
   `ALTER TABLE opposition_topics ADD COLUMN name TEXT`,
   `ALTER TABLE opposition_topics ADD COLUMN description TEXT`,
   fuengirolaSharedTextsSql(),
+  `CREATE TABLE topic_materials (
+    id INTEGER PRIMARY KEY,
+    topic_id INTEGER NOT NULL REFERENCES topics (id),
+    title TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    uploaded_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX topic_materials_topic_id ON topic_materials (topic_id)`,
+  `CREATE TABLE material_annotations (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    material_id INTEGER NOT NULL REFERENCES topic_materials (id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    page INTEGER NOT NULL,
+    text TEXT,
+    rects TEXT,
+    y REAL,
+    side TEXT,
+    color TEXT NOT NULL,
+    comment TEXT NOT NULL DEFAULT ''
+  )`,
+  `CREATE INDEX material_annotations_user_material ON material_annotations (user_id, material_id)`,
 ];
 
 const migrate = (database: DatabaseSync): void => {
