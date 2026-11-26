@@ -32,6 +32,7 @@ import {
 } from '../../../common/models/syllabus.model';
 import { AnnotationMenu } from '../annotation-menu/annotation-menu';
 import { PdfInk } from '../pdf-ink/pdf-ink';
+import { TextSelect } from '../text-select/text-select';
 import { MarginNoteGrab, PdfMargin } from '../pdf-margin/pdf-margin';
 
 export interface PdfPosition {
@@ -86,7 +87,7 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
 
 @Component({
   selector: 'app-pdf-viewer',
-  imports: [AnnotationMenu, PdfInk, PdfMargin],
+  imports: [AnnotationMenu, PdfInk, PdfMargin, TextSelect],
   host: {
     class: 'pdf-viewer',
     '(document:selectionchange)': 'readSelection()',
@@ -113,7 +114,13 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
             (added)="addMarginNote({ page: pageIndex + 1, side: 'left', y: $event })"
             (opened)="openMarginNote($event)"
             (grabbed)="grabMarginNote(pageIndex + 1, $event)" />
-          <div #page class="pdf-viewer__page" [style.aspect-ratio]="pdf?.aspectRatio">
+          <div
+            #page
+            class="pdf-viewer__page"
+            appTextSelect
+            [isTextSelectEnabled]="inkMode() === 'off'"
+            [style.aspect-ratio]="pdf?.aspectRatio"
+            (rangeSelected)="selectRange(pageIndex, $event)">
             <canvas #canvas></canvas>
             <div class="pdf-viewer__highlights" aria-hidden="true">
               @for (highlight of highlightsByPage().get(pageIndex + 1); track highlight.id) {
@@ -123,6 +130,16 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
                     [class.pdf-viewer__highlight--noted]="highlight.note"
                     [class.pdf-viewer__highlight--underline]="highlight.style === 'underline'"
                     [style.--highlight-color]="'var(--bs-' + highlight.color + ')'"
+                    [style.left.%]="rect.x"
+                    [style.top.%]="rect.y"
+                    [style.width.%]="rect.width"
+                    [style.height.%]="rect.height"></span>
+                }
+              }
+              @if (touchSelection()?.page === pageIndex + 1) {
+                @for (rect of touchSelection()!.rects; track $index) {
+                  <span
+                    class="pdf-viewer__selection"
                     [style.left.%]="rect.x"
                     [style.top.%]="rect.y"
                     [style.width.%]="rect.width"
@@ -224,6 +241,11 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
         border-radius: 0.125rem;
       }
 
+      .pdf-viewer__selection {
+        position: absolute;
+        background: rgba(var(--bs-primary-rgb), 0.3);
+      }
+
       .pdf-viewer__highlight--noted {
         border-bottom: 3px solid var(--highlight-color);
       }
@@ -317,6 +339,12 @@ export const startLoading = async (url: string): Promise<PDFDocumentLoadingTask>
           color: transparent;
           background: rgba(var(--bs-primary-rgb), 0.3);
         }
+
+        @media (pointer: coarse) {
+          user-select: none;
+          -webkit-user-select: none;
+          -webkit-touch-callout: none;
+        }
       }
     }
   `,
@@ -349,6 +377,10 @@ export class PdfViewer {
   readonly #draggedNote = signal<MarginNoteMove | null>(null);
   readonly #peek = signal<AnnotationPeek | null>(null);
   readonly #selection = signal<PdfHighlightDraft | null>(null);
+  readonly #isTouchSelection = signal(false);
+  protected readonly touchSelection = computed(() =>
+    this.#isTouchSelection() ? this.#selection() : null,
+  );
   protected readonly minTop = MENU_MIN_TOP;
   protected readonly tooltip = computed((): PdfTooltip | null => {
     const peek = this.#peek();
@@ -570,6 +602,7 @@ export class PdfViewer {
   #closeMenu(): void {
     this.#peek.set(null);
     this.#selection.set(null);
+    this.#isTouchSelection.set(false);
     getSelection()?.removeAllRanges();
   }
 
@@ -614,6 +647,7 @@ export class PdfViewer {
   }
 
   protected readSelection(): void {
+    if (this.#isTouchSelection()) return;
     const selection = getSelection();
     const range = selection?.rangeCount && !selection.isCollapsed ? selection.getRangeAt(0) : null;
     const pageIndex = range
@@ -626,6 +660,21 @@ export class PdfViewer {
       this.selected.emit(null);
       return;
     }
+    this.#showSelection(range, pageIndex);
+  }
+
+  protected selectRange(pageIndex: number, range: Range | null): void {
+    if (range) {
+      this.#isTouchSelection.set(true);
+      return this.#showSelection(range, pageIndex);
+    }
+    if (!this.#isTouchSelection()) return;
+    this.#isTouchSelection.set(false);
+    this.#selection.set(null);
+    this.selected.emit(null);
+  }
+
+  #showSelection(range: Range, pageIndex: number): void {
     const page = this.pages()[pageIndex].nativeElement.getBoundingClientRect();
     const draft: PdfHighlightDraft = {
       page: pageIndex + 1,
