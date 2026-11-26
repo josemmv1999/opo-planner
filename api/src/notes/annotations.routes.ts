@@ -16,8 +16,8 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
     'SELECT * FROM annotations WHERE note_id = ? ORDER BY page, id',
   );
   const insertAnnotation = database.prepare(
-    `INSERT INTO annotations (note_id, kind, page, text, rects, y, side, color, comment)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+    `INSERT INTO annotations (note_id, kind, page, text, rects, y, side, width, color, comment)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
     `UPDATE annotations SET kind = ?, color = ?, comment = ?, y = ?, side = ?
@@ -38,7 +38,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
     .post('/', (req, res) => {
       const annotation = parseNewAnnotation(req.body);
       if (!annotation) return void res.sendStatus(400);
-      const { kind, page, text, rects, y, side, color, comment } = annotation;
+      const { kind, page, text, rects, y, side, width, color, comment } = annotation;
       const row = insertAnnotation.get(
         noteIdOf(req),
         kind,
@@ -47,6 +47,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
         rects,
         y,
         side,
+        width,
         color,
         comment,
       ) as unknown as AnnotationRow;

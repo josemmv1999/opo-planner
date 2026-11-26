@@ -9,6 +9,7 @@ export interface AnnotationRow {
   rects: string | null;
   y: number | null;
   side: 'left' | 'right' | null;
+  width: number | null;
   color: string;
   comment: string;
 }
@@ -19,7 +20,9 @@ export type AnnotationChange = Pick<AnnotationRow, 'kind' | 'color' | 'comment' 
 const placeOf = (row: AnnotationRow) => {
   if (row.kind === 'margin') return { y: row.y, side: row.side };
   const shapes = JSON.parse(row.rects ?? '[]') as unknown[];
-  return row.kind === 'ink' ? { points: shapes } : { text: row.text, rects: shapes };
+  return row.kind === 'ink'
+    ? { points: shapes, width: row.width ?? DEFAULT_INK_WIDTH }
+    : { text: row.text, rects: shapes };
 };
 
 export const toAnnotation = (row: AnnotationRow) => ({
@@ -43,6 +46,11 @@ const isPoint = (point: unknown): boolean =>
   ['x', 'y'].every((key) => isPercent((point as Record<string, unknown>)?.[key]));
 
 const MAX_INK_POINTS = 2000;
+const DEFAULT_INK_WIDTH = 0.4;
+const MAX_INK_WIDTH = 5;
+
+const isInkWidth = (value: unknown): value is number =>
+  typeof value === 'number' && value > 0 && value <= MAX_INK_WIDTH;
 
 export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
   const {
@@ -51,6 +59,7 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
     text,
     rects,
     points,
+    width = DEFAULT_INK_WIDTH,
     y,
     side,
     color,
@@ -68,7 +77,8 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
     Array.isArray(points) &&
     points.length > 0 &&
     points.length <= MAX_INK_POINTS &&
-    points.every(isPoint);
+    points.every(isPoint) &&
+    isInkWidth(width);
   const isValid =
     (isHighlight || isMargin || isInk) &&
     Number.isInteger(page) &&
@@ -83,6 +93,7 @@ export const parseNewAnnotation = (body: unknown): NewAnnotation | null => {
         rects: isHighlight ? JSON.stringify(rects) : isInk ? JSON.stringify(points) : null,
         y: isMargin ? y : null,
         side: isMargin ? side : null,
+        width: isInk ? (width as number) : null,
         color: color as string,
         comment: comment as string,
       }
