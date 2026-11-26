@@ -3,10 +3,11 @@ import { Router, type Request } from 'express';
 import { requireUser, type AuthenticatedResponse } from '../auth/require-user.ts';
 
 export const ANNOTATION_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange'];
+const TEXT_KINDS = ['highlight', 'underline'];
 
 interface AnnotationRow {
   id: number;
-  kind: 'highlight' | 'margin';
+  kind: 'highlight' | 'underline' | 'margin';
   page: number;
   text: string | null;
   rects: string | null;
@@ -22,7 +23,7 @@ const toAnnotation = (row: AnnotationRow) => ({
   page: row.page,
   color: row.color,
   comment: row.comment,
-  ...(row.kind === 'highlight'
+  ...(row.kind !== 'margin'
     ? { text: row.text, rects: JSON.parse(row.rects ?? '[]') as unknown[] }
     : { y: row.y, side: row.side }),
 });
@@ -47,7 +48,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
-    `UPDATE annotations SET color = ?, comment = ?, y = ?, side = ?
+    `UPDATE annotations SET kind = ?, color = ?, comment = ?, y = ?, side = ?
       WHERE id = ? AND note_id = ? RETURNING *`,
   );
   const findAnnotation = database.prepare('SELECT * FROM annotations WHERE id = ? AND note_id = ?');
@@ -65,7 +66,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
     .post('/', (req, res) => {
       const { kind, page, text, rects, y, side, color, comment = '' } = req.body ?? {};
       const isHighlight =
-        kind === 'highlight' &&
+        TEXT_KINDS.includes(kind) &&
         typeof text === 'string' &&
         Array.isArray(rects) &&
         rects.length > 0 &&
@@ -97,6 +98,7 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
         AnnotationRow | undefined;
       if (!current) return void res.sendStatus(404);
       const {
+        kind = current.kind,
         color = current.color,
         comment = current.comment,
         y = current.y,
@@ -104,11 +106,12 @@ export const annotationsRoutes = (database: DatabaseSync): Router => {
       } = req.body ?? {};
       const isPlaceValid =
         current.kind === 'margin'
-          ? isPercent(y) && (side === 'left' || side === 'right')
-          : y === null && side === null;
+          ? kind === 'margin' && isPercent(y) && (side === 'left' || side === 'right')
+          : TEXT_KINDS.includes(kind) && y === null && side === null;
       if (!ANNOTATION_COLORS.includes(color) || typeof comment !== 'string' || !isPlaceValid)
         return void res.sendStatus(400);
       const row = updateAnnotation.get(
+        kind,
         color,
         comment,
         y,

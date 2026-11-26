@@ -80,6 +80,24 @@ test('changes the color and the comment, and deletes', async () => {
   assert.equal((await request(`${base}/${id}`, { method: 'DELETE', cookie })).status, 404);
 });
 
+test('underlines text and switches between highlight and underline', async () => {
+  const { id, kind } = await (
+    await post({
+      kind: 'underline',
+      page: 1,
+      text: 'plazo',
+      rects: [{ x: 5, y: 5, width: 10, height: 2 }],
+      color: 'blue',
+    })
+  ).json();
+  assert.equal(kind, 'underline');
+  const put = (body: unknown) =>
+    request(`${base}/${id}`, { method: 'PUT', cookie, body: JSON.stringify(body) });
+  const switched = await (await put({ kind: 'highlight' })).json();
+  assert.deepEqual([switched.kind, switched.text], ['highlight', 'plazo']);
+  assert.equal((await put({ kind: 'margin' })).status, 400);
+});
+
 test('rejects invalid annotations and other users', async () => {
   assert.equal(
     (await post({ kind: 'margin', page: 1, y: 150, side: 'left', color: 'yellow' })).status,
