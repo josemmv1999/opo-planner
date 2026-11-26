@@ -18,8 +18,8 @@ export const materialAnnotationsRoutes = (database: DatabaseSync): Router => {
   );
   const insertAnnotation = database.prepare(
     `INSERT INTO material_annotations
-      (user_id, material_id, kind, page, text, rects, y, side, color, comment)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      (user_id, material_id, kind, page, text, rects, y, side, width, color, comment)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
   );
   const updateAnnotation = database.prepare(
     `UPDATE material_annotations SET kind = ?, color = ?, comment = ?, y = ?, side = ?
@@ -45,7 +45,7 @@ export const materialAnnotationsRoutes = (database: DatabaseSync): Router => {
     .post('/', (req, res: AuthenticatedResponse) => {
       const annotation = parseNewAnnotation(req.body);
       if (!annotation) return void res.sendStatus(400);
-      const { kind, page, text, rects, y, side, color, comment } = annotation;
+      const { kind, page, text, rects, y, side, width, color, comment } = annotation;
       const row = insertAnnotation.get(
         res.locals.user.id,
         materialIdOf(req),
@@ -55,6 +55,7 @@ export const materialAnnotationsRoutes = (database: DatabaseSync): Router => {
         rects,
         y,
         side,
+        width,
         color,
         comment,
       ) as unknown as AnnotationRow;

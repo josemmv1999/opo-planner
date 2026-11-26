@@ -182,6 +182,8 @@ const MIGRATIONS = [
     comment TEXT NOT NULL DEFAULT ''
   )`,
   `CREATE INDEX material_annotations_user_material ON material_annotations (user_id, material_id)`,
+  `ALTER TABLE annotations ADD COLUMN width REAL`,
+  `ALTER TABLE material_annotations ADD COLUMN width REAL`,
 ];
 
 const migrate = (database: DatabaseSync): void => {

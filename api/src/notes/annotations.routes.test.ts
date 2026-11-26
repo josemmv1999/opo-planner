@@ -128,6 +128,14 @@ test('draws ink strokes, recolors them and rejects bad points', async () => {
   const list = await (await request(base, { cookie })).json();
   assert.deepEqual(list.find(({ id }: { id: number }) => id === ink.id).points, points);
   assert.equal((await post({ kind: 'ink', page: 4, points: [], color: 'blue' })).status, 400);
+  assert.equal(ink.width, 0.4);
+  const thick = await (
+    await post({ kind: 'ink', page: 4, points, width: 1.5, color: 'green' })
+  ).json();
+  assert.equal(thick.width, 1.5);
+  const ofWidth = (width: number) => post({ kind: 'ink', page: 4, points, width, color: 'blue' });
+  assert.equal((await ofWidth(0)).status, 400);
+  assert.equal((await ofWidth(9)).status, 400);
   assert.equal(
     (await post({ kind: 'ink', page: 4, points: [{ x: 101, y: 5 }], color: 'blue' })).status,
     400,
