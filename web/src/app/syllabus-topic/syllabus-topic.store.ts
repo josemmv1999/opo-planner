@@ -23,6 +23,8 @@ import {
 const TREND_LENGTH = 5;
 const REVIEW_LENGTH = 3;
 
+const toTitleKey = (title: string) => title.replace(/\s+/g, ' ').trim().toLowerCase();
+
 interface SyllabusTopicState {
   topic: SyllabusTopicDetail | null;
   results: TopicResult[];
@@ -49,7 +51,7 @@ export const SyllabusTopicStore = signalStore(
     isDeletingMaterial: false,
     error: null,
   }),
-  withComputed(({ results, materials, materialToDeleteId }) => {
+  withComputed(({ topic, results, materials, materialToDeleteId }) => {
     const sortedResults = computed(() =>
       [...results()].sort((a, b) => a.date.localeCompare(b.date)),
     );
@@ -66,6 +68,23 @@ export const SyllabusTopicStore = signalStore(
       reviewQuestions: computed<ReviewQuestion[]>(() => pendingReview().slice(0, REVIEW_LENGTH)),
       reviewCount: computed(() => pendingReview().length),
       reviewQuiz: computed<QuizQuestion[]>(() => pendingReview().map(toQuizQuestion)),
+      sharedNotes: computed(() => {
+        const ownTitles = new Set(
+          topic()
+            ?.notes.filter(({ kind }) => kind === 'pdf')
+            .map(({ title }) => toTitleKey(title)),
+        );
+        return materials()
+          .filter(({ title }) => !ownTitles.has(toTitleKey(title)))
+          .map(({ id, topicId, title, uploadedAt, fileUrl }) => ({
+            id,
+            title,
+            kind: 'pdf' as const,
+            updatedAt: uploadedAt,
+            preview: fileUrl,
+            link: ['/syllabus', topicId, 'materials', id],
+          }));
+      }),
       materialToDelete: computed(() => materials().find(({ id }) => id === materialToDeleteId())),
     };
   }),

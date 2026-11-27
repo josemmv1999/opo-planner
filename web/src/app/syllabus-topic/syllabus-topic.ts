@@ -6,7 +6,6 @@ import { Icon } from '../../common/components/icon/icon';
 import { TopicQuiz } from '../topic-quiz/topic-quiz';
 import { NoteTile } from './note-tile/note-tile';
 import { SyllabusTopicStore } from './syllabus-topic.store';
-import { TopicMaterials } from './topic-materials/topic-materials';
 import { TopicProgress } from './topic-progress/topic-progress';
 import { ConfirmContent } from '../../common/components/confirm-content/confirm-content';
 import { Modal } from '../../common/components/modal/modal';
@@ -24,7 +23,6 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
     TopicQuiz,
     NoteTile,
     TopicProgress,
-    TopicMaterials,
     Modal,
     ConfirmContent,
   ],
@@ -95,16 +93,6 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
         </div>
       </section>
 
-      @if (store.isAdmin() || store.materials().length) {
-        <app-topic-materials
-          [materials]="store.materials()"
-          [isAdmin]="store.isAdmin()"
-          [isUploading]="store.isUploadingMaterials()"
-          [hasUploadError]="store.error() === 'uploadingMaterials'"
-          (uploaded)="store.uploadMaterials($event)"
-          (deleted)="store.openDeleteMaterialModal($event)" />
-      }
-
       <div class="syllabus-topic__grid">
         <section class="d-flex flex-column gap-3">
           <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
@@ -112,7 +100,28 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
             <span class="syllabus-topic__meta syllabus-topic__drop-hint text-body-secondary">
               {{ 'syllabusTopic.dropHint' | translate }}
             </span>
+            @if (store.isAdmin()) {
+              <label
+                class="btn btn-outline-primary d-flex align-items-center"
+                [class.is-loading]="store.isUploadingMaterials()">
+                <app-icon class="me-2" name="upload" />
+                {{ 'syllabusTopic.materials.upload' | translate }}
+                <input
+                  #materialInput
+                  type="file"
+                  class="visually-hidden"
+                  multiple
+                  accept="application/pdf"
+                  [disabled]="store.isUploadingMaterials()"
+                  (change)="uploadMaterials(materialInput)" />
+              </label>
+            }
           </div>
+          @if (store.error() === 'uploadingMaterials') {
+            <p class="text-danger small fw-bold mb-0" role="alert">
+              {{ 'syllabusTopic.materials.uploadError' | translate }}
+            </p>
+          }
           @if (store.error() === 'uploading') {
             <p class="text-danger small fw-bold mb-0" role="alert">
               {{ 'syllabusTopic.uploadError' | translate }}
@@ -124,8 +133,25 @@ const ACCEPTED_FILES = 'application/pdf,image/png,image/jpeg';
             (dragover)="onDragOver($event)"
             (dragleave)="isDragging.set(false)"
             (drop)="onDrop($event, topic.id)">
+            @for (shared of store.sharedNotes(); track shared.id) {
+              <div class="d-flex flex-column gap-2">
+                <app-note-tile class="flex-grow-1" [note]="shared" [link]="shared.link" />
+                @if (store.isAdmin()) {
+                  <button
+                    app-button
+                    class="align-self-end"
+                    type="button"
+                    variant="outline-danger"
+                    size="sm"
+                    icon="delete"
+                    [isIconOnly]="true"
+                    [title]="'syllabusTopic.materials.delete' | translate: { title: shared.title }"
+                    (click)="store.openDeleteMaterialModal(shared.id)"></button>
+                }
+              </div>
+            }
             @for (note of topic.notes; track note.id) {
-              <app-note-tile [note]="note" [topicId]="topic.id" />
+              <app-note-tile [note]="note" [link]="['/syllabus', topic.id, 'notes', note.id]" />
             }
             <label
               class="syllabus-topic__add d-flex flex-column align-items-center justify-content-center text-center"
@@ -428,6 +454,11 @@ export class SyllabusTopic {
 
   protected uploadFiles(fileInput: HTMLInputElement): void {
     this.store.uploadFiles([...(fileInput.files ?? [])]);
+    fileInput.value = '';
+  }
+
+  protected uploadMaterials(fileInput: HTMLInputElement): void {
+    this.store.uploadMaterials([...(fileInput.files ?? [])]);
     fileInput.value = '';
   }
 

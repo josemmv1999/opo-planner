@@ -281,6 +281,7 @@
     "topicStudied": "Tema {{number}} estudiado: pulsa para desmarcarlo",
     "topicName": "Tema {{number}}. {{name}}",
     "notPractised": "Sin practicar",
+    "notesCountOne": "{{count}} apunte",
     "notesCount": "{{count}} apuntes",
     "practice": "Practicar",
     "practiceTopic": "Practicar el tema {{number}}",
@@ -319,12 +320,10 @@
     "nextTopic": "Tema siguiente",
     "practiseReview": "Practicar solo estas ({{count}})",
     "materials": {
-      "title": "Temario oficial",
-      "upload": "Subir temario",
+      "upload": "Subir para todos",
       "uploadError": "No hemos podido subir algún PDF. Inténtalo de nuevo.",
-      "empty": "Todavía no hay temario para este tema.",
       "delete": "Eliminar {{title}}",
-      "deleteTitle": "Eliminar temario",
+      "deleteTitle": "Eliminar apunte compartido",
       "deleteMessage": "Se eliminará «{{title}}» para todos los usuarios, junto con sus subrayados y notas."
     }
   },

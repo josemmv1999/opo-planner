@@ -148,6 +148,21 @@ describe('SyllabusTopicStore', () => {
     expect(store.isAdmin()).toBe(true);
   });
 
+  it('shows as shared notes only the materials the user does not already have', () => {
+    const notes = [
+      { id: 1, title: 'tema  5', kind: 'pdf' as const, updatedAt: '2026-11-24', preview: null },
+    ];
+    const store = setup(() => of({ ...TOPIC, notes }));
+    store.load(5);
+    expect(store.sharedNotes()).toEqual([]);
+  });
+
+  it('turns a material into a shared note that opens the material', () => {
+    const store = setup(() => of(TOPIC));
+    store.load(5);
+    expect(store.sharedNotes()[0].link).toEqual(['/syllabus', 5, 'materials', 7]);
+  });
+
   it('uploads and deletes materials', () => {
     const store = setup(() => of(TOPIC));
     store.load(5);

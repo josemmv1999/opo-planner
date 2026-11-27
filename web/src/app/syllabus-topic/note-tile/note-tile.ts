@@ -22,7 +22,7 @@ import { startLoading } from '../../note/pdf-viewer/pdf-viewer';
     <a
       class="note-tile d-flex flex-column h-100"
       [class]="'note-tile--' + note().kind"
-      [routerLink]="['/syllabus', topicId(), 'notes', note().id]">
+      [routerLink]="link()">
       <span class="note-tile__preview d-block">
         <span class="note-tile__kind">{{ 'notes.kind.' + note().kind | translate }}</span>
         @switch (note().kind) {
@@ -138,8 +138,8 @@ import { startLoading } from '../../note/pdf-viewer/pdf-viewer';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NoteTile {
-  readonly note = input.required<TopicNote>();
-  readonly topicId = input.required<number>();
+  readonly note = input.required<Omit<TopicNote, 'id'>>();
+  readonly link = input.required<(string | number)[]>();
 
   private readonly pdfPreview = viewChild<ElementRef<HTMLCanvasElement>>('pdfPreview');
   #loadingTask: PDFDocumentLoadingTask | null = null;

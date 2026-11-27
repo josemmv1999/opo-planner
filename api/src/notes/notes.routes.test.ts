@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import { startTestServer } from '../testing.ts';
 
-const { request, signUp } = startTestServer();
+const { database, request, signUp } = startTestServer();
 
 let cookie: string;
 let other: string;
@@ -80,4 +80,22 @@ test('rejects files that are not PDFs or images', async () => {
 
 test('needs a session', async () => {
   assert.equal((await request('/api/notes?topicId=1')).status, 401);
+});
+
+test('counts shared materials as notes unless the user has their own copy', async () => {
+  const reader = await signUp('eva@example.com');
+  const share = database.prepare(
+    `INSERT INTO topic_materials (topic_id, title, file_name, mime_type, uploaded_at)
+      VALUES (?, ?, 'file', 'application/pdf', '2026-11-27')`,
+  );
+  share.run(3, 'Parte 1 - Cortes');
+  share.run(3, 'Parte 2 - Camaras');
+  await request('/api/notes/file?topicId=3&name=Parte%201%20-%20%20Cortes.pdf', {
+    method: 'POST',
+    cookie: reader,
+    body: '%PDF-1.4',
+    headers: { 'Content-Type': 'application/pdf' },
+  });
+
+  assert.deepEqual(await (await request('/api/notes/counts', { cookie: reader })).json(), { 3: 2 });
 });

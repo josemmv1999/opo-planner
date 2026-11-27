@@ -103,8 +103,12 @@ import { scoreBarClass } from '../../../common/utils/score-bar-class';
                   }
                   <span [class.text-primary]="topic.notesCount > 0">
                     {{
-                      (topic.notesCount ? 'syllabus.notesCount' : 'syllabus.noNotes')
-                        | translate: { count: topic.notesCount }
+                      (topic.notesCount === 1
+                        ? 'syllabus.notesCountOne'
+                        : topic.notesCount
+                          ? 'syllabus.notesCount'
+                          : 'syllabus.noNotes'
+                      ) | translate: { count: topic.notesCount }
                     }}
                   </span>
                 </span>

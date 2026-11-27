@@ -54,14 +54,23 @@ const toDetail = (row: NoteRow) => ({
 const kindOf = (mimeType: string): NoteRow['kind'] | null =>
   mimeType === 'application/pdf' ? 'pdf' : mimeType.startsWith('image/') ? 'image' : null;
 
+interface TitleRow {
+  topic_id: number;
+  title: string;
+}
+
+const toTitleKey = ({ topic_id, title }: TitleRow) =>
+  `${topic_id}:${title.replace(/\s+/g, ' ').trim().toLowerCase()}`;
+
 export const notesRoutes = (database: DatabaseSync, uploadsDir: string): Router => {
   mkdirSync(uploadsDir, { recursive: true });
   const listNotes = database.prepare(
     'SELECT * FROM notes WHERE user_id = ? AND topic_id = ? ORDER BY id',
   );
-  const countNotes = database.prepare(
-    'SELECT topic_id, COUNT(*) AS count FROM notes WHERE user_id = ? GROUP BY topic_id',
+  const listNoteTitles = database.prepare(
+    'SELECT topic_id, title, kind FROM notes WHERE user_id = ?',
   );
+  const listMaterialTitles = database.prepare('SELECT topic_id, title FROM topic_materials');
   const findNote = database.prepare('SELECT * FROM notes WHERE id = ? AND user_id = ?');
   const insertNote = database.prepare(
     `INSERT INTO notes (user_id, topic_id, title, kind, content, file_name, mime_type, updated_at)
@@ -72,6 +81,17 @@ export const notesRoutes = (database: DatabaseSync, uploadsDir: string): Router 
       WHERE id = ? AND user_id = ? AND kind = 'text' RETURNING *`,
   );
   const deleteNote = database.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?');
+
+  const countNotes = (userId: number) => {
+    const own = listNoteTitles.all(userId) as unknown as (TitleRow & { kind: string })[];
+    const ownPdfs = new Set(own.filter(({ kind }) => kind === 'pdf').map(toTitleKey));
+    const shared = (listMaterialTitles.all() as unknown as TitleRow[]).filter(
+      (material) => !ownPdfs.has(toTitleKey(material)),
+    );
+    const counts: Record<number, number> = {};
+    for (const { topic_id } of [...own, ...shared]) counts[topic_id] = (counts[topic_id] ?? 0) + 1;
+    return counts;
+  };
 
   const find = (id: unknown, userId: number) =>
     findNote.get(Number(id), userId) as NoteRow | undefined;
@@ -86,8 +106,7 @@ export const notesRoutes = (database: DatabaseSync, uploadsDir: string): Router 
       res.json(rows.map(toSummary));
     })
     .get('/counts', (_req, res: AuthenticatedResponse) => {
-      const rows = countNotes.all(res.locals.user.id) as { topic_id: number; count: number }[];
-      res.json(Object.fromEntries(rows.map(({ topic_id, count }) => [topic_id, count])));
+      res.json(countNotes(res.locals.user.id));
     })
     .get('/:id', (req, res: AuthenticatedResponse) => {
       const row = find(req.params['id'], res.locals.user.id);
